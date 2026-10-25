@@ -1,24 +1,59 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ScanBarcode } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useCatalog, useOwned } from "@/lib/data";
+import { ProgressBar } from "@/components/ProgressBar";
+import { Button } from "@/components/ui/button";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Cansdex — Your drink can collection" },
+      { name: "description", content: "Scan energy drink and soda cans, track your progress and complete every brand." },
+      { property: "og:title", content: "Cansdex — Your drink can collection" },
+      { property: "og:description", content: "Scan energy drink and soda cans, track your progress and complete every brand." },
+    ],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const { user } = useAuth();
+  const { data } = useCatalog();
+  const { data: owned } = useOwned();
+  const ownedSet = owned ?? new Map<string, number>();
+  const total = data?.cans.length ?? 0;
+  const have = data ? data.cans.filter((c) => ownedSet.has(c.id)).length : 0;
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="space-y-6">
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-black">CANS<span className="text-primary">DEX</span></h1>
+        {!user && <Link to="/auth"><Button size="sm" variant="secondary" className="rounded-full">Sign in</Button></Link>}
+      </header>
+
+      <section className="rounded-3xl border bg-card p-5">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Global collection</p>
+        <p className="mt-1 font-display text-5xl font-black tabular-nums">{have}<span className="text-2xl text-muted-foreground"> / {total}</span></p>
+        <div className="mt-4"><ProgressBar value={have} total={total} /></div>
+        <Link to="/scan"><Button className="mt-5 h-12 w-full rounded-xl font-bold shadow-glow"><ScanBarcode className="mr-1" />Scan a can</Button></Link>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-lg font-bold">Brands</h2>
+          <Link to="/brands" className="text-sm text-primary">See all</Link>
+        </div>
+        {data?.brands.map((b) => {
+          const list = data.cans.filter((c) => c.brand_id === b.id);
+          const n = list.filter((c) => ownedSet.has(c.id)).length;
+          return (
+            <Link key={b.id} to="/brands/$slug" params={{ slug: b.slug }} className="block rounded-2xl border bg-card p-4 transition-transform active:scale-[0.98]">
+              <ProgressBar label={b.name} value={n} total={list.length} color={b.color} />
+            </Link>
+          );
+        })}
+      </section>
     </div>
   );
 }
