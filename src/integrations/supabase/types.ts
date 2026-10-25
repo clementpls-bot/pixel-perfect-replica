@@ -14,7 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brands: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      cans: {
+        Row: {
+          barcode: string
+          brand_id: string
+          category: Database["public"]["Enums"]["can_category"]
+          color_primary: string
+          color_secondary: string
+          created_at: string
+          description: string | null
+          flavour: string | null
+          historical_context: string | null
+          id: string
+          image_url: string | null
+          name: string
+          release_year: number | null
+        }
+        Insert: {
+          barcode: string
+          brand_id: string
+          category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          release_year?: number | null
+        }
+        Update: {
+          barcode?: string
+          brand_id?: string
+          category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          release_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cans_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_likes: {
+        Row: {
+          comment_id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          body: string
+          can_id: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          can_id: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          can_id?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          can_id: string
+          design: number | null
+          taste: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_id: string
+          design?: number | null
+          taste?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_id?: string
+          design?: number | null
+          taste?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_cans: {
+        Row: {
+          can_id: string
+          first_scanned_at: string
+          id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          can_id: string
+          first_scanned_at?: string
+          id?: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          can_id?: string
+          first_scanned_at?: string
+          id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cans_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +259,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      can_category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +386,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      can_category: ["Energy Drink", "Soda", "Soft Drink", "Limited Edition"],
+    },
   },
 } as const
