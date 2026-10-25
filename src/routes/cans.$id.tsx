@@ -53,14 +53,14 @@ function CanPage() {
   const mine = ratings.data?.find((r) => r.user_id === user?.id);
 
   const rate = async (k: "design" | "taste", v: number) => {
-    if (!user) return toast("Sign in to rate");
-    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: mine?.design ?? null, taste: mine?.taste ?? null, [k]: v, updated_at: new Date().toISOString() });
+    if (!user) { toast("Sign in to rate"); return; }
+    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
 
   const changeQty = async (d: number) => {
-    if (!user) return toast("Sign in to collect");
+    if (!user) { toast("Sign in to collect"); return; }
     await addCan(can.id, d);
   };
 
@@ -123,11 +123,11 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
   const post = async () => {
     if (!user || !body.trim()) return;
     const { error } = await supabase.from("comments").insert({ can_id: canId, user_id: user.id, body: body.trim(), parent_id: replyTo });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setBody(""); setReplyTo(null); refresh();
   };
   const like = async (c: Comment) => {
-    if (!user) return toast("Sign in to like");
+    if (!user) { toast("Sign in to like"); return; }
     const liked = c.comment_likes.some((l) => l.user_id === user.id);
     if (liked) await supabase.from("comment_likes").delete().eq("comment_id", c.id).eq("user_id", user.id);
     else await supabase.from("comment_likes").insert({ comment_id: c.id, user_id: user.id });

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type { Can } from "@/lib/data";
 
 /** Stylised can rendered from its dominant colours (used when no photo exists). */
-export function CanArt({ can, brandName, missing, className }: { can: Can; brandName?: string; missing?: boolean; className?: string }) {
+export function CanArt({ can, brandName, missing, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; className?: string | undefined }) {
   const style = { "--c1": can.color_primary, "--c2": can.color_secondary } as React.CSSProperties;
   return (
     <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] transition-all duration-500", missing && "grayscale opacity-40", className)} style={style}>
