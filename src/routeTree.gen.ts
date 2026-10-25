@@ -13,8 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
 import { Route as BrandsIndexRouteImport } from './routes/brands.index'
 import { Route as BrandsSlugRouteImport } from './routes/brands.$slug'
+import { Route as CansIdRouteImport } from './routes/cans.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,6 +38,16 @@ const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   path: '/collection',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedScanRoute = AuthenticatedScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const BrandsIndexRoute = BrandsIndexRouteImport.update({
   id: '/brands/',
   path: '/brands/',
@@ -45,19 +58,30 @@ const BrandsSlugRoute = BrandsSlugRouteImport.update({
   path: '/brands/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CansIdRoute = CansIdRouteImport.update({
+  id: '/cans/$id',
+  path: '/cans/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/collection': typeof AuthenticatedCollectionRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/scan': typeof AuthenticatedScanRoute
   '/brands/$slug': typeof BrandsSlugRoute
+  '/cans/$id': typeof CansIdRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/collection': typeof AuthenticatedCollectionRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/scan': typeof AuthenticatedScanRoute
   '/brands/$slug': typeof BrandsSlugRoute
+  '/cans/$id': typeof CansIdRoute
   '/brands': typeof BrandsIndexRoute
 }
 export interface FileRoutesById {
@@ -66,21 +90,43 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/scan': typeof AuthenticatedScanRoute
   '/brands/$slug': typeof BrandsSlugRoute
+  '/cans/$id': typeof CansIdRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/collection' | '/brands/$slug' | '/brands/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/collection'
+    | '/profile'
+    | '/scan'
+    | '/brands/$slug'
+    | '/cans/$id'
+    | '/brands/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/collection' | '/brands/$slug' | '/brands'
+  to:
+    | '/'
+    | '/auth'
+    | '/collection'
+    | '/profile'
+    | '/scan'
+    | '/brands/$slug'
+    | '/cans/$id'
+    | '/brands'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/collection'
+    | '/_authenticated/profile'
+    | '/_authenticated/scan'
     | '/brands/$slug'
+    | '/cans/$id'
     | '/brands/'
   fileRoutesById: FileRoutesById
 }
@@ -89,6 +135,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BrandsSlugRoute: typeof BrandsSlugRoute
+  CansIdRoute: typeof CansIdRoute
   BrandsIndexRoute: typeof BrandsIndexRoute
 }
 
@@ -122,6 +169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCollectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scan': {
+      id: '/_authenticated/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof AuthenticatedScanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/brands/': {
       id: '/brands/'
       path: '/brands'
@@ -136,15 +197,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrandsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cans/$id': {
+      id: '/cans/$id'
+      path: '/cans/$id'
+      fullPath: '/cans/$id'
+      preLoaderRoute: typeof CansIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedScanRoute: typeof AuthenticatedScanRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedScanRoute: AuthenticatedScanRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -155,6 +227,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BrandsSlugRoute: BrandsSlugRoute,
+  CansIdRoute: CansIdRoute,
   BrandsIndexRoute: BrandsIndexRoute,
 }
 export const routeTree = rootRouteImport
