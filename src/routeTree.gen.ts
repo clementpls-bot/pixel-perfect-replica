@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
+import { Route as AuthenticatedAdminSubmissionsRouteImport } from './routes/_authenticated/admin-submissions'
 import { Route as BrandsIndexRouteImport } from './routes/brands.index'
 import { Route as BrandsSlugRouteImport } from './routes/brands.$slug'
 import { Route as CansIdRouteImport } from './routes/cans.$id'
@@ -48,6 +49,11 @@ const AuthenticatedScanRoute = AuthenticatedScanRouteImport.update({
   path: '/scan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminSubmissionsRoute = AuthenticatedAdminSubmissionsRouteImport.update({
+  id: '/admin-submissions',
+  path: '/admin-submissions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const BrandsIndexRoute = BrandsIndexRouteImport.update({
   id: '/brands/',
   path: '/brands/',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
+  '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/brands/': typeof BrandsIndexRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
+  '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/brands': typeof BrandsIndexRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
+  '/_authenticated/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/brands/': typeof BrandsIndexRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/profile'
     | '/scan'
+    | '/admin-submissions'
     | '/brands/$slug'
     | '/cans/$id'
     | '/brands/'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/profile'
     | '/scan'
+    | '/admin-submissions'
     | '/brands/$slug'
     | '/cans/$id'
     | '/brands'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated/collection'
     | '/_authenticated/profile'
     | '/_authenticated/scan'
+    | '/_authenticated/admin-submissions'
     | '/brands/$slug'
     | '/cans/$id'
     | '/brands/'
@@ -183,6 +195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-submissions': {
+      id: '/_authenticated/admin-submissions'
+      path: '/admin-submissions'
+      fullPath: '/admin-submissions'
+      preLoaderRoute: typeof AuthenticatedAdminSubmissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/brands/': {
       id: '/brands/'
       path: '/brands'
@@ -211,12 +230,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
+  AuthenticatedAdminSubmissionsRoute: typeof AuthenticatedAdminSubmissionsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,
+  AuthenticatedAdminSubmissionsRoute: AuthenticatedAdminSubmissionsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
