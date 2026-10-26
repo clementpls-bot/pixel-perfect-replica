@@ -45,7 +45,7 @@ function Scan() {
   const catalogRef = useRef(data);
   catalogRef.current = data;
 
-  const handle = async (rawCode: string) => {
+  const handle = async (rawCode: string, source: "camera" | "manual" = "camera") => {
     const code = rawCode.trim();
     if (busy.current || !catalogRef.current || !code) return;
     busy.current = true;
@@ -53,6 +53,11 @@ function Scan() {
     if (!can) {
       setUnknownBarcode(code);
       setManual(code);
+      busy.current = false;
+      return;
+    }
+    if (source !== "camera") {
+      toast.error("Scan the barcode with your camera to unlock this can for the first time.");
       busy.current = false;
       return;
     }
@@ -76,7 +81,7 @@ function Scan() {
         const reader = new BrowserMultiFormatReader();
         if (cancelled || !videoRef.current) return;
         controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (res) => {
-          if (res) void handle(res.getText());
+          if (res) void handle(res.getText(), "camera");
         });
       } catch {
         setCamError(true);
@@ -182,7 +187,7 @@ function Scan() {
     const brand = data?.brands.find((b) => b.id === found.can.brand_id);
     return (
       <div className="pt-6 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "New can unlocked!" : "Duplicate added"}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "New can unlocked!" : "Already unlocked · quantity unchanged"}</p>
         <div className="mx-auto my-8 w-32 animate-pop-in"><CanArt can={found.can} brandName={brand?.name} /></div>
         <h1 className="text-2xl font-black">{found.can.name}</h1>
         <p className="text-muted-foreground">{brand?.name} · {found.can.release_year}</p>
@@ -276,7 +281,7 @@ function Scan() {
   return (
     <div>
       <h1 className="text-2xl font-black">Scan</h1>
-      <p className="text-sm text-muted-foreground">Point at the barcode on the can.</p>
+      <p className="text-sm text-muted-foreground">Scan the barcode with your phone camera to unlock a can the first time. Scanning it again will not change its quantity.</p>
       <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
         <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
         {camError ? (
@@ -288,7 +293,7 @@ function Scan() {
           </>
         )}
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); void handle(manual, "manual"); }} className="mt-4 flex gap-2">
         <Input inputMode="numeric" placeholder="Enter barcode manually" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
         <Button type="submit" className="h-12 rounded-xl font-bold">Add</Button>
       </form>
