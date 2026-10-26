@@ -22,7 +22,6 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
   const completeBrandCount = brands.filter((brand) => brandComplete(brand.id)).length;
   const monster = brands.find((brand) => brand.slug === "monster");
   const redBull = brands.find((brand) => brand.slug === "red-bull");
-  const completion = cans.length === 0 ? 0 : owned / cans.length;
   const hasVintageCan = ownedYears.some((year) => year < 2000);
   const hasRecentCan = ownedYears.some((year) => year >= 2025);
 
@@ -53,10 +52,6 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
     { id: "decades-3", title: "Across the Decades", description: "Own cans from 3 different decades", icon: "📆", earned: ownedDecades.size >= 3 },
     { id: "vintage", title: "Vintage Hunter", description: "Own a can released before 2000", icon: "📻", earned: hasVintageCan },
     { id: "recent", title: "Fresh Off the Line", description: "Own a can released in 2025 or later", icon: "🆕", earned: hasRecentCan },
-    { id: "catalog-25", title: "Catalog Starter", description: "Collect 25% of the full catalog", icon: "📈", earned: completion >= 0.25 },
-    { id: "catalog-50", title: "Halfway There", description: "Collect 50% of the full catalog", icon: "🚀", earned: completion >= 0.5 },
-    { id: "catalog-75", title: "Almost Complete", description: "Collect 75% of the full catalog", icon: "🔥", earned: completion >= 0.75 },
-    { id: "catalog-100", title: "Catalog Completionist", description: "Collect every can in the catalog", icon: "💯", earned: cans.length > 0 && owned >= cans.length },
   ];
 }
 
