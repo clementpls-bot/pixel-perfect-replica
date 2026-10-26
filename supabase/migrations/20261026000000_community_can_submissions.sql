@@ -5,7 +5,7 @@ create table if not exists public.can_submissions (
   submitted_by uuid not null references auth.users(id) on delete cascade,
   barcode text not null check (barcode ~ '^[0-9]{8,14}$'),
   name text not null check (char_length(trim(name)) between 2 and 120),
-  brand_id uuid references public.brands(id) on delete set null,
+  brand_id uuid not null references public.brands(id) on delete restrict,
   flavour text,
   release_year integer check (release_year is null or release_year between 1900 and extract(year from now())::integer + 2),
   category public.can_category not null default 'Energy Drink',
@@ -29,7 +29,15 @@ alter table public.can_submissions enable row level security;
 
 create policy "Users can submit cans as pending"
   on public.can_submissions for insert to authenticated
-  with check (submitted_by = (select auth.uid()) and status = 'pending' and reviewed_by is null and reviewed_at is null);
+  with check (
+    submitted_by = (select auth.uid())
+    and status = 'pending'
+    and reviewed_by is null
+    and reviewed_at is null
+    and position('/storage/v1/object/public/can-submissions/' || (select auth.uid())::text || '/' in image_url) > 0
+    and (back_image_url is null or position('/storage/v1/object/public/can-submissions/' || (select auth.uid())::text || '/' in back_image_url) > 0)
+    and (barcode_image_url is null or position('/storage/v1/object/public/can-submissions/' || (select auth.uid())::text || '/' in barcode_image_url) > 0)
+  );
 
 create policy "Users can read their own can submissions"
   on public.can_submissions for select to authenticated
