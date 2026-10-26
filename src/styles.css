@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Unbounded", system-ui, sans-serif;
+  --font-display: "Lexend", system-ui, sans-serif;
   --font-sans: "Manrope", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -37,39 +37,39 @@
 }
 
 :root {
-  --radius: 1rem;
-  --background: oklch(0.15 0.012 260);
-  --foreground: oklch(0.97 0.005 260);
-  --card: oklch(0.2 0.015 260);
-  --card-foreground: oklch(0.97 0.005 260);
-  --popover: oklch(0.2 0.015 260);
-  --popover-foreground: oklch(0.97 0.005 260);
-  --primary: oklch(0.88 0.21 128);
-  --primary-foreground: oklch(0.16 0.03 130);
-  --secondary: oklch(0.26 0.018 260);
-  --secondary-foreground: oklch(0.95 0.005 260);
-  --muted: oklch(0.24 0.015 260);
-  --muted-foreground: oklch(0.68 0.02 260);
-  --accent: oklch(0.72 0.19 35);
-  --accent-foreground: oklch(0.15 0.02 40);
-  --gold: oklch(0.83 0.15 85);
-  --destructive: oklch(0.65 0.22 25);
+  --radius: 1.25rem;
+  --background: oklch(0.975 0.008 75);
+  --foreground: oklch(0.22 0.02 40);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.02 40);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.02 40);
+  --primary: oklch(0.66 0.21 38);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.94 0.02 60);
+  --secondary-foreground: oklch(0.3 0.03 40);
+  --muted: oklch(0.95 0.012 70);
+  --muted-foreground: oklch(0.52 0.025 50);
+  --accent: oklch(0.93 0.06 55);
+  --accent-foreground: oklch(0.45 0.16 38);
+  --gold: oklch(0.8 0.16 80);
+  --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.88 0.21 128);
-  --gradient-progress: linear-gradient(90deg, var(--primary), oklch(0.85 0.17 160));
-  --glow-primary: 0 0 24px oklch(0.88 0.21 128 / 35%);
+  --border: oklch(0.9 0.015 60);
+  --input: oklch(0.9 0.015 60);
+  --ring: oklch(0.66 0.21 38);
+  --gradient-progress: linear-gradient(90deg, oklch(0.66 0.21 38), oklch(0.78 0.17 65));
+  --glow-primary: 0 8px 24px oklch(0.66 0.21 38 / 30%);
 }
 
 @layer base {
   * { border-color: var(--color-border); }
-  html { color-scheme: dark; }
+  html { color-scheme: light; }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image: radial-gradient(circle at 50% -20%, oklch(0.88 0.21 128 / 8%), transparent 50%);
+    
     background-attachment: fixed;
   }
   h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
