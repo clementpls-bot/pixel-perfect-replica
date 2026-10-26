@@ -92,7 +92,7 @@ function CanPage() {
         <div className="flex items-center gap-3">
           <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} aria-label="Decrease quantity" onClick={() => void changeQty(-1)}><Minus /></Button>
           <span className="w-6 text-center font-display text-lg font-black tabular-nums">{qty}</span>
-          {qty === 0 ? <Link to="/_authenticated/scan"><Button size="icon" className="rounded-full" aria-label="Scan to unlock this can"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Increase quantity" onClick={() => void changeQty(1)}><Plus /></Button>}
+          {qty === 0 ? <Link to="/scan"><Button size="icon" className="rounded-full" aria-label="Scan to unlock this can"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Increase quantity" onClick={() => void changeQty(1)}><Plus /></Button>}
         </div>
       </div>
 
