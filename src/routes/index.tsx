@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanBarcode } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
+import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
