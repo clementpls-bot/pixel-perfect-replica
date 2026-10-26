@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { useCatalog } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/admin-submissions")({
   head: () => ({ meta: [{ title: "Can submissions review — Cansdex" }] }),
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin-submissions")({
 
 function AdminSubmissions() {
   const { user } = useAuth();
+  const { data: catalog } = useCatalog();
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
   const isAdmin = user?.app_metadata?.role === "admin";
@@ -108,7 +110,7 @@ function AdminSubmissions() {
               <div><dt className="text-xs text-muted-foreground">Flavour</dt><dd>{submission.flavour || "—"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Release year</dt><dd>{submission.release_year ?? "—"}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Category</dt><dd>{submission.category}</dd></div>
-              <div><dt className="text-xs text-muted-foreground">Brand ID</dt><dd className="break-all text-xs">{submission.brand_id || "Unknown"}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Brand</dt><dd>{catalog?.brands.find((brand) => brand.id === submission.brand_id)?.name ?? "Unknown brand"}</dd></div>
               {submission.description && <div className="col-span-2"><dt className="text-xs text-muted-foreground">Details</dt><dd className="whitespace-pre-wrap">{submission.description}</dd></div>}
               {submission.review_notes && <div className="col-span-2"><dt className="text-xs text-muted-foreground">Review note</dt><dd>{submission.review_notes}</dd></div>}
             </dl>
