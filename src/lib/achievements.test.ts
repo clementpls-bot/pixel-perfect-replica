@@ -15,7 +15,7 @@ describe("achievements", () => {
   it("defines 26 unique achievements", () => {
     const achievements = getAll([]);
     expect(achievements).toHaveLength(26);
-    expect(new Set(achievements.map((a) => a.id)).size).toBe(30);
+    expect(new Set(achievements.map((a) => a.id)).size).toBe(26);
   });
 
   it("first scan unlocks after one can", () => {
