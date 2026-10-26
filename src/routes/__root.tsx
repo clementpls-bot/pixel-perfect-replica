@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { BottomNav } from "@/components/BottomNav";
+import { BatOverlay } from "@/components/BatOverlay";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -140,6 +141,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <BottomNav />
+        <BatOverlay />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

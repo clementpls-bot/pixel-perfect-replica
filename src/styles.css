@@ -27,8 +27,6 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-gold: var(--gold);
   --color-border: var(--border);
   --color-input: var(--input);
@@ -69,7 +67,6 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    
     background-attachment: fixed;
   }
   h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
@@ -90,3 +87,40 @@
   0%, 100% { top: 10%; } 50% { top: 85%; }
 }
 @utility animate-scan-line { animation: scan-line 2.2s ease-in-out infinite; }
+
+/* Subtle Halloween bats: decorative only, with no impact on interaction. */
+.bat-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 40;
+  contain: layout paint;
+}
+.bat {
+  position: absolute;
+  left: -52px;
+  width: 18px;
+  height: 10px;
+  fill: #29211f;
+  opacity: 0;
+  animation: bat-fly 31s linear infinite;
+  will-change: transform;
+}
+.bat-one { top: 17%; animation-delay: -7s; animation-duration: 34s; }
+.bat-two { top: 43%; width: 14px; height: 7px; animation-delay: -21s; animation-duration: 39s; opacity: 0; }
+.bat-three { top: 72%; width: 16px; height: 8px; animation-delay: -13s; animation-duration: 36s; }
+
+@keyframes bat-fly {
+  0% { transform: translate3d(-5vw, 0, 0) rotate(-5deg); opacity: 0; }
+  5% { opacity: 0.32; }
+  20% { transform: translate3d(20vw, -9px, 0) rotate(4deg); }
+  40% { transform: translate3d(45vw, 8px, 0) rotate(-3deg); }
+  60% { transform: translate3d(70vw, -5px, 0) rotate(5deg); }
+  90% { opacity: 0.28; }
+  100% { transform: translate3d(110vw, 3px, 0) rotate(-4deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bat-overlay { display: none; }
+}
