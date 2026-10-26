@@ -38,21 +38,56 @@ export function useOwned() {
   });
 }
 
+/** Scanning unlocks a can once; scanning it again never increases its quantity. */
 export function useAddCan() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  return async (canId: string, delta = 1) => {
+  return async (canId: string) => {
     if (!user) throw new Error("Sign in first");
-    const { data: existing } = await supabase.from("user_cans").select("id,quantity").eq("can_id", canId).maybeSingle();
-    if (existing) {
-      const q = existing.quantity + delta;
-      if (q <= 0) await supabase.from("user_cans").delete().eq("id", existing.id);
-      else await supabase.from("user_cans").update({ quantity: q }).eq("id", existing.id);
-    } else if (delta > 0) {
-      const { error } = await supabase.from("user_cans").insert({ can_id: canId, user_id: user.id, quantity: delta });
+    const { data: existing, error: lookupError } = await supabase
+      .from("user_cans").select("id").eq("can_id", canId).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (existing) return false;
+
+    const { error } = await supabase.from("user_cans").insert({
+      can_id: canId, user_id: user.id, quantity: 1,
+    });
+    // A concurrent scan may have inserted the same can. Don't turn it into a quantity increment.
+    if (error) {
+      if (error.code === "23505") {
+        await qc.invalidateQueries({ queryKey: ["owned", user.id] });
+        return false;
+      }
+      throw error;
+    }
+    await qc.invalidateQueries({ queryKey: ["owned", user.id] });
+    return true;
+  };
+}
+
+/** Quantity changes are available only after a can has been unlocked by scanning. */
+export function useAdjustCanQuantity() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return async (canId: string, delta: 1 | -1) => {
+    if (!user) throw new Error("Sign in first");
+    const { data: existing, error: lookupError } = await supabase
+      .from("user_cans").select("id,quantity").eq("can_id", canId).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (!existing) throw new Error("Scan this can first to unlock it in your collection.");
+
+    if (delta === 1) {
+      const { error } = await supabase.from("user_cans")
+        .update({ quantity: existing.quantity + 1 }).eq("id", existing.id);
+      if (error) throw error;
+    } else if (existing.quantity <= 1) {
+      const { error } = await supabase.from("user_cans").delete().eq("id", existing.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from("user_cans")
+        .update({ quantity: existing.quantity - 1 }).eq("id", existing.id);
       if (error) throw error;
     }
-    await qc.invalidateQueries({ queryKey: ["owned"] });
-    return !existing;
+    await qc.invalidateQueries({ queryKey: ["owned", user.id] });
   };
 }
