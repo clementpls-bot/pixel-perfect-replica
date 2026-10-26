@@ -87,6 +87,7 @@ export interface FileRoutesByTo {
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
+  '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/brands': typeof BrandsIndexRoute
@@ -123,6 +124,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/profile'
     | '/scan'
+    | '/admin-submissions'
     | '/brands/$slug'
     | '/cans/$id'
     | '/brands'
