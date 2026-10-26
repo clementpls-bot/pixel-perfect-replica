@@ -142,7 +142,7 @@ function Scan() {
         submitted_by: user.id,
         barcode: unknownBarcode,
         name: name.trim(),
-        brand_id: brandId || null,
+        brand_id: brandId,
         flavour: flavour.trim() || null,
         release_year: releaseYear ? Number(releaseYear) : null,
         category,
@@ -220,9 +220,9 @@ function Scan() {
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Monster Ultra Violet" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="proposal-brand" className="text-sm font-semibold">Brand</label>
-            <select id="proposal-brand" value={brandId} onChange={(e) => setBrandId(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
-              <option value="">Unknown / not listed</option>
+            <label htmlFor="proposal-brand" className="text-sm font-semibold">Brand *</label>
+            <select id="proposal-brand" required value={brandId} onChange={(e) => setBrandId(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+              <option value="">Choose a brand</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
             </select>
           </div>
