@@ -20,7 +20,16 @@ function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   if (!data || !owned) return null;
-  const mine = data.cans.filter((c) => owned.has(c.id));
+
+  const mine = data.cans
+    .filter((can) => owned.has(can.id))
+    .sort((a, b) => {
+      const quantityDifference = (owned.get(b.id) ?? 0) - (owned.get(a.id) ?? 0);
+      if (quantityDifference !== 0) return quantityDifference;
+      const brandDifference = (data.brands.find((brand) => brand.id === a.brand_id)?.name ?? "")
+        .localeCompare(data.brands.find((brand) => brand.id === b.brand_id)?.name ?? "");
+      return brandDifference || a.name.localeCompare(b.name);
+    });
   const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
   return (
@@ -36,18 +45,23 @@ function Collection() {
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3">
-          {mine.map((c, i) => (
-            <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
-              className="group relative rounded-3xl p-[2px] transition-transform duration-300 hover:-translate-y-1 hover:rotate-[-1deg] active:scale-95 animate-pop-in"
-              style={{ background: `linear-gradient(140deg, ${c.color_primary}, ${c.color_secondary})`, animationDelay: `${i * 40}ms` }}>
-              <div className="relative h-full rounded-[calc(1.5rem-2px)] bg-card p-4">
-                <span className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-xs font-black text-primary-foreground tabular-nums">×{owned.get(c.id)}</span>
-                <div className="py-2"><CanArt can={c} brandName={brandName(c.brand_id)} className="max-w-[70px] transition-transform duration-500 group-hover:scale-110" /></div>
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{brandName(c.brand_id)}</p>
-                <p className="line-clamp-2 text-sm font-bold leading-tight">{c.name}</p>
-              </div>
-            </Link>
-          ))}
+          {mine.map((c, i) => {
+            const quantity = owned.get(c.id) ?? 0;
+            return (
+              <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
+                className="group relative rounded-3xl p-[2px] transition-transform duration-300 hover:-translate-y-1 hover:rotate-[-1deg] active:scale-95 animate-pop-in"
+                style={{ background: `linear-gradient(140deg, ${c.color_primary}, ${c.color_secondary})`, animationDelay: `${i * 40}ms` }}>
+                <div className="relative h-full rounded-[calc(1.5rem-2px)] bg-card p-4">
+                  <span aria-label={`${quantity} exemplaires`} className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-xs font-black text-primary-foreground tabular-nums">
+                    ×{quantity} ex.
+                  </span>
+                  <div className="py-2"><CanArt can={c} brandName={brandName(c.brand_id)} className="max-w-[70px] transition-transform duration-500 group-hover:scale-110" /></div>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{brandName(c.brand_id)}</p>
+                  <p className="line-clamp-2 text-sm font-bold leading-tight">{c.name}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
