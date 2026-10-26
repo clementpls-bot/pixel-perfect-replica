@@ -29,7 +29,24 @@ function Profile() {
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
-    queryFn: async () => (await supabase.from("profiles").select("*").eq("id", user!.id).single()).data,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const { data: comments, isLoading: commentsLoading, error: commentsError } = useQuery({
+    queryKey: ["my-comments", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("comments")
+        .select("id,body,created_at,can_id")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
   });
   if (!data || !owned) return null;
 
@@ -67,7 +84,7 @@ function Profile() {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        {[["Unique", ownedSet.size], ["Copies", totalCopies], ["Complete", `${pct(ownedSet.size, data.cans.length)}%`]].map(([l, v]) => (
+        {[[ "Unique", ownedSet.size ], [ "Copies", totalCopies ], [ "Complete", `${pct(ownedSet.size, data.cans.length)}%` ]].map(([l, v]) => (
           <div key={l} className="rounded-2xl border bg-card p-3 text-center">
             <p className="font-display text-2xl font-black tabular-nums">{v}</p>
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{l}</p>
@@ -94,6 +111,35 @@ function Profile() {
       <section className="space-y-3">
         <h2 className="font-bold">Progress by brand</h2>
         {brandStats.map((b) => <ProgressBar key={b.id} label={b.name} value={b.have} total={b.total} color={b.color} />)}
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-bold">My comments</h2>
+          <span className="text-xs text-muted-foreground">{comments?.length ?? 0}</span>
+        </div>
+        {commentsLoading ? (
+          <p className="text-sm text-muted-foreground">Loading your comments…</p>
+        ) : commentsError ? (
+          <p className="text-sm text-destructive">Unable to load your comments.</p>
+        ) : !comments?.length ? (
+          <p className="rounded-xl border p-4 text-sm text-muted-foreground">You haven't posted any comments yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {comments.map((comment) => {
+              const can = data.cans.find((item) => item.id === comment.can_id);
+              return (
+                <article key={comment.id} className="rounded-2xl border bg-card p-4">
+                  <p className="whitespace-pre-wrap text-sm">{comment.body}</p>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+                    {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">On {can.name} →</Link> : <span>Can</span>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );
