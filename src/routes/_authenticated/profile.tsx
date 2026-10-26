@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +61,10 @@ function Profile() {
         </div>
         <Button size="icon" variant="ghost" onClick={signOut} aria-label="Sign out"><LogOut /></Button>
       </header>
+
+      {user?.app_metadata?.role === "admin" && (
+        <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Review community can submissions →</Link>
+      )}
 
       <div className="grid grid-cols-3 gap-3">
         {[["Unique", ownedSet.size], ["Copies", totalCopies], ["Complete", `${pct(ownedSet.size, data.cans.length)}%`]].map(([l, v]) => (
