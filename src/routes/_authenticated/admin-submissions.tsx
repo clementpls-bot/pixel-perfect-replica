@@ -80,7 +80,13 @@ function AdminSubmissions() {
       {error && <p className="text-sm text-destructive">Could not load submissions: {error.message}</p>}
       {!isLoading && !error && submissions?.length === 0 && <div className="rounded-2xl border bg-card p-6 text-center text-sm text-muted-foreground">No submissions yet.</div>}
       <div className="space-y-4">
-        {submissions?.map((submission) => (
+        {submissions?.map((submission) => {
+          const photos = [
+            { label: "Front", url: submission.image_url },
+            { label: "Back", url: submission.back_image_url },
+            { label: "Barcode", url: submission.barcode_image_url },
+          ];
+          return (
           <article key={submission.id} className="overflow-hidden rounded-2xl border bg-card">
             <div className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0">
@@ -91,7 +97,7 @@ function AdminSubmissions() {
               <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase ${submission.status === "pending" ? "bg-amber-500/10 text-amber-600" : submission.status === "approved" ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>{submission.status}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 px-4">
-              {[["Front", submission.image_url], ["Back", submission.back_image_url], ["Barcode", submission.barcode_image_url]].map(([label, url]) => (
+              {photos.map(({ label, url }) => (
                 <div key={label} className="min-w-0">
                   {url ? <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={`${label} photo of ${submission.name}`} className="aspect-[3/4] w-full rounded-xl border object-cover" /></a> : <div className="flex aspect-[3/4] items-center justify-center rounded-xl border border-dashed text-[10px] text-muted-foreground">No {label.toLowerCase()} photo</div>}
                   <p className="mt-1 text-center text-[10px] text-muted-foreground">{label}</p>
@@ -113,7 +119,8 @@ function AdminSubmissions() {
               </div>
             )}
           </article>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
