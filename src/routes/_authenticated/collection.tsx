@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCatalog, useOwned } from "@/lib/data";
+import { toast } from "sonner";
+import { Minus, Plus } from "lucide-react";
+import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,8 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  const adjustQuantity = useAdjustCanQuantity();
+  const [busyCan, setBusyCan] = useState<string | null>(null);
   if (!data || !owned) return null;
 
   const mine = data.cans
@@ -32,9 +37,25 @@ function Collection() {
     });
   const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
+  const changeQuantity = async (canId: string, delta: 1 | -1) => {
+    if (busyCan) return;
+    setBusyCan(canId);
+    try {
+      await adjustQuantity(canId, delta);
+      if (delta === -1 && (owned.get(canId) ?? 0) === 1) {
+        toast.success("Can removed from your binder.");
+      }
+    } catch (error) {
+      toast.error((error as Error).message || "Unable to update quantity.");
+    } finally {
+      setBusyCan(null);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-black">My binder</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Scan a can once to unlock it. Then use + and − to manage how many you own.</p>
       <div className="mt-4 rounded-2xl border bg-card p-4">
         <ProgressBar label="Global collection" value={mine.length} total={data.cans.length} />
       </div>
@@ -48,18 +69,26 @@ function Collection() {
           {mine.map((c, i) => {
             const quantity = owned.get(c.id) ?? 0;
             return (
-              <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
-                className="group relative rounded-3xl p-[2px] transition-transform duration-300 hover:-translate-y-1 hover:rotate-[-1deg] active:scale-95 animate-pop-in"
+              <article key={c.id}
+                className="group relative rounded-3xl p-[2px] transition-transform duration-300 hover:-translate-y-1 animate-pop-in"
                 style={{ background: `linear-gradient(140deg, ${c.color_primary}, ${c.color_secondary})`, animationDelay: `${i * 40}ms` }}>
-                <div className="relative h-full rounded-[calc(1.5rem-2px)] bg-card p-4">
-                  <span aria-label={`${quantity} exemplaires`} className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-xs font-black text-primary-foreground tabular-nums">
-                    ×{quantity} ex.
-                  </span>
-                  <div className="py-2"><CanArt can={c} brandName={brandName(c.brand_id)} className="max-w-[70px] transition-transform duration-500 group-hover:scale-110" /></div>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{brandName(c.brand_id)}</p>
-                  <p className="line-clamp-2 text-sm font-bold leading-tight">{c.name}</p>
+                <div className="relative h-full rounded-[calc(1.5rem-2px)] bg-card p-3 sm:p-4">
+                  <Link to="/cans/$id" params={{ id: c.id }} className="block">
+                    <div className="py-2"><CanArt can={c} brandName={brandName(c.brand_id)} className="max-w-[70px] transition-transform duration-500 group-hover:scale-110" /></div>
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{brandName(c.brand_id)}</p>
+                    <p className="line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
+                  </Link>
+                  <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-muted/60 p-1.5">
+                    <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
+                      aria-label={`Remove one ${c.name}`} disabled={busyCan !== null}
+                      onClick={() => void changeQuantity(c.id, -1)}><Minus className="h-4 w-4" /></Button>
+                    <span className="min-w-0 text-center text-xs font-black tabular-nums">×{quantity}</span>
+                    <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
+                      aria-label={`Add one ${c.name}`} disabled={busyCan !== null}
+                      onClick={() => void changeQuantity(c.id, 1)}><Plus className="h-4 w-4" /></Button>
+                  </div>
                 </div>
-              </Link>
+              </article>
             );
           })}
         </div>
