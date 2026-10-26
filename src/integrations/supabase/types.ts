@@ -262,7 +262,7 @@ export type Database = {
           back_image_url?: string | null
           barcode?: string
           barcode_image_url?: string | null
-          brand_id: string
+          brand_id?: string
           category?: Database["public"]["Enums"]["can_category"]
           created_at?: string
           description?: string | null
