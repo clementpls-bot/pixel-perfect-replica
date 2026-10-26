@@ -31,6 +31,7 @@ function Scan() {
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
   const [manual, setManual] = useState("");
   const [camError, setCamError] = useState(false);
+  const [cameraAttempt, setCameraAttempt] = useState(0);
   const [unknownBarcode, setUnknownBarcode] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,21 +76,39 @@ function Scan() {
     if (found || unknownBarcode || submitted) return;
     let controls: { stop: () => void } | undefined;
     let cancelled = false;
+    setCamError(false);
     (async () => {
       try {
         const { BrowserMultiFormatReader } = await import("@zxing/browser");
         const reader = new BrowserMultiFormatReader();
-        if (cancelled || !videoRef.current) return;
-        controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (res) => {
-          if (res) void handle(res.getText(), "camera");
-        });
-      } catch {
-        setCamError(true);
+        const video = videoRef.current;
+        if (cancelled || !video) return;
+        // Prefer the rear camera on phones; allow browser fallback on laptops.
+        const started = await reader.decodeFromConstraints(
+          { audio: false, video: { facingMode: { ideal: "environment" } } },
+          video,
+          (result) => {
+            if (result) void handle(result.getText(), "camera");
+          },
+        );
+        if (cancelled) started.stop();
+        else {
+          controls = started;
+          video.setAttribute("playsinline", "true");
+          void video.play().catch(() => setCamError(true));
+        }
+      } catch (error) {
+        console.error("Unable to start barcode camera:", error);
+        if (!cancelled) setCamError(true);
       }
     })();
-    return () => { cancelled = true; controls?.stop(); };
+    return () => {
+      cancelled = true;
+      controls?.stop();
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [found, unknownBarcode, submitted]);
+  }, [found, unknownBarcode, submitted, cameraAttempt]);
 
   const chooseImage = (key: keyof SubmissionImages, file?: File) => {
     if (!file) {
@@ -285,7 +304,7 @@ function Scan() {
       <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
         <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
         {camError ? (
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground">Camera unavailable. Enter the barcode below.</div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Camera unavailable. Check browser camera permission and use Cansdex over HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Retry camera</Button></div>
         ) : (
           <>
             <div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" />
@@ -297,7 +316,7 @@ function Scan() {
         <Input inputMode="numeric" placeholder="Enter barcode manually" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
         <Button type="submit" className="h-12 rounded-xl font-bold">Add</Button>
       </form>
-      <p className="mt-3 text-xs text-muted-foreground">Try: 5060337500401 (Monster Original)</p>
+      <p className="mt-3 text-xs text-muted-foreground">Manual entry is only for reporting a barcode not yet in the catalogue. Known cans must be unlocked with the camera scan.</p>
     </div>
   );
 }
