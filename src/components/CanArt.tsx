@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Can } from "@/lib/data";
 
 /** Renders a product photo when available, falling back to a stylised can if the URL fails. */
 export function CanArt({ can, brandName, missing, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; className?: string | undefined }) {
-  const [imageFailed, setImageFailed] = useState(false);
-  useEffect(() => setImageFailed(false), [can.id, can.image_url]);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const style = { "--c1": can.color_primary, "--c2": can.color_secondary } as React.CSSProperties;
+  const showPhoto = Boolean(can.image_url && failedImageUrl !== can.image_url);
   return (
     <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] transition-all duration-500", missing && "grayscale opacity-40", className)} style={style}>
-      {can.image_url && !imageFailed ? (
+      {showPhoto ? (
         <img
-          src={can.image_url}
+          src={can.image_url!}
           alt={can.name}
           className="h-full w-full object-contain"
           loading="lazy"
-          onError={() => setImageFailed(true)}
+          onError={() => setFailedImageUrl(can.image_url)}
         />
       ) : (
         <div className="relative h-full w-full overflow-hidden rounded-[18%/9%] bg-[linear-gradient(160deg,var(--c1)_0%,var(--c1)_55%,var(--c2)_100%)] shadow-[inset_-10px_0_18px_rgb(0_0_0/0.35),inset_8px_0_12px_rgb(255_255_255/0.18)]">
