@@ -26,6 +26,8 @@ create index if not exists can_submissions_status_created_at
   on public.can_submissions (status, created_at desc);
 
 alter table public.can_submissions enable row level security;
+revoke all on table public.can_submissions from anon, public;
+grant select, insert, update on table public.can_submissions to authenticated;
 
 create policy "Users can submit cans as pending"
   on public.can_submissions for insert to authenticated
