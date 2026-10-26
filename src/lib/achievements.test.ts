@@ -12,10 +12,10 @@ const getAll = (owned: string[]) =>
 const get = (owned: string[], id: string) => getAll(owned).find((a) => a.id === id)!.earned;
 
 describe("achievements", () => {
-  it("defines 30 unique achievements", () => {
+  it("defines 26 unique achievements", () => {
     const achievements = getAll([]);
-    expect(achievements).toHaveLength(30);
-    expect(new Set(achievements.map((a) => a.id)).size).toBe(30);
+    expect(achievements).toHaveLength(26);
+    expect(new Set(achievements.map((a) => a.id)).size).toBe(26);
   });
 
   it("first scan unlocks after one can", () => {
@@ -38,9 +38,10 @@ describe("achievements", () => {
     expect(get(["c"], "vintage")).toBe(true);
   });
 
-  it("catalog completion is based on unique cans", () => {
-    expect(get(["a", "b"], "catalog-100")).toBe(false);
-    expect(get(["a", "b", "c"], "catalog-100")).toBe(true);
+  it("keeps count milestones and brand-completion achievements without global catalog percentages", () => {
+    expect(get(["a"], "first")).toBe(true);
+    expect(get(["a", "b"], "brand")).toBe(true);
+    expect(getAll(["a", "b", "c"]).some((achievement) => achievement.id.startsWith("catalog-"))).toBe(false);
   });
 
   it("percent rounds and handles empty totals", () => {

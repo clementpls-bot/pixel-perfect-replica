@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Minus, Plus } from "lucide-react";
 import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
-import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/collection")({
@@ -56,9 +55,6 @@ function Collection() {
     <div>
       <h1 className="text-2xl font-black">My binder</h1>
       <p className="mt-1 text-sm text-muted-foreground">Scan a can once to unlock it. Then use + and − to manage how many you own.</p>
-      <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Global collection" value={mine.length} total={data.cans.length} />
-      </div>
       {mine.length === 0 ? (
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">Your binder is empty.</p>

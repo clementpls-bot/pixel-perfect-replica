@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
-import { computeAchievements, pct } from "@/lib/achievements";
+import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
 
@@ -84,10 +84,14 @@ function Profile() {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        {[[ "Unique", ownedSet.size ], [ "Copies", totalCopies ], [ "Complete", `${pct(ownedSet.size, data.cans.length)}%` ]].map(([l, v]) => (
-          <div key={l} className="rounded-2xl border bg-card p-3 text-center">
-            <p className="font-display text-2xl font-black tabular-nums">{v}</p>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{l}</p>
+        {[
+          ["Unique cans", ownedSet.size],
+          ["Copies", totalCopies],
+          ["Brands", new Set(data.cans.filter((can) => ownedSet.has(can.id)).map((can) => can.brand_id)).size],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border bg-card p-3 text-center">
+            <p className="font-display text-2xl font-black tabular-nums">{value}</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
           </div>
         ))}
       </div>

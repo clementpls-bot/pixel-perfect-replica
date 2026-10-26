@@ -22,8 +22,6 @@ function Home() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const ownedSet = owned ?? new Map<string, number>();
-  const total = data?.cans.length ?? 0;
-  const have = data ? data.cans.filter((c) => ownedSet.has(c.id)).length : 0;
 
   return (
     <div className="space-y-6">
@@ -32,12 +30,7 @@ function Home() {
         {!user && <Link to="/auth"><Button size="sm" variant="secondary" className="rounded-full">Sign in</Button></Link>}
       </header>
 
-      <section className="rounded-3xl border bg-card p-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Global collection</p>
-        <p className="mt-1 font-display text-5xl font-black tabular-nums">{have}<span className="text-2xl text-muted-foreground"> / {total}</span></p>
-        <div className="mt-4"><ProgressBar value={have} total={total} /></div>
-        <Link to="/scan"><Button className="mt-5 h-12 w-full rounded-xl font-bold shadow-glow"><ScanBarcode className="mr-1" />Scan a can</Button></Link>
-      </section>
+      <Link to="/scan"><Button className="h-12 w-full rounded-xl font-bold shadow-glow"><ScanBarcode className="mr-1" />Scan a can</Button></Link>
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between">
