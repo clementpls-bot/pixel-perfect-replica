@@ -5,7 +5,7 @@ import { ArrowLeft, Heart, Minus, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useAddCan, useCatalog, useOwned } from "@/lib/data";
+import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,7 @@ function CanPage() {
   const { user } = useAuth();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  const addCan = useAddCan();
+  const adjustCanQuantity = useAdjustCanQuantity();
   const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
@@ -59,9 +59,17 @@ function CanPage() {
     qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
 
-  const changeQty = async (d: number) => {
+  const changeQty = async (d: 1 | -1) => {
     if (!user) { toast("Sign in to collect"); return; }
-    await addCan(can.id, d);
+    if (qty === 0) {
+      toast("Scan this can with your camera to unlock it first.");
+      return;
+    }
+    try {
+      await adjustCanQuantity(can.id, d);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
   };
 
   return (
@@ -82,9 +90,9 @@ function CanPage() {
       <div className="mt-4 flex items-center justify-between rounded-2xl border bg-card p-3">
         <span className="text-sm font-semibold">In your collection</span>
         <div className="flex items-center gap-3">
-          <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} onClick={() => changeQty(-1)}><Minus /></Button>
+          <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} aria-label="Decrease quantity" onClick={() => void changeQty(-1)}><Minus /></Button>
           <span className="w-6 text-center font-display text-lg font-black tabular-nums">{qty}</span>
-          <Button size="icon" className="rounded-full" onClick={() => changeQty(1)}><Plus /></Button>
+          {qty === 0 ? <Link to="/_authenticated/scan"><Button size="icon" className="rounded-full" aria-label="Scan to unlock this can"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Increase quantity" onClick={() => void changeQty(1)}><Plus /></Button>}
         </div>
       </div>
 
