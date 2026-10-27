@@ -87,11 +87,11 @@ function CanPage() {
       for (const file of reportImages) {
         const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
         const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage.from("can-reports").upload(path, file, {
+        const { error: uploadError } = await supabase.storage.from("can-submissions").upload(path, file, {
           contentType: file.type, upsert: false,
         });
         if (uploadError) throw uploadError;
-        imageUrls.push(supabase.storage.from("can-reports").getPublicUrl(path).data.publicUrl);
+        imageUrls.push(supabase.storage.from("can-submissions").getPublicUrl(path).data.publicUrl);
       }
       const { error } = await supabase.from("can_reports").insert({
         can_id: can.id,
