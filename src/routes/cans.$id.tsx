@@ -36,7 +36,7 @@ function CanPage() {
 
   const ratings = useQuery({
     queryKey: ["ratings", id],
-    queryFn: async () => (await supabase.from("ratings").select("user_id,Design,Goût").eq("can_id", id)).data ?? [],
+    queryFn: async () => (await supabase.from("ratings").select("user_id,design,taste").eq("can_id", id)).data ?? [],
   });
   const comments = useQuery({
     queryKey: ["comments", id],
@@ -46,13 +46,13 @@ function CanPage() {
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
   const qty = owned?.get(can.id) ?? 0;
-  const avg = (k: "Design" | "Goût") => {
+  const avg = (k: "design" | "taste") => {
     const v = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
     return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "–";
   };
   const mine = ratings.data?.find((r) => r.user_id === user?.id);
 
-  const rate = async (k: "Design" | "Goût", v: number) => {
+  const rate = async (k: "design" | "taste", v: number) => {
     if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
     const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, Design: k === "Design" ? v : mine?.Design ?? null, Goût: k === "Goût" ? v : mine?.Goût ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
@@ -79,7 +79,7 @@ function CanPage() {
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
         {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore collectionnée</p>}
       </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{can.category}</p>
+      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
         {[["Marque", brand?.name], ["Saveur", can.flavour], ["Année", can.release_year]].map(([l, v]) => (
@@ -101,7 +101,7 @@ function CanPage() {
       <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
 
       <section className="mt-8 grid grid-cols-2 gap-3">
-        {(["Design", "Goût"] as const).map((k) => (
+        {(["design", "taste"] as const).map((k) => (
           <div key={k} className="rounded-2xl border bg-card p-4">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
             <p className="font-display text-3xl font-black">{avg(k)}<span className="text-base text-muted-foreground"> / 5</span></p>
