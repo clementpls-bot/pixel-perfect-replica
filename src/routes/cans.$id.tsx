@@ -46,14 +46,23 @@ function CanPage() {
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
   const qty = owned?.get(can.id) ?? 0;
-  const avg = (k: "design" | "taste") => {
-    const v = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
-    return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "–";
+  const ratingSummary = (k: "design" | "taste") => {
+    const values = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
+    return {
+      average: values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "–",
+      count: values.length,
+    };
   };
+  const designSummary = ratingSummary("design");
+  const tasteSummary = ratingSummary("taste");
   const mine = ratings.data?.find((r) => r.user_id === user?.id);
 
   const rate = async (k: "design" | "taste", v: number) => {
     if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
+    if (k === "taste" && qty === 0) {
+      toast("Ajoute d’abord cette canette à ta collection pour noter son goût.");
+      return;
+    }
     const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["ratings", id] });
@@ -81,6 +90,10 @@ function CanPage() {
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span>Design : <strong className="text-foreground">{designSummary.average}/5</strong>{designSummary.count > 0 ? ` · ${designSummary.count} avis` : " · aucun avis"}</span>
+        <span>Goût : <strong className="text-foreground">{tasteSummary.average}/5</strong>{tasteSummary.count > 0 ? ` · ${tasteSummary.count} avis` : " · aucun avis"}</span>
+      </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
         {[["Marque", brand?.name], ["Saveur", can.flavour], ["Année", can.release_year]].map(([l, v]) => (
           <div key={String(l)} className="rounded-xl bg-muted p-2"><p className="text-muted-foreground">{l}</p><p className="font-bold">{v}</p></div>
@@ -100,20 +113,26 @@ function CanPage() {
       <h2 className="mt-5 text-sm font-bold uppercase tracking-widest text-muted-foreground">Historique</h2>
       <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
 
-      <section className="mt-8 grid grid-cols-2 gap-3">
-        {(["design", "taste"] as const).map((k) => (
-          <div key={k} className="rounded-2xl border bg-card p-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
-            <p className="font-display text-3xl font-black">{avg(k)}<span className="text-base text-muted-foreground"> / 5</span></p>
-            <div className="mt-2 flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`}>
-                  <Star className={`h-5 w-5 ${(mine?.[k] ?? 0) >= n ? "fill-gold text-gold" : "text-muted-foreground"}`} />
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm font-bold">Donner ton avis</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {(["design", "taste"] as const).map((k) => {
+            const tasteLocked = k === "taste" && qty === 0;
+            return (
+              <div key={k} className="rounded-2xl border bg-card p-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
+                <div className="mt-2 flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} disabled={tasteLocked} onClick={() => void rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`} title={tasteLocked ? "Ajoute cette canette à ta collection pour noter son goût" : undefined} className="disabled:cursor-not-allowed disabled:opacity-30">
+                      <Star className={`h-5 w-5 ${(mine?.[k] ?? 0) >= n ? "fill-gold text-gold" : "text-muted-foreground"}`} />
+                    </button>
+                  ))}
+                </div>
+                {tasteLocked && <p className="mt-2 text-[10px] leading-tight text-muted-foreground">Possède cette canette pour noter le goût.</p>}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <Comments canId={id} comments={comments.data ?? []} />
