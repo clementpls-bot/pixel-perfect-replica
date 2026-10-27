@@ -20,7 +20,7 @@ export function useCatalog() {
       ]);
       if (b.error) throw b.error;
       if (c.error) throw c.error;
-      return { brands: b.data as Brand[], cans: c.data as Can[] };
+      return { brands: b.data as unknown as Brand[], cans: c.data as Can[] };
     },
   });
 }
