@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, Clock3, LogOut, Pencil, X } from "lucide-react";
+import { Camera, Check, Clock3, ImagePlus, LogOut, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -35,6 +36,7 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -66,6 +68,50 @@ function Profile() {
     },
   });
 
+  const { data: gallery = [], isLoading: galleryLoading } = useQuery({
+    queryKey: ["profile-gallery", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profile_gallery").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const uploadGalleryPhoto = async (file?: File) => {
+    if (!file || !user) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Choisissez une image JPG, PNG ou WebP."); return;
+    }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Chaque photo doit faire 5 Mo maximum."); return; }
+    if (gallery.length >= 12) { toast.error("Votre galerie peut contenir jusqu’à 12 photos."); return; }
+    setUploadingGallery(true);
+    try {
+      const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
+      const path = `${user.id}/gallery-${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from("profile-gallery").upload(path, file, { cacheControl: "3600", contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      const { data: publicUrl } = supabase.storage.from("profile-gallery").getPublicUrl(path);
+      const { error: insertError } = await supabase.from("profile_gallery").insert({ user_id: user.id, image_url: publicUrl.publicUrl, storage_path: path });
+      if (insertError) { await supabase.storage.from("profile-gallery").remove([path]); throw insertError; }
+      await qc.invalidateQueries({ queryKey: ["profile-gallery", user.id] });
+      toast.success("Photo ajoutée à votre galerie.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible d’ajouter cette photo.");
+    } finally { setUploadingGallery(false); }
+  };
+
+  const deleteGalleryPhoto = async (photo: (typeof gallery)[number]) => {
+    try {
+      const { error: storageError } = await supabase.storage.from("profile-gallery").remove([photo.storage_path]);
+      if (storageError) throw storageError;
+      const { error } = await supabase.from("profile_gallery").delete().eq("id", photo.id).eq("user_id", user!.id);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["profile-gallery", user?.id] });
+      toast.success("Photo supprimée.");
+    } catch (error) { toast.error((error as Error).message || "Impossible de supprimer cette photo."); }
+  };
+
   const changedAt = (profile as { username_changed_at?: string | null } | null | undefined)?.username_changed_at;
   const canChangeUsernameAt = changedAt
     ? new Date(changedAt).getTime() + SEVEN_DAYS
@@ -86,6 +132,7 @@ function Profile() {
       copies: list.reduce((s, c) => s + (owned.get(c.id) ?? 0), 0) };
   });
   const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
+  const sortedBrandStats = [...brandStats].sort((a, b) => (b.total ? b.have / b.total : 0) - (a.total ? a.have / a.total : 0) || b.have - a.have || a.name.localeCompare(b.name, "fr"));
   const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
 
   const signOut = async () => {
@@ -217,41 +264,31 @@ function Profile() {
         <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          ["Canettes différentes", ownedSet.size],
-          ["Exemplaires", totalExemplaires],
-          ["Marques", new Set(data.cans.filter((can) => ownedSet.has(can.id)).map((can) => can.brand_id)).size],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border bg-card p-3 text-center">
-            <p className="font-display text-2xl font-black tabular-nums">{value}</p>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{ownedSet.size}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canettes différentes</p></div>
+        <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{totalExemplaires}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nombre de canettes</p></div>
       </div>
 
+      {fav && fav.copies > 0 && <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4"><div><p className="text-xs text-muted-foreground">Boisson préférée</p><p className="font-bold" style={{ color: fav.color }}>{fav.name}</p></div><span className="text-xs text-muted-foreground">{fav.copies} exemplaire{fav.copies > 1 ? "s" : ""}</span></div>}
 
-      {fav && fav.copies > 0 && (
-        <p className="rounded-2xl border bg-card p-4 text-sm">Marque la plus collectionnée : <b style={{ color: fav.color }}>{fav.name}</b></p>
-      )}
-
-      <section>
-        <h2 className="mb-3 font-bold">Succès · {achievements.filter((a) => a.earned).length}/{achievements.length}</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {achievements.map((a) => (
-            <div key={a.id} className={`rounded-2xl border p-3 transition ${a.earned ? "border-gold/50 bg-card" : "opacity-40 grayscale"}`}>
-              <span className="text-2xl">{a.icon}</span>
-              <p className="mt-1 text-sm font-bold">{a.title}</p>
-              <p className="text-xs text-muted-foreground">{a.description}</p>
-            </div>
-          ))}
+      <section className="rounded-2xl border bg-card px-4">
+        <div className="flex items-center justify-between gap-3 py-4"><div><h2 className="font-bold">Galerie</h2><p className="text-xs text-muted-foreground">Vos photos de collection · {gallery.length}/12</p></div>
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"><ImagePlus className="h-4 w-4" />{uploadingGallery ? "Envoi…" : "Ajouter"}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploadingGallery || gallery.length >= 12} onChange={(event) => { void uploadGalleryPhoto(event.target.files?.[0]); event.currentTarget.value = ""; }} /></label>
         </div>
+        <p className="mb-3 text-[11px] text-muted-foreground">JPG, PNG ou WebP · 5 Mo maximum par photo.</p>
+        {galleryLoading ? <p className="pb-4 text-sm text-muted-foreground">Chargement de la galerie…</p> : gallery.length === 0 ? <div className="mb-4 rounded-xl border border-dashed p-6 text-center"><ImagePlus className="mx-auto mb-2 h-7 w-7 text-muted-foreground" /><p className="text-sm font-medium">Votre galerie est vide</p><p className="mt-1 text-xs text-muted-foreground">Ajoutez quelques photos pour montrer votre collection.</p></div> : <div className="mb-4 grid grid-cols-3 gap-2">{gallery.map((photo) => <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-muted"><img src={photo.image_url} alt="Photo de ma collection" loading="lazy" className="h-full w-full object-cover" /><button type="button" aria-label="Supprimer la photo" onClick={() => void deleteGalleryPhoto(photo)} className="absolute right-1 top-1 rounded-full bg-black/70 p-1.5 text-white opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100"><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div>}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="font-bold">Progression par marque</h2>
-        {brandStats.map((b) => <ProgressBar key={b.id} label={b.name} value={b.have} total={b.total} color={b.color} />)}
-      </section>
+      <Accordion type="multiple" className="space-y-2">
+        <AccordionItem value="achievements" className="rounded-2xl border bg-card px-4">
+          <AccordionTrigger className="no-underline hover:no-underline"><span className="text-left"><span className="block font-bold">Succès</span><span className="text-xs font-normal text-muted-foreground">{achievements.filter((a) => a.earned).length}/{achievements.length} débloqués</span></span></AccordionTrigger>
+          <AccordionContent><div className="grid grid-cols-2 gap-3">{achievements.map((a) => <div key={a.id} className={`rounded-xl border p-3 transition ${a.earned ? "border-gold/50 bg-background" : "opacity-40 grayscale"}`}><span className="text-2xl">{a.icon}</span><p className="mt-1 text-sm font-bold">{a.title}</p><p className="text-xs text-muted-foreground">{a.description}</p></div>)}</div></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="brands" className="rounded-2xl border bg-card px-4">
+          <AccordionTrigger className="no-underline hover:no-underline"><span className="text-left"><span className="block font-bold">Progression par marque</span><span className="text-xs font-normal text-muted-foreground">De la plus avancée à la moins avancée</span></span></AccordionTrigger>
+          <AccordionContent><div className="space-y-4">{sortedBrandStats.map((b) => <ProgressBar key={b.id} label={b.name} value={b.have} total={b.total} color={b.color} />)}</div></AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
