@@ -19,6 +19,7 @@ export type Database = {
           color: string
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           slug: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           slug: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
           slug?: string
         }
@@ -238,20 +241,26 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          favorite_can_ids: string[]
           id: string
           username: string
+          username_changed_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          favorite_can_ids?: string[]
           id: string
           username: string
+          username_changed_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          favorite_can_ids?: string[]
           id?: string
           username?: string
+          username_changed_at?: string | null
         }
         Relationships: []
       }
