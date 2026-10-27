@@ -54,7 +54,7 @@ function CanPage() {
 
   const rate = async (k: "design" | "taste", v: number) => {
     if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
-    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, Design: k === "Design" ? v : mine?.Design ?? null, Goût: k === "Goût" ? v : mine?.Goût ?? null, updated_at: new Date().toISOString() });
+    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
