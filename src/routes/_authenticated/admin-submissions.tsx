@@ -27,8 +27,8 @@ type ReportEdit = { field: string; value: string };
 
 const resolveSubmissionImage = (value: string | null | undefined) => {
   if (!value) return null;
-  if (/^https?:\\/\\//i.test(value)) return value;
-  const path = value.replace(/^\\/?storage\\/v1\\/object\\/public\\/can-submissions\\//, "");
+  if (/^https?:\/\//i.test(value)) return value;
+  const path = value.replace(/^\/?storage\/v1\/object\/public\/can-submissions\//, "");
   return supabase.storage.from("can-submissions").getPublicUrl(path).data.publicUrl;
 };
 
