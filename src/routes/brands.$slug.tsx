@@ -7,10 +7,10 @@ import { ProgressBar } from "@/components/ProgressBar";
 export const Route = createFileRoute("/brands/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug} collection — Cansdex` },
+      { title: `Collection ${params.slug} — Cansdex` },
       { name: "description", content: `Toutes les canettes ${params.slug} : découvrez celles que vous possédez et celles qu’il vous manque.` },
-      { property: "og:title", content: `${params.slug} collection — Cansdex` },
-      { property: "og:description", content: `Every ${params.slug} can — see which ones you own and which are missing.` },
+      { property: "og:title", content: `Collection ${params.slug} — Cansdex` },
+      { property: "og:description", content: `Toutes les canettes ${params.slug} : celles que vous possédez et celles qu’il vous reste à trouver.` },
     ],
   }),
   component: BrandPage,
