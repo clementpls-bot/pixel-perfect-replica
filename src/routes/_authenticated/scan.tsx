@@ -294,6 +294,17 @@ function Scanner() {
 
   return (
     <div>
+      <Button
+        type="button"
+        variant="ghost"
+        className="-ml-3 mb-2 rounded-xl"
+        onClick={() => {
+          if (window.history.length > 1) window.history.back();
+          else window.location.assign("/");
+        }}
+      >
+        ← Retour
+      </Button>
       <h1 className="text-2xl font-black">Scanner</h1>
       <p className="text-sm text-muted-foreground">Scanne le code-barres avec la caméra de ton téléphone pour débloquer une canette. La rescanner ne modifiera pas sa quantité.</p>
       <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
