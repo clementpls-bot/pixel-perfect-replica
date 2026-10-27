@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
     meta: [
-      { title: "Collection — Cansdex" },
+      { title: "Ma collection — Cansdex" },
       { name: "description", content: "Votre collection personnelle de canettes." },
-      { property: "og:title", content: "Collection — Cansdex" },
+      { property: "og:title", content: "Ma collection — Cansdex" },
       { property: "og:description", content: "Votre collection personnelle de canettes." },
     ],
   }),
@@ -36,25 +36,25 @@ function Collection() {
     <div>
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black">Collection</h1>
+          <h1 className="text-2xl font-black">Ma collection</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mine.length} {mine.length === 1 ? "canette" : "canettes"} dans la collection
           </p>
         </div>
         <Link
           to="/brands"
-          aria-label="Trouver des canettes dans le catalogue"
-          title="Trouver des canettes dans le catalogue"
+          aria-label="Magasin"
+          title="Magasin"
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-card text-foreground transition-colors hover:bg-accent active:scale-95"
         >
-          <Search className="h-5 w-5" />
+          <Store className="h-5 w-5" />
         </Link>
       </header>
 
       {mine.length === 0 ? (
         <div className="mt-12 rounded-3xl border border-dashed bg-card/50 px-6 py-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Search className="h-6 w-6" />
+            <Store className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-lg font-bold">Votre collection est vide</h2>
           <p className="mt-2 text-sm text-muted-foreground">
