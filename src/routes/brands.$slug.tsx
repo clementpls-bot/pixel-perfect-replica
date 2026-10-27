@@ -34,7 +34,7 @@ function BrandPage() {
         <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
       </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Collectionnée" value={n} total={list.length} color={brand.color} />
+        <ProgressBar label="Canettes collectionnées" value={n} total={list.length} color={brand.color} />
       </div>
       <div className="mt-5 grid grid-cols-3 gap-3">
         {list.map((c) => {
