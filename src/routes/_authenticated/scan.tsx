@@ -46,7 +46,7 @@ function Scanner() {
   const catalogRef = useRef(data);
   catalogRef.current = data;
 
-  const handle = async (rawCode: string, source: "camera" | "manual" = "camera") => {
+  const handle = async (rawCode: string) => {
     const code = rawCode.trim();
     if (busy.current || !catalogRef.current || !code) return;
     busy.current = true;
@@ -54,11 +54,6 @@ function Scanner() {
     if (!can) {
       setUnknownBarcode(code);
       setManual(code);
-      busy.current = false;
-      return;
-    }
-    if (source !== "camera") {
-      toast.error("Scanne le code-barres avec la caméra pour débloquer cette canette la première fois.");
       busy.current = false;
       return;
     }
@@ -88,7 +83,7 @@ function Scanner() {
           { audio: false, video: { facingMode: { ideal: "environment" } } },
           video,
           (result) => {
-            if (result) void handle(result.getText(), "camera");
+            if (result) void handle(result.getText());
           },
         );
         if (cancelled) started.stop();
@@ -312,11 +307,11 @@ function Scanner() {
           </>
         )}
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); void handle(manual, "manual"); }} className="mt-4 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
         <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
         <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
       </form>
-      <p className="mt-3 text-xs text-muted-foreground">La saisie manuelle sert uniquement à signaler un code-barres absent du catalogue. Les canettes déjà répertoriées doivent être débloquées par un scan caméra.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Tu peux scanner le code-barres avec la caméra ou le saisir ici pour ajouter une canette déjà répertoriée. Si le code est absent du catalogue, tu pourras proposer la canette.</p>
     </div>
   );
 }
