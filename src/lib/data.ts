@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 
-export type Brand = { id: string; slug: string; name: string; color: string };
+export type Brand = { id: string; slug: string; name: string; color: string; logo_url: string | null };
 export type Can = {
   id: string; barcode: string; name: string; brand_id: string; release_year: number | null;
   flavour: string | null; description: string | null; historical_context: string | null;
@@ -15,7 +15,7 @@ export function useCatalog() {
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const [b, c] = await Promise.all([
-        supabase.from("brands").select("id,slug,name,color").order("name"),
+        supabase.from("brands").select("id,slug,name,color,logo_url").order("name"),
         supabase.from("cans").select("*").order("release_year"),
       ]);
       if (b.error) throw b.error;
@@ -43,7 +43,7 @@ export function useAddCan() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return async (canId: string) => {
-    if (!user) throw new Error("Sign in first");
+    if (!user) throw new Error("Connecte-toi d’abord.");
     const { data: existing, error: lookupError } = await supabase
       .from("user_cans").select("id").eq("can_id", canId).maybeSingle();
     if (lookupError) throw lookupError;
@@ -74,7 +74,7 @@ export function useAdjustCanQuantity() {
     const { data: existing, error: lookupError } = await supabase
       .from("user_cans").select("id,quantity").eq("can_id", canId).maybeSingle();
     if (lookupError) throw lookupError;
-    if (!existing) throw new Error("Scan this can first to unlock it in your collection.");
+    if (!existing) throw new Error("Scanne d’abord cette canette pour l’ajouter à ta collection.");
 
     if (delta === 1) {
       const { error } = await supabase.from("user_cans")
