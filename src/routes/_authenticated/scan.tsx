@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
-      { title: "Scannerner une canette — Cansdex" },
+      { title: "Scanner — Cansdex" },
       { name: "description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
-      { property: "og:title", content: "Scannerner une canette — Cansdex" },
+      { property: "og:title", content: "Scanner — Cansdex" },
       { property: "og:description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
     ],
   }),
@@ -212,7 +212,7 @@ function Scanner() {
         <p className="text-muted-foreground">{brand?.name} · {found.can.release_year}</p>
         <div className="mt-8 flex gap-3">
           <Link to="/cans/$id" params={{ id: found.can.id }} className="flex-1"><Button variant="secondary" className="h-12 w-full rounded-xl">Voir la fiche</Button></Link>
-          <Button className="h-12 flex-1 rounded-xl font-bold" onClick={resetScanner}>Scannerner une autre canette</Button>
+          <Button className="h-12 flex-1 rounded-xl font-bold" onClick={resetScanner}>Scanner une autre canette</Button>
         </div>
       </div>
     );
@@ -224,7 +224,7 @@ function Scanner() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✓</div>
         <h1 className="mt-5 text-2xl font-black">Proposition envoyée</h1>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">Thanks for helping grow the Cansdex catalogue. Your can is pending review and will not appear in the official catalogue until approved.</p>
-        <Button className="mt-8 h-12 rounded-xl font-bold" onClick={resetScanner}>Scannerner une autre canette can</Button>
+        <Button className="mt-8 h-12 rounded-xl font-bold" onClick={resetScanner}>Scanner une autre canette</Button>
       </div>
     );
   }
