@@ -300,7 +300,7 @@ function Scanner() {
   return (
     <div>
       <h1 className="text-2xl font-black">Scanner</h1>
-      <p className="text-sm text-muted-foreground">Scanner the barcode with your phone camera to unlock a can the first time. Scannerning it again will not change its quantity.</p>
+      <p className="text-sm text-muted-foreground">Scanne le code-barres avec la caméra de ton téléphone pour débloquer une canette. La rescanner ne modifiera pas sa quantité.</p>
       <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
         <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
         {camError ? (
