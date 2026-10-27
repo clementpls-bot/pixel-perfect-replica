@@ -162,7 +162,7 @@ function CanPage() {
         </section>
       )}
 
-      {can.historical_context?.trim() && (
+      {can.history_verified && can.historical_context?.trim() && (
         <section className="mt-6">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Histoire de la canette</h2>
           <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
