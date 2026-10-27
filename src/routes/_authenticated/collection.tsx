@@ -19,6 +19,18 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  if (!data || !owned) return null;
+
+  const mine = data.cans
+    .filter((can) => owned.has(can.id))
+    .sort((a, b) => {
+      const q = (owned.get(b.id) ?? 0) - (owned.get(a.id) ?? 0);
+      if (q !== 0) return q;
+      const bd = (data.brands.find((x) => x.id === a.brand_id)?.name ?? "")
+        .localeCompare(data.brands.find((x) => x.id === b.brand_id)?.name ?? "");
+      return bd || a.name.localeCompare(b.name);
+    });
+
 
   return (
     <div>
