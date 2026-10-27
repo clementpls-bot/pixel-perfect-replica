@@ -42,22 +42,24 @@
   --card-foreground: oklch(0.22 0.02 40);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 40);
-  --primary: oklch(0.66 0.21 38);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: oklch(0.8 0.1 48);
+  --primary-foreground: oklch(0.3 0.05 45);
   --secondary: oklch(0.94 0.02 60);
   --secondary-foreground: oklch(0.3 0.03 40);
   --muted: oklch(0.95 0.012 70);
   --muted-foreground: oklch(0.52 0.025 50);
-  --accent: oklch(0.93 0.06 55);
-  --accent-foreground: oklch(0.45 0.16 38);
+  --accent: oklch(0.95 0.035 55);
+  --accent-foreground: oklch(0.48 0.11 45);
   --gold: oklch(0.8 0.16 80);
+  --success: oklch(0.62 0.14 155);
+  --success-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.9 0.015 60);
   --input: oklch(0.9 0.015 60);
-  --ring: oklch(0.66 0.21 38);
-  --gradient-progress: linear-gradient(90deg, oklch(0.66 0.21 38), oklch(0.78 0.17 65));
-  --glow-primary: 0 8px 24px oklch(0.66 0.21 38 / 30%);
+  --ring: oklch(0.8 0.1 48);
+  --gradient-progress: linear-gradient(90deg, oklch(0.8 0.1 48), oklch(0.86 0.08 65));
+  --glow-primary: 0 8px 24px oklch(0.8 0.1 48 / 25%);
 }
 
 @layer base {
