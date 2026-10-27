@@ -146,7 +146,8 @@ function AdminSubmissions() {
       }).eq("id", id).eq("status", "pending").select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("La proposition n’est plus en attente ou les droits sont insuffisants.");
-      setDraft({ ...draft, image_url, back_image_url: back_image_url ?? "", barcode_image_url: barcode_image_url ?? "" });
+      setEditingId(null);
+      setDraft(null);
       setReplacementFiles({});
       await refresh();
       toast.success("Modifications enregistrées. Tu peux maintenant publier la version corrigée.");
@@ -335,7 +336,7 @@ function AdminSubmissions() {
             const fieldLabel = fieldOptions.find(([value]) => value === edit.field)?.[1] ?? "Champ non précisé";
             return <article key={report.id} className="space-y-4 rounded-2xl border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">{can?.name ?? "Canette introuvable"}</h3><p className="text-xs text-muted-foreground">{brand?.name ?? "Marque inconnue"} · Code-barres {can?.barcode ?? "indisponible"}</p><p className="mt-1 text-xs text-muted-foreground">Reçue le {new Date(report.created_at).toLocaleString("fr-FR")}</p></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${pending ? "bg-amber-500/10 text-amber-700" : report.status === "approved" ? "bg-emerald-500/10 text-emerald-700" : "bg-destructive/10 text-destructive"}`}>{pending ? "En attente" : report.status === "approved" ? "Acceptée" : "Refusée"}</span></div>
-              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Commentaire de l’utilisateur</p><p className="mt-1 whitespace-pre-wrap text-sm">{report.details}</p></div>
+              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Commentaire de l’utilisateur</p><p className="mt-1 whitespace-pre-wrap text-sm">{report.details}</p><p className="mt-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Information actuelle</p><p className="mt-1 text-sm">{can ? String(edit.field === "brand_id" ? brand?.name ?? "Non renseignée" : (can as unknown as Record<string, unknown>)[edit.field] ?? "Non renseignée") : "Canette introuvable"}</p></div>
               {report.image_urls?.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{report.image_urls.map((url, index) => <a key={url} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border"><img src={url} alt={`Image jointe ${index + 1}`} className="h-40 w-full object-contain" /><p className="p-2 text-xs text-primary">Ouvrir l’image</p></a>)}</div>}
               {pending && <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium">Champ à modifier<select value={edit.field} onChange={(e) => setReportEdits((current) => ({ ...current, [report.id]: { ...edit, field: e.target.value } }))} className="h-10 w-full rounded-lg border bg-background px-3">{fieldOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
