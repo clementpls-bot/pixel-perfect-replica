@@ -13,16 +13,16 @@ export function BottomNav() {
         <div className="mx-auto flex max-w-lg items-end">
           <Link to="/collection" className={item} activeProps={active}>
             <Library className="h-5 w-5" />
-            Collection
+            Ma collection
           </Link>
           <Link to="/profile" className={item} activeProps={active}>
             <User className="h-5 w-5" />
-            Profil
+            Moi
           </Link>
         </div>
       </nav>
 
-      {pathname !== "/scan" && (
+      {pathname !== "/scan" && pathname !== "/profile" && (
         <Link
           to="/scan"
           aria-label="Ajouter une canette"
