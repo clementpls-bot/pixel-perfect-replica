@@ -11,7 +11,7 @@ import { useCatalog } from "@/lib/data";
 type ReviewFilter = "pending" | "approved" | "rejected" | "all";
 
 export const Route = createFileRoute("/_authenticated/admin-submissions")({
-  head: () => ({ meta: [{ title: "Modération des soumissions — Cansdex" }] }),
+  head: () => ({ meta: [{ title: "Modération des propositions — Cansdex" }] }),
   component: AdminSubmissions,
 });
 
@@ -122,7 +122,7 @@ function AdminSubmissions() {
     <main className="mx-auto w-full max-w-5xl space-y-6 pb-8">
       <header className="space-y-1">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Administration · Cansdex</p>
-        <h1 className="text-3xl font-black tracking-tight">Modération des soumissions</h1>
+        <h1 className="text-3xl font-black tracking-tight">Modération des propositions</h1>
         <p className="text-sm text-muted-foreground">
           Vérifie les photos et les informations avant d'ajouter une canette au catalogue officiel.
         </p>
@@ -226,7 +226,7 @@ function AdminSubmissions() {
                 <div><dt className="text-xs text-muted-foreground">Marque</dt><dd className="mt-1 font-medium">{brandName}</dd></div>
                 <div><dt className="text-xs text-muted-foreground">Saveur</dt><dd className="mt-1">{submission.flavour || "Non renseignée"}</dd></div>
                 <div><dt className="text-xs text-muted-foreground">Année de sortie</dt><dd className="mt-1">{submission.release_year ?? "Non renseignée"}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Catégorie</dt><dd className="mt-1">{submission.category}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Catégorie</dt><dd className="mt-1">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[submission.category] ?? submission.category}</dd></div>
                 <div className="col-span-2 sm:col-span-3"><dt className="text-xs text-muted-foreground">Description</dt><dd className="mt-1 whitespace-pre-wrap">{submission.description || "Aucune description"}</dd></div>
                 {submission.review_notes && <div className="col-span-2 sm:col-span-3"><dt className="text-xs text-muted-foreground">Motif du refus</dt><dd className="mt-1 whitespace-pre-wrap">{submission.review_notes}</dd></div>}
               </dl>
