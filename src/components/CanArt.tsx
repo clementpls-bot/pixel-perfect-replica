@@ -19,9 +19,9 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
           onError={() => setFailedImageUrl(can.image_url)}
         />
       ) : (
-        <div role="img" aria-label={`Photo unavailable for ${can.name}`} className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed bg-muted/40 p-2 text-center">
+        <div role="img" aria-label={`Photo indisponible pour ${can.name}`} className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed bg-muted/40 p-2 text-center">
           <span className="text-2xl" aria-hidden="true">🥫</span>
-          <span className="mt-2 text-[10px] font-semibold text-muted-foreground">Photo unavailable</span>
+          <span className="mt-2 text-[10px] font-semibold text-muted-foreground">Photo indisponible</span>
           {brandName && <span className="mt-1 text-[9px] text-muted-foreground">{brandName}</span>}
         </div>
       )}
