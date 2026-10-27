@@ -13,10 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/cans/$id")({
   head: () => ({
     meta: [
-      { title: "Can details — Cansdex" },
-      { name: "description", content: "History, flavour, community ratings and comments for this can." },
-      { property: "og:title", content: "Can details — Cansdex" },
-      { property: "og:description", content: "History, flavour, community ratings and comments for this can." },
+      { title: "Détail de la canette — Cansdex" },
+      { name: "description", content: "Historique, saveur, notes et commentaires de la communauté sur cette canette." },
+      { property: "og:title", content: "Détail de la canette — Cansdex" },
+      { property: "og:description", content: "Historique, saveur, notes et commentaires de la communauté sur cette canette." },
     ],
   }),
   component: CanPage,
@@ -36,7 +36,7 @@ function CanPage() {
 
   const ratings = useQuery({
     queryKey: ["ratings", id],
-    queryFn: async () => (await supabase.from("ratings").select("user_id,design,taste").eq("can_id", id)).data ?? [],
+    queryFn: async () => (await supabase.from("ratings").select("user_id,Design,Goût").eq("can_id", id)).data ?? [],
   });
   const comments = useQuery({
     queryKey: ["comments", id],
@@ -44,25 +44,25 @@ function CanPage() {
   });
 
   if (!data) return null;
-  if (!can) return <p>Can not found.</p>;
+  if (!can) return <p>Canette introuvable.</p>;
   const qty = owned?.get(can.id) ?? 0;
-  const avg = (k: "design" | "taste") => {
+  const avg = (k: "Design" | "Goût") => {
     const v = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
     return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "–";
   };
   const mine = ratings.data?.find((r) => r.user_id === user?.id);
 
-  const rate = async (k: "design" | "taste", v: number) => {
-    if (!user) { toast("Sign in to rate"); return; }
-    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
+  const rate = async (k: "Design" | "Goût", v: number) => {
+    if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
+    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, Design: k === "Design" ? v : mine?.Design ?? null, Goût: k === "Goût" ? v : mine?.Goût ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
 
   const changeQty = async (d: 1 | -1) => {
-    if (!user) { toast("Sign in to collect"); return; }
+    if (!user) { toast("Connecte-toi pour collectionner."); return; }
     if (qty === 0) {
-      toast("Scan this can with your camera to unlock it first.");
+      toast("Scanne d’abord cette canette avec la caméra pour la débloquer.");
       return;
     }
     try {
@@ -77,31 +77,31 @@ function CanPage() {
       <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
       <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
-        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Not collected yet</p>}
+        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore collectionnée</p>}
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-        {[["Brand", brand?.name], ["Flavour", can.flavour], ["Year", can.release_year]].map(([l, v]) => (
+        {[["Marque", brand?.name], ["Saveur", can.flavour], ["Année", can.release_year]].map(([l, v]) => (
           <div key={String(l)} className="rounded-xl bg-muted p-2"><p className="text-muted-foreground">{l}</p><p className="font-bold">{v}</p></div>
         ))}
       </div>
 
       <div className="mt-4 flex items-center justify-between rounded-2xl border bg-card p-3">
-        <span className="text-sm font-semibold">In your collection</span>
+        <span className="text-sm font-semibold">Dans ta collection</span>
         <div className="flex items-center gap-3">
-          <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} aria-label="Decrease quantity" onClick={() => void changeQty(-1)}><Minus /></Button>
+          <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} aria-label="Diminuer la quantité" onClick={() => void changeQty(-1)}><Minus /></Button>
           <span className="w-6 text-center font-display text-lg font-black tabular-nums">{qty}</span>
-          {qty === 0 ? <Link to="/scan"><Button size="icon" className="rounded-full" aria-label="Scan to unlock this can"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Increase quantity" onClick={() => void changeQty(1)}><Plus /></Button>}
+          {qty === 0 ? <Link to="/scan"><Button size="icon" className="rounded-full" aria-label="Scanner pour débloquer cette canette"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Augmenter la quantité" onClick={() => void changeQty(1)}><Plus /></Button>}
         </div>
       </div>
 
       <p className="mt-5 leading-relaxed">{can.description}</p>
-      <h2 className="mt-5 text-sm font-bold uppercase tracking-widest text-muted-foreground">History</h2>
+      <h2 className="mt-5 text-sm font-bold uppercase tracking-widest text-muted-foreground">Historique</h2>
       <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
 
       <section className="mt-8 grid grid-cols-2 gap-3">
-        {(["design", "taste"] as const).map((k) => (
+        {(["Design", "Goût"] as const).map((k) => (
           <div key={k} className="rounded-2xl border bg-card p-4">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k}</p>
             <p className="font-display text-3xl font-black">{avg(k)}<span className="text-base text-muted-foreground"> / 5</span></p>
@@ -125,14 +125,14 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [body, setBody] = useState("");
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setRépondreTo] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["comments", canId] });
 
   const post = async () => {
     if (!user || !body.trim()) return;
     const { error } = await supabase.from("comments").insert({ can_id: canId, user_id: user.id, body: body.trim(), parent_id: replyTo });
     if (error) { toast.error(error.message); return; }
-    setBody(""); setReplyTo(null); refresh();
+    setBody(""); setRépondreTo(null); refresh();
   };
   const like = async (c: Comment) => {
     if (!user) { toast("Sign in to like"); return; }
@@ -145,13 +145,13 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
   const Item = ({ c, child }: { c: Comment; child?: boolean }) => (
     <div className={child ? "ml-6 border-l pl-3" : ""}>
       <div className="rounded-2xl bg-card p-3">
-        <p className="text-xs font-bold">{c.profiles?.username ?? "collector"} <span className="font-normal text-muted-foreground">· {new Date(c.created_at).toLocaleDateString()}</span></p>
+        <p className="text-xs font-bold">{c.profiles?.username ?? "collectionneur"} <span className="font-normal text-muted-foreground">· {new Date(c.created_at).toLocaleDateString()}</span></p>
         <p className="mt-1 text-sm">{c.body}</p>
         <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
           <button onClick={() => like(c)} className="flex items-center gap-1">
             <Heart className={`h-3.5 w-3.5 ${c.comment_likes.some((l) => l.user_id === user?.id) ? "fill-accent text-accent" : ""}`} />{c.comment_likes.length}
           </button>
-          {!child && user && <button onClick={() => setReplyTo(c.id)}>Reply</button>}
+          {!child && user && <button onClick={() => setRépondreTo(c.id)}>Répondre</button>}
         </div>
       </div>
     </div>
@@ -160,15 +160,15 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
   const top = comments.filter((c) => !c.parent_id);
   return (
     <section className="mt-8">
-      <h2 className="mb-3 font-bold">Community · {comments.length}</h2>
+      <h2 className="mb-3 font-bold">Communauté · {comments.length}</h2>
       {user ? (
         <div className="mb-4 space-y-2">
-          {replyTo && <p className="text-xs text-muted-foreground">Replying… <button className="text-primary" onClick={() => setReplyTo(null)}>cancel</button></p>}
-          <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Share your thoughts on this can…" maxLength={1000} className="rounded-xl" />
-          <Button onClick={post} disabled={!body.trim()} className="rounded-xl font-bold">Post</Button>
+          {replyTo && <p className="text-xs text-muted-foreground">Réponse en cours… <button className="text-primary" onClick={() => setRépondreTo(null)}>Annuler</button></p>}
+          <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Partage ton avis sur cette canette…" maxLength={1000} className="rounded-xl" />
+          <Button onClick={post} disabled={!body.trim()} className="rounded-xl font-bold">Publier</Button>
         </div>
       ) : (
-        <Link to="/auth" className="mb-4 block text-sm text-primary">Sign in to join the conversation</Link>
+        <Link to="/auth" className="mb-4 block text-sm text-primary">Connecte-toi pour participer à la conversation</Link>
       )}
       <div className="space-y-2">
         {top.map((c) => (
