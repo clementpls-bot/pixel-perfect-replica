@@ -221,6 +221,14 @@ function CanPage() {
               <option value="description">Description</option>
               <option value="historical_context">Contexte historique</option>
               <option value="image_url">Photo principale</option>
+              <option value="color_primary">Couleur principale</option>
+              <option value="color_secondary">Couleur secondaire</option>
+              <option value="caffeine_mg_per_100ml">Caféine (mg / 100 ml)</option>
+              <option value="sugar_g_per_100ml">Sucres (g / 100 ml)</option>
+              <option value="taurine_mg_per_100ml">Taurine (mg / 100 ml)</option>
+              <option value="energy_kcal_per_100ml">Énergie (kcal / 100 ml)</option>
+              <option value="volume_ml">Contenance (ml)</option>
+              <option value="history_verified">Historique vérifié</option>
             </select>
             {reportCategory !== "image_url" && <><label className="block text-sm font-medium" htmlFor="report-value">Information proposée</label>
             <Input id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} placeholder="Saisis la valeur proposée" maxLength={1000} className="rounded-xl" /></>}
