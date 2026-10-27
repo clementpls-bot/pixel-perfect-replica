@@ -70,31 +70,31 @@ function Collection() {
           </div>
         </div>
       ) : (
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-5 grid grid-cols-3 gap-3">
           {mine.map((c, i) => {
             const quantity = owned.get(c.id) ?? 0;
             const brand = data.brands.find((b) => b.id === c.brand_id);
             return (
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
-                className="group relative block overflow-hidden rounded-3xl border bg-card p-3 shadow-sm transition-transform duration-300 hover:-translate-y-1 active:scale-95 animate-pop-in"
+                className="group relative block overflow-hidden rounded-2xl border bg-card p-2 text-center shadow-sm transition-transform duration-300 hover:-translate-y-1 active:scale-95 animate-pop-in"
                 style={{ background: `radial-gradient(circle at 50% 40%, ${c.color_primary}33, transparent 70%)`, animationDelay: `${i * 40}ms` }}>
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-1">
                   <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border bg-background shadow-sm">
                     {brand?.logo_url
                       ? <img src={brand.logo_url} alt={`Logo ${brand.name}`} className="h-6 w-6 object-contain" />
                       : <span className="text-xs font-black" style={{ color: brand?.color }}>{brand?.name.slice(0, 2).toUpperCase()}</span>}
                   </div>
-                  <span className="rounded-full bg-success px-2.5 py-1 text-xs font-black tabular-nums text-success-foreground shadow-sm">×{quantity}</span>
+                  <span className="rounded-full bg-success px-1.5 py-1 text-[10px] font-black tabular-nums text-success-foreground shadow-sm">×{quantity}</span>
                 </div>
                 <div className="py-2">
-                  <CanArt can={c} brandName={brand?.name} className="max-w-[110px] transition-transform duration-500 group-hover:scale-105" />
+                  <CanArt can={c} brandName={brand?.name} className="max-w-[64px] transition-transform duration-500 group-hover:scale-105" />
                 </div>
                 <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">Possédé</span>
                 <div
-                  className="mt-1.5 rounded-lg border-l-[3px] px-2 py-1"
+                  className="mt-1.5 rounded-lg border-l-[3px] px-1.5 py-1"
                   style={{ background: `${brand?.color ?? "var(--color-muted)"}1f`, borderLeftColor: brand?.color ?? "var(--color-border)" }}
                 >
-                  <p className="line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
+                  <p className="line-clamp-2 min-h-8 text-[11px] font-bold leading-tight">{c.name}</p>
                 </div>
               </Link>
             );
