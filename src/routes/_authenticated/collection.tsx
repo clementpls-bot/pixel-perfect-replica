@@ -45,9 +45,10 @@ function Collection() {
           to="/brands"
           aria-label="Magasin"
           title="Magasin"
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-card text-foreground transition-colors hover:bg-accent active:scale-95"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent active:scale-95"
         >
           <Store className="h-5 w-5" />
+          <span>Magasin</span>
         </Link>
       </header>
 
