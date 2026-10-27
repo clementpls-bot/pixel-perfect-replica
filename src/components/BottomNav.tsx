@@ -17,7 +17,7 @@ export function BottomNav() {
           </Link>
           <Link to="/profile" className={item} activeProps={active}>
             <User className="h-5 w-5" />
-            Profile
+            Profil
           </Link>
         </div>
       </nav>
@@ -25,8 +25,8 @@ export function BottomNav() {
       {pathname !== "/scan" && (
         <Link
           to="/scan"
-          aria-label="Scan a can"
-          title="Scan a can"
+          aria-label="Scanner une canette"
+          title="Scanner une canette"
           className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 active:scale-90"
         >
           <ScanBarcode className="h-7 w-7" />
