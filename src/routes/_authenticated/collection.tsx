@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Search } from "lucide-react";
 import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
     meta: [
-      { title: "My binder — Cansdex" },
-      { name: "description", content: "Your personal can collection as collectible cards." },
-      { property: "og:title", content: "My binder — Cansdex" },
-      { property: "og:description", content: "Your personal can collection as collectible cards." },
+      { title: "Collection — Cansdex" },
+      { name: "description", content: "Your personal drink can collection." },
+      { property: "og:title", content: "Collection — Cansdex" },
+      { property: "og:description", content: "Your personal drink can collection." },
     ],
   }),
   component: Collection,
@@ -42,7 +42,7 @@ function Collection() {
     try {
       await adjustQuantity(canId, delta);
       if (delta === -1 && (owned.get(canId) ?? 0) === 1) {
-        toast.success("Can removed from your binder.");
+        toast.success("Can removed from your collection.");
       }
     } catch (error) {
       toast.error((error as Error).message || "Unable to update quantity.");
@@ -53,12 +53,40 @@ function Collection() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black">My binder</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Scan a can once to unlock it. Then use + and − to manage how many you own.</p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black">Collection</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {mine.length} {mine.length === 1 ? "can" : "cans"} collected
+          </p>
+        </div>
+        <Link
+          to="/brands"
+          aria-label="Find cans in catalogue"
+          title="Find cans in catalogue"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-card text-foreground transition-colors hover:bg-accent active:scale-95"
+        >
+          <Search className="h-5 w-5" />
+        </Link>
+      </header>
+
       {mine.length === 0 ? (
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground">Your binder is empty.</p>
-          <Link to="/scan"><Button className="mt-4 rounded-xl font-bold">Scan your first can</Button></Link>
+        <div className="mt-12 rounded-3xl border border-dashed bg-card/50 px-6 py-10 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Search className="h-6 w-6" />
+          </div>
+          <h2 className="mt-4 text-lg font-bold">Your collection is empty</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Scan a can to add it to your collection, or explore the catalogue to discover cans to collect.
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            <Link to="/brands">
+              <Button className="h-11 w-full rounded-xl font-bold">Explore catalogue</Button>
+            </Link>
+            <Link to="/scan">
+              <Button variant="secondary" className="h-11 w-full rounded-xl font-semibold">Scan a can</Button>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3">
