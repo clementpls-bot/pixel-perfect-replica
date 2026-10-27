@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Check, Clock3, LogOut, Pencil, Upload, X } from "lucide-react";
@@ -8,15 +8,15 @@ import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
-import { CanetteArt } from "@/components/CanetteArt";
+import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "Profil — Canettesdex" },
+      { title: "Profil — Cansdex" },
       { name: "description", content: "Vos statistiques de collection et vos succès." },
-      { property: "og:title", content: "Profil — Canettesdex" },
+      { property: "og:title", content: "Profil — Cansdex" },
       { property: "og:description", content: "Vos statistiques de collection et vos succès." },
     ],
   }),
@@ -76,11 +76,6 @@ function Profile() {
     ? new Date(canChangeUsernameAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
 
-  const ownedCanettes = useMemo(() => {
-    if (!data || !owned) return [];
-    return data.cans.filter((can) => owned.has(can.id));
-  }, [data, owned]);
-
   if (!data || !owned || profileLoading) return null;
 
   const ownedSet = new Set(owned.keys());
@@ -91,7 +86,7 @@ function Profile() {
       copies: list.reduce((s, c) => s + (owned.get(c.id) ?? 0), 0) };
   });
   const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
-  const achievements = computeAchievements({ ownedCanetteIds: ownedSet, cans: data.cans, brands: data.brands });
+  const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
   const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
   const signOut = async () => {
@@ -190,7 +185,7 @@ function Profile() {
                 <Button size="sm" variant="ghost" className="rounded-lg" onClick={() => {
                   setUsernameDraft(profile?.username ?? "");
                   setEditing(false);
-                }}><X className="mr-1 h-4 w-4" /> Canettecel</Button>
+                }}><X className="mr-1 h-4 w-4" /> Annuler</Button>
               </div>
             </div>
           ) : (
@@ -225,7 +220,7 @@ function Profile() {
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          ["Canetteettes différentes", ownedSet.size],
+          ["Canettes différentes", ownedSet.size],
           ["Exemplaires", totalExemplaires],
           ["Marques", new Set(data.cans.filter((can) => ownedSet.has(can.id)).map((can) => can.brand_id)).size],
         ].map(([label, value]) => (
