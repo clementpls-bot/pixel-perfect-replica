@@ -283,9 +283,9 @@ function AdminSubmissions() {
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;
             const photos = [
-              { key: "front" as const, label: "Face avant", url: editing ? draft.image_url : item.image_url },
-              { key: "back" as const, label: "Face arrière", url: editing ? draft.back_image_url : item.back_image_url },
-              { key: "barcode" as const, label: "Code-barres", url: editing ? draft.barcode_image_url : item.barcode_image_url },
+              { key: "front" as const, label: "Face avant", url: editing && draft ? draft.image_url : item.image_url },
+              { key: "back" as const, label: "Face arrière", url: editing && draft ? draft.back_image_url : item.back_image_url },
+              { key: "barcode" as const, label: "Code-barres", url: editing && draft ? draft.barcode_image_url : item.barcode_image_url },
             ];
             return <article key={item.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b p-4">
@@ -294,7 +294,7 @@ function AdminSubmissions() {
               </div>
               <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3">
                 {photos.map(({ key, label, url }) => <div key={key} className="min-w-0">
-                  {url ? <a href={url} target="_blank" rel="noreferrer" className="group block" aria-label={`Ouvrir ${label}`}><div className="relative overflow-hidden rounded-xl border bg-muted"><img src={url} alt={`${label} de ${item.name}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} className="max-h-[360px] min-h-36 w-full object-contain" /><span className="absolute bottom-2 right-2 rounded-full bg-background/90 p-2 shadow"><ExternalLink className="h-4 w-4" /></span></div></a> : <div className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/30 text-muted-foreground"><ImageOff className="h-6 w-6" /><span className="mt-2 text-xs">Photo non fournie</span></div>}
+                  {url ? <a href={url} target="_blank" rel="noreferrer" className="group block" aria-label={`Ouvrir ${label}`}><div className="relative overflow-hidden rounded-xl border bg-muted"><img src={url} alt={`${label} de ${item.name}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; const fallback = event.currentTarget.parentElement?.querySelector("[data-image-fallback]"); if (fallback) fallback.classList.remove("hidden"); }} className="max-h-[360px] min-h-36 w-full object-contain" /><span data-image-fallback className="hidden min-h-36 items-center justify-center p-3 text-center text-xs text-muted-foreground">Impossible de charger cette image</span><span className="absolute bottom-2 right-2 rounded-full bg-background/90 p-2 shadow"><ExternalLink className="h-4 w-4" /></span></div></a> : <div className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/30 text-muted-foreground"><ImageOff className="h-6 w-6" /><span className="mt-2 text-xs">Photo non fournie</span></div>}
                   {editing && <div className="mt-2"><label className="text-xs font-medium">{label} — remplacer</label><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) setReplacementFiles((current) => ({ ...current, [key]: file })); }} className="mt-1 block w-full text-xs text-muted-foreground" />{replacementFiles[key] && <p className="mt-1 break-all text-xs text-primary">{replacementFiles[key]?.name}</p>}</div>}
                   <p className="mt-2 text-center text-xs font-medium text-muted-foreground">{label}</p>
                 </div>)}
