@@ -95,7 +95,7 @@ function CanPage() {
       const { error } = await supabase.from("can_reports").insert({
         can_id: can.id,
         user_id: user.id,
-        category: "Contribution communautaire",
+        category: "Information incorrecte",
         details: reportDetails.trim(),
         proposed_field: reportCategory,
         proposed_value: reportValue.trim() || null,
