@@ -10,9 +10,9 @@ export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
     meta: [
       { title: "Collection — Cansdex" },
-      { name: "description", content: "Your personal drink can collection." },
+      { name: "description", content: "Votre collection personnelle de canettes." },
       { property: "og:title", content: "Collection — Cansdex" },
-      { property: "og:description", content: "Your personal drink can collection." },
+      { property: "og:description", content: "Votre collection personnelle de canettes." },
     ],
   }),
   component: Collection,
@@ -42,10 +42,10 @@ function Collection() {
     try {
       await adjustQuantity(canId, delta);
       if (delta === -1 && (owned.get(canId) ?? 0) === 1) {
-        toast.success("Can removed from your collection.");
+        toast.success("Canette retirée de votre collection.");
       }
     } catch (error) {
-      toast.error((error as Error).message || "Unable to update quantity.");
+      toast.error((error as Error).message || "Impossible de mettre à jour la quantité.");
     } finally {
       setBusyCan(null);
     }
@@ -57,13 +57,13 @@ function Collection() {
         <div>
           <h1 className="text-2xl font-black">Collection</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mine.length} {mine.length === 1 ? "can" : "cans"} collected
+            {mine.length} {mine.length === 1 ? "canette" : "canettes"} dans la collection
           </p>
         </div>
         <Link
           to="/brands"
-          aria-label="Find cans in catalogue"
-          title="Find cans in catalogue"
+          aria-label="Trouver des canettes dans le catalogue"
+          title="Trouver des canettes dans le catalogue"
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-card text-foreground transition-colors hover:bg-accent active:scale-95"
         >
           <Search className="h-5 w-5" />
@@ -75,16 +75,16 @@ function Collection() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Search className="h-6 w-6" />
           </div>
-          <h2 className="mt-4 text-lg font-bold">Your collection is empty</h2>
+          <h2 className="mt-4 text-lg font-bold">Votre collection est vide</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Scan a can to add it to your collection, or explore the catalogue to discover cans to collect.
+            Scannez une canette pour l’ajouter à votre collection, ou parcourez le catalogue pour en découvrir.
           </p>
           <div className="mt-5 flex flex-col gap-2">
             <Link to="/brands">
-              <Button className="h-11 w-full rounded-xl font-bold">Explore catalogue</Button>
+              <Button className="h-11 w-full rounded-xl font-bold">Explorer le catalogue</Button>
             </Link>
             <Link to="/scan">
-              <Button variant="secondary" className="h-11 w-full rounded-xl font-semibold">Scan a can</Button>
+              <Button variant="secondary" className="h-11 w-full rounded-xl font-semibold">Scanner une canette</Button>
             </Link>
           </div>
         </div>
@@ -104,11 +104,11 @@ function Collection() {
                   </Link>
                   <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-muted/60 p-1.5">
                     <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
-                      aria-label={`Remove one ${c.name}`} disabled={busyCan !== null}
+                      aria-label={`Retirer une canette : ${c.name}`} disabled={busyCan !== null}
                       onClick={() => void changeQuantity(c.id, -1)}><Minus className="h-4 w-4" /></Button>
                     <span className="min-w-0 text-center text-xs font-black tabular-nums">×{quantity}</span>
                     <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
-                      aria-label={`Add one ${c.name}`} disabled={busyCan !== null}
+                      aria-label={`Ajouter une canette : ${c.name}`} disabled={busyCan !== null}
                       onClick={() => void changeQuantity(c.id, 1)}><Plus className="h-4 w-4" /></Button>
                   </div>
                 </div>
