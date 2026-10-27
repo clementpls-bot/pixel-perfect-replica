@@ -39,7 +39,7 @@ function Scanner() {
   const [brandId, setBrandId] = useState("");
   const [flavour, setSaveur] = useState("");
   const [releaseYear, setReleaseYear] = useState("");
-  const [category, setCategory] = useState<"Boisson énergisante" | "Soda" | "Boisson sans alcool" | "Édition limitée">("Boisson énergisante");
+  const [category, setCategory] = useState<"Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition">("Energy Drink");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<SubmissionImages>({ front: null, back: null, barcode: null });
   const busy = useRef(false);
@@ -263,7 +263,7 @@ function Scanner() {
           <div className="space-y-1.5">
             <label htmlFor="proposal-category" className="text-sm font-semibold">Catégorie *</label>
             <select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
-              <option>Boisson énergisante</option><option>Soda</option><option>Boisson sans alcool</option><option>Édition limitée</option>
+              <option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option>
             </select>
           </div>
           <div className="space-y-1.5">
