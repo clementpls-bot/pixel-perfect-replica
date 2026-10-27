@@ -58,7 +58,7 @@ function Scanner() {
       return;
     }
     if (source !== "camera") {
-      toast.error("Scanner the barcode with your camera to unlock this can for the first time.");
+      toast.error("Scanne le code-barres avec la caméra pour débloquer cette canette la première fois.");
       busy.current = false;
       return;
     }
@@ -116,11 +116,11 @@ function Scanner() {
       return;
     }
     if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file.");
+      toast.error("Choisis un fichier image.");
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      toast.error("Each photo must be 8 MB or smaller.");
+      toast.error("Chaque photo doit faire 8 Mo maximum.");
       return;
     }
     setImages((current) => ({ ...current, [key]: file }));
@@ -145,7 +145,7 @@ function Scanner() {
       return;
     }
     if (!images.front) {
-      toast.error("Ajouter a photo of the front of the can.");
+      toast.error("Ajoute une photo de la face avant de la canette.");
       return;
     }
     if (!/^\d{8,14}$/.test(unknownBarcode)) {
@@ -153,7 +153,7 @@ function Scanner() {
       return;
     }
     if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
-      toast.error("This barcode is already in the catalogue. Scanner it again.");
+      toast.error("Ce code-barres figure déjà dans le catalogue. Scanne-le à nouveau.");
       setUnknownBarcode("");
       return;
     }
@@ -268,7 +268,7 @@ function Scanner() {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-description" className="text-sm font-semibold">Informations complémentaires</label>
-            <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Anything that helps identify this can…" rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+            <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Toute information permettant d’identifier cette canette…" rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div className="space-y-3 rounded-2xl border bg-card p-4">
             <div>
