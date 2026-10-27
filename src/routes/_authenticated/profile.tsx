@@ -161,7 +161,7 @@ function Profile() {
       <header className="flex items-center gap-4">
         <label className="group relative flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground">
           {profile?.avatar_url
-            ? <img src={profile.avatar_url} alt="Profile picture" className="h-full w-full object-cover" />
+            ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
             : profile?.username?.[0]?.toUpperCase()}
           <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition group-hover:opacity-100">
             {uploadingAvatar ? <span className="text-xs">Envoi en cours…</span> : <Camera className="h-5 w-5" />}
@@ -176,7 +176,7 @@ function Profile() {
           {editing ? (
             <div className="space-y-2">
               <input value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value)}
-                maxLength={24} autoComplete="nickname" aria-label="New username"
+                maxLength={24} autoComplete="nickname" aria-label="Nouveau nom d’utilisateur"
                 className="w-full rounded-xl border bg-background px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-ring" />
               <div className="flex gap-2">
                 <Button size="sm" className="rounded-lg" disabled={savingUsername} onClick={() => void saveUsername()}>
