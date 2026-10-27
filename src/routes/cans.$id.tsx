@@ -125,14 +125,14 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [body, setBody] = useState("");
-  const [replyTo, setRépondreTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["comments", canId] });
 
   const post = async () => {
     if (!user || !body.trim()) return;
     const { error } = await supabase.from("comments").insert({ can_id: canId, user_id: user.id, body: body.trim(), parent_id: replyTo });
     if (error) { toast.error(error.message); return; }
-    setBody(""); setRépondreTo(null); refresh();
+    setBody(""); setReplyTo(null); refresh();
   };
   const like = async (c: Comment) => {
     if (!user) { toast("Connecte-toi pour aimer ce commentaire."); return; }
@@ -151,7 +151,7 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
           <button onClick={() => like(c)} className="flex items-center gap-1">
             <Heart className={`h-3.5 w-3.5 ${c.comment_likes.some((l) => l.user_id === user?.id) ? "fill-accent text-accent" : ""}`} />{c.comment_likes.length}
           </button>
-          {!child && user && <button onClick={() => setRépondreTo(c.id)}>Répondre</button>}
+          {!child && user && <button onClick={() => setReplyTo(c.id)}>Répondre</button>}
         </div>
       </div>
     </div>
@@ -163,7 +163,7 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
       <h2 className="mb-3 font-bold">Communauté · {comments.length}</h2>
       {user ? (
         <div className="mb-4 space-y-2">
-          {replyTo && <p className="text-xs text-muted-foreground">Réponse en cours… <button className="text-primary" onClick={() => setRépondreTo(null)}>Annuler</button></p>}
+          {replyTo && <p className="text-xs text-muted-foreground">Réponse en cours… <button className="text-primary" onClick={() => setReplyTo(null)}>Annuler</button></p>}
           <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Partage ton avis sur cette canette…" maxLength={1000} className="rounded-xl" />
           <Button onClick={post} disabled={!body.trim()} className="rounded-xl font-bold">Publier</Button>
         </div>
