@@ -29,7 +29,10 @@ function BrandPage() {
   return (
     <div>
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Marques</Link>
-      <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
+      <div className="flex items-center gap-3">
+        {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
+        <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
+      </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
         <ProgressBar label="Collectionnée" value={n} total={list.length} color={brand.color} />
       </div>
