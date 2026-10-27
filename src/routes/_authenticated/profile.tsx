@@ -180,7 +180,7 @@ function Profile() {
                 className="w-full rounded-xl border bg-background px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-ring" />
               <div className="flex gap-2">
                 <Button size="sm" className="rounded-lg" disabled={savingUsername} onClick={() => void saveUsername()}>
-                  <Check className="mr-1 h-4 w-4" /> Save
+                  <Check className="mr-1 h-4 w-4" /> Enregistrer
                 </Button>
                 <Button size="sm" variant="ghost" className="rounded-lg" onClick={() => {
                   setUsernameDraft(profile?.username ?? "");
