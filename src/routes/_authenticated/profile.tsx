@@ -14,9 +14,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "Profil — Cansdex" },
+      { title: "Moi — Cansdex" },
       { name: "description", content: "Vos statistiques de collection et vos succès." },
-      { property: "og:title", content: "Profil — Cansdex" },
+      { property: "og:title", content: "Moi — Cansdex" },
       { property: "og:description", content: "Vos statistiques de collection et vos succès." },
     ],
   }),
@@ -252,7 +252,6 @@ function Profile() {
                   <Clock3 className="h-3 w-3" /> Prochaine modification : {nextUsernameDate}
                 </p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">Collectionneur depuis {profile && new Date(profile.created_at).toLocaleDateString("fr-FR")}</p>
             </>
           )}
         </div>
