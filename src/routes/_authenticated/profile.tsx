@@ -1,23 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, Clock3, LogOut, Pencil, Star, Upload, X } from "lucide-react";
+import { Camera, Check, Clock3, LogOut, Pencil, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
-import { CanArt } from "@/components/CanArt";
+import { CanetteArt } from "@/components/CanetteArt";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "Profile — Cansdex" },
-      { name: "description", content: "Your collector stats and achievements." },
-      { property: "og:title", content: "Profile — Cansdex" },
-      { property: "og:description", content: "Your collector stats and achievements." },
+      { title: "Profil — Canettesdex" },
+      { name: "description", content: "Vos statistiques de collection et vos succès." },
+      { property: "og:title", content: "Profil — Canettesdex" },
+      { property: "og:description", content: "Vos statistiques de collection et vos succès." },
     ],
   }),
   component: Profile,
@@ -34,9 +34,7 @@ function Profile() {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState("");
-  const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
   const [savingUsername, setSavingUsername] = useState(false);
-  const [savingFavorites, setSavingFavorites] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -52,7 +50,6 @@ function Profile() {
   useEffect(() => {
     if (profile) {
       setUsernameDraft(profile.username ?? "");
-      setSelectedFavorites((profile.favorite_can_ids ?? []).slice(0, 3));
     }
   }, [profile]);
 
@@ -79,7 +76,7 @@ function Profile() {
     ? new Date(canChangeUsernameAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
 
-  const ownedCans = useMemo(() => {
+  const ownedCanettes = useMemo(() => {
     if (!data || !owned) return [];
     return data.cans.filter((can) => owned.has(can.id));
   }, [data, owned]);
@@ -87,17 +84,14 @@ function Profile() {
   if (!data || !owned || profileLoading) return null;
 
   const ownedSet = new Set(owned.keys());
-  const totalCopies = [...owned.values()].reduce((a, b) => a + b, 0);
+  const totalExemplaires = [...owned.values()].reduce((a, b) => a + b, 0);
   const brandStats = data.brands.map((b) => {
     const list = data.cans.filter((c) => c.brand_id === b.id);
     return { ...b, total: list.length, have: list.filter((c) => ownedSet.has(c.id)).length,
       copies: list.reduce((s, c) => s + (owned.get(c.id) ?? 0), 0) };
   });
   const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
-  const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
-  const favoriteCans = (profile?.favorite_can_ids ?? [])
-    .map((id: string) => data.cans.find((can) => can.id === id))
-    .filter((can): can is NonNullable<typeof can> => !!can);
+  const achievements = computeAchievements({ ownedCanetteIds: ownedSet, cans: data.cans, brands: data.brands });
   const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
   const signOut = async () => {
@@ -109,7 +103,7 @@ function Profile() {
   const saveUsername = async () => {
     const next = usernameDraft.trim();
     if (!USERNAME_RULE.test(next)) {
-      toast.error("Use 3–24 characters: letters, numbers, dots, dashes or underscores.");
+      toast.error("Utilisez 3 à 24 caractères : lettres, chiffres, points, tirets ou tirets bas.");
       return;
     }
     if (next.toLowerCase() === profile?.username?.toLowerCase()) {
@@ -117,7 +111,7 @@ function Profile() {
       return;
     }
     if (!canChangeUsername) {
-      toast.error(`You can change your username again on ${nextUsernameDate}.`);
+      toast.error(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
       return;
     }
     setSavingUsername(true);
@@ -125,10 +119,10 @@ function Profile() {
       const { error } = await supabase.from("profiles").update({ username: next }).eq("id", user!.id);
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["profile", user?.id] });
-      toast.success("Username updated.");
+      toast.success("Nom d’utilisateur mis à jour.");
       setEditing(false);
     } catch (error) {
-      toast.error((error as Error).message || "Unable to update username.");
+      toast.error((error as Error).message || "Impossible de mettre à jour le nom d’utilisateur.");
     } finally {
       setSavingUsername(false);
     }
@@ -137,11 +131,11 @@ function Profile() {
   const uploadAvatar = async (file?: File) => {
     if (!file || !user) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Choose a JPG, PNG or WebP image.");
+      toast.error("Choisissez une image JPG, PNG ou WebP.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Your profile picture must be 5 MB or smaller.");
+      toast.error("Votre photo de profil doit faire 5 Mo maximum.");
       return;
     }
     setUploadingAvatar(true);
@@ -159,33 +153,11 @@ function Profile() {
         .update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
       if (updateError) throw updateError;
       await qc.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast.success("Profile picture updated.");
+      toast.success("Photo de profil mise à jour.");
     } catch (error) {
-      toast.error((error as Error).message || "Unable to upload profile picture.");
+      toast.error((error as Error).message || "Impossible d’envoyer la photo de profil.");
     } finally {
       setUploadingAvatar(false);
-    }
-  };
-
-  const toggleFavorite = (canId: string) => {
-    setSelectedFavorites((current) => current.includes(canId)
-      ? current.filter((id) => id !== canId)
-      : current.length < 3 ? [...current, canId] : current);
-  };
-
-  const saveFavorites = async () => {
-    if (!user) return;
-    setSavingFavorites(true);
-    try {
-      const { error } = await supabase.from("profiles")
-        .update({ favorite_can_ids: selectedFavorites }).eq("id", user.id);
-      if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast.success("Favourite cans saved.");
-    } catch (error) {
-      toast.error((error as Error).message || "Unable to save favourite cans.");
-    } finally {
-      setSavingFavorites(false);
     }
   };
 
@@ -197,7 +169,7 @@ function Profile() {
             ? <img src={profile.avatar_url} alt="Profile picture" className="h-full w-full object-cover" />
             : profile?.username?.[0]?.toUpperCase()}
           <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition group-hover:opacity-100">
-            {uploadingAvatar ? <span className="text-xs">Uploading…</span> : <Camera className="h-5 w-5" />}
+            {uploadingAvatar ? <span className="text-xs">Envoi en cours…</span> : <Camera className="h-5 w-5" />}
           </span>
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
             disabled={uploadingAvatar} onChange={(event) => {
@@ -218,7 +190,7 @@ function Profile() {
                 <Button size="sm" variant="ghost" className="rounded-lg" onClick={() => {
                   setUsernameDraft(profile?.username ?? "");
                   setEditing(false);
-                }}><X className="mr-1 h-4 w-4" /> Cancel</Button>
+                }}><X className="mr-1 h-4 w-4" /> Canettecel</Button>
               </div>
             </div>
           ) : (
@@ -227,35 +199,35 @@ function Profile() {
               <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 onClick={() => {
                   if (!canChangeUsername) {
-                    toast.info(`Your next username change is available ${nextUsernameDate}.`);
+                    toast.info(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
                     return;
                   }
                   setEditing(true);
                 }}>
-                <Pencil className="h-3 w-3" /> Change username
+                <Pencil className="h-3 w-3" /> Modifier le nom d’utilisateur
               </button>
               {!canChangeUsername && (
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3 w-3" /> Next change: {nextUsernameDate}
+                  <Clock3 className="h-3 w-3" /> Prochaine modification : {nextUsernameDate}
                 </p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">Collector since {profile && new Date(profile.created_at).toLocaleDateString()}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Collectionneur depuis {profile && new Date(profile.created_at).toLocaleDateString()}</p>
             </>
           )}
         </div>
-        <Button size="icon" variant="ghost" onClick={signOut} aria-label="Sign out"><LogOut /></Button>
+        <Button size="icon" variant="ghost" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
       </header>
-      <p className="text-xs text-muted-foreground">Click your profile picture to upload a new one. JPG, PNG or WebP · max 5 MB.</p>
+      <p className="text-xs text-muted-foreground">Cliquez sur votre photo de profil pour la remplacer. JPG, PNG ou WebP · 5 Mo maximum.</p>
 
       {user?.app_metadata?.role === "admin" && (
-        <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Review community can submissions →</Link>
+        <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
       )}
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          ["Unique cans", ownedSet.size],
-          ["Copies", totalCopies],
-          ["Brands", new Set(data.cans.filter((can) => ownedSet.has(can.id)).map((can) => can.brand_id)).size],
+          ["Canetteettes différentes", ownedSet.size],
+          ["Exemplaires", totalExemplaires],
+          ["Marques", new Set(data.cans.filter((can) => ownedSet.has(can.id)).map((can) => can.brand_id)).size],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border bg-card p-3 text-center">
             <p className="font-display text-2xl font-black tabular-nums">{value}</p>
@@ -264,70 +236,13 @@ function Profile() {
         ))}
       </div>
 
-      <section className="space-y-3">
-        <div>
-          <h2 className="font-bold">Favourite cans overlay</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Choose up to 3 cans from your collection to feature on your profile.</p>
-        </div>
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-orange-950 p-4 text-white shadow-lg">
-          <div className="pointer-events-none absolute -right-6 -top-10 h-36 w-36 rounded-full bg-orange-500/20 blur-3xl" />
-          <div className="relative flex min-h-36 items-center justify-between gap-2">
-            <div className="max-w-[58%]">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-300">Collector's picks</p>
-              <p className="mt-2 text-xl font-black leading-tight">{profile?.username ?? "Your profile"}</p>
-              <p className="mt-1 text-xs text-white/60">{favoriteCans.length} / 3 featured cans</p>
-            </div>
-            <div className="flex min-w-0 flex-1 items-end justify-end -space-x-3">
-              {favoriteCans.map((can, index) => (
-                <div key={can.id} className="relative w-12 shrink-0 transition-transform hover:-translate-y-2"
-                  style={{ zIndex: index + 1, transform: `rotate(${(index - (favoriteCans.length - 1) / 2) * 8}deg)` }}>
-                  <CanArt can={can} brandName={brandName(can.brand_id)} className="max-h-28 drop-shadow-xl" />
-                </div>
-              ))}
-              {favoriteCans.length === 0 && <Star className="mr-2 h-12 w-12 text-orange-300/70" />}
-            </div>
-          </div>
-          {favoriteCans.length > 0 && (
-            <div className="relative mt-3 flex flex-wrap gap-1.5">
-              {favoriteCans.map((can) => (
-                <span key={can.id} className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-semibold">
-                  {can.name}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="grid grid-cols-1 gap-2">
-          {ownedCans.length === 0 ? (
-            <p className="rounded-xl border p-3 text-sm text-muted-foreground">Scan a can first to choose your favourites.</p>
-          ) : ownedCans.map((can) => {
-            const checked = selectedFavorites.includes(can.id);
-            return (
-              <label key={can.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${checked ? "border-primary bg-primary/5" : "bg-card hover:border-primary/40"} ${!checked && selectedFavorites.length >= 3 ? "cursor-not-allowed opacity-50" : ""}`}>
-                <input type="checkbox" checked={checked} disabled={!checked && selectedFavorites.length >= 3}
-                  onChange={() => toggleFavorite(can.id)} className="h-4 w-4 accent-primary" />
-                <div className="w-8 shrink-0"><CanArt can={can} brandName={brandName(can.brand_id)} className="max-h-12" /></div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{can.name}</p>
-                  <p className="text-xs text-muted-foreground">{brandName(can.brand_id)}</p>
-                </div>
-                {checked && <Check className="h-4 w-4 text-primary" />}
-              </label>
-            );
-          })}
-        </div>
-        <Button className="w-full rounded-xl font-bold" disabled={savingFavorites || selectedFavorites.join(",") === (profile?.favorite_can_ids ?? []).join(",")}
-          onClick={() => void saveFavorites()}>
-          <Star className="mr-2 h-4 w-4" /> {savingFavorites ? "Saving…" : "Save favourite cans"}
-        </Button>
-      </section>
 
       {fav && fav.copies > 0 && (
-        <p className="rounded-2xl border bg-card p-4 text-sm">Favourite brand: <b style={{ color: fav.color }}>{fav.name}</b></p>
+        <p className="rounded-2xl border bg-card p-4 text-sm">Marque la plus collectionnée : <b style={{ color: fav.color }}>{fav.name}</b></p>
       )}
 
       <section>
-        <h2 className="mb-3 font-bold">Achievements · {achievements.filter((a) => a.earned).length}/{achievements.length}</h2>
+        <h2 className="mb-3 font-bold">Succès · {achievements.filter((a) => a.earned).length}/{achievements.length}</h2>
         <div className="grid grid-cols-2 gap-3">
           {achievements.map((a) => (
             <div key={a.id} className={`rounded-2xl border p-3 transition ${a.earned ? "border-gold/50 bg-card" : "opacity-40 grayscale"}`}>
@@ -340,21 +255,21 @@ function Profile() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-bold">Progress by brand</h2>
+        <h2 className="font-bold">Progression par marque</h2>
         {brandStats.map((b) => <ProgressBar key={b.id} label={b.name} value={b.have} total={b.total} color={b.color} />)}
       </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-bold">My comments</h2>
+          <h2 className="font-bold">Mes commentaires</h2>
           <span className="text-xs text-muted-foreground">{comments?.length ?? 0}</span>
         </div>
         {commentsLoading ? (
-          <p className="text-sm text-muted-foreground">Loading your comments…</p>
+          <p className="text-sm text-muted-foreground">Chargement de vos commentaires…</p>
         ) : commentsError ? (
-          <p className="text-sm text-destructive">Unable to load your comments.</p>
+          <p className="text-sm text-destructive">Impossible de charger vos commentaires.</p>
         ) : !comments?.length ? (
-          <p className="rounded-xl border p-4 text-sm text-muted-foreground">You haven't posted any comments yet.</p>
+          <p className="rounded-xl border p-4 text-sm text-muted-foreground">Vous n’avez pas encore publié de commentaires.</p>
         ) : (
           <div className="space-y-2">
             {comments.map((comment) => {
@@ -364,7 +279,7 @@ function Profile() {
                   <p className="whitespace-pre-wrap text-sm">{comment.body}</p>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{new Date(comment.created_at).toLocaleDateString()}</span>
-                    {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">On {can.name} →</Link> : <span>Can</span>}
+                    {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">Sur {can.name} →</Link> : <span>Canette</span>}
                   </div>
                 </article>
               );
