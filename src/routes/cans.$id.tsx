@@ -211,7 +211,7 @@ function CanPage() {
           </DialogHeader>
           <div className="space-y-3">
             <label className="block text-sm font-medium" htmlFor="report-category">Information à compléter ou corriger</label>
-            <select id="report-category" value={reportCategory} onChange={(e) => setReportCategory(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
+            <select id="report-category" value={reportCategory} onChange={(e) => { setReportCategory(e.target.value); setReportValue(""); }} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
               <option value="name">Nom</option>
               <option value="brand_id">Marque</option>
               <option value="barcode">Code-barres</option>
