@@ -7,6 +7,8 @@ export type Can = {
   id: string; barcode: string; name: string; brand_id: string; release_year: number | null;
   flavour: string | null; description: string | null; historical_context: string | null;
   image_url: string | null; color_primary: string; color_secondary: string; category: string;
+  caffeine_mg_per_100ml: number | null; sugar_g_per_100ml: number | null; taurine_mg_per_100ml: number | null;
+  energy_kcal_per_100ml: number | null; volume_ml: number | null;
 };
 
 export function useCatalog() {
