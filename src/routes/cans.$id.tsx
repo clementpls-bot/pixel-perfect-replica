@@ -103,11 +103,11 @@ function CanPage() {
       <section className="mt-8 grid grid-cols-2 gap-3">
         {(["Design", "Goût"] as const).map((k) => (
           <div key={k} className="rounded-2xl border bg-card p-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
             <p className="font-display text-3xl font-black">{avg(k)}<span className="text-base text-muted-foreground"> / 5</span></p>
             <div className="mt-2 flex gap-0.5">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => rate(k, n)} aria-label={`Rate ${k} ${n}`}>
+                <button key={n} onClick={() => rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`}>
                   <Star className={`h-5 w-5 ${(mine?.[k] ?? 0) >= n ? "fill-gold text-gold" : "text-muted-foreground"}`} />
                 </button>
               ))}
@@ -135,7 +135,7 @@ function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
     setBody(""); setRépondreTo(null); refresh();
   };
   const like = async (c: Comment) => {
-    if (!user) { toast("Sign in to like"); return; }
+    if (!user) { toast("Connecte-toi pour aimer ce commentaire."); return; }
     const liked = c.comment_likes.some((l) => l.user_id === user.id);
     if (liked) await supabase.from("comment_likes").delete().eq("comment_id", c.id).eq("user_id", user.id);
     else await supabase.from("comment_likes").insert({ comment_id: c.id, user_id: user.id });
