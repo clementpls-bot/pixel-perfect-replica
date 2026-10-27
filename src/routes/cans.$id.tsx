@@ -80,6 +80,7 @@ function CanPage() {
     if (!user) { toast("Connecte-toi pour contribuer."); return; }
     if (!reportDetails.trim()) { toast.error("Ajoute un commentaire pour expliquer la modification."); return; }
     if (!reportValue.trim() && reportCategory !== "image_url") { toast.error("Indique l’information que tu proposes."); return; }
+    if (reportCategory === "image_url" && !reportValue.trim() && reportImages.length === 0) { toast.error("Ajoute au moins une image ou une URL de photo."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
