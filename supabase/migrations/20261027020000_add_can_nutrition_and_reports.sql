@@ -19,6 +19,8 @@ create table if not exists public.can_reports (
 create index if not exists can_reports_can_id_created_at_idx
   on public.can_reports (can_id, created_at desc);
 
+grant insert, select on public.can_reports to authenticated;
+grant all on public.can_reports to service_role;
 alter table public.can_reports enable row level security;
 
 drop policy if exists "Authenticated users can submit can reports" on public.can_reports;
