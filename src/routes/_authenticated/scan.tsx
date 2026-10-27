@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { useAjouterCan, useCatalog, type Can } from "@/lib/data";
+import { useAddCan, useCatalog, type Can } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
@@ -27,7 +27,7 @@ function Scanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { data } = useCatalog();
   const { user } = useAuth();
-  const addCan = useAjouterCan();
+  const addCan = useAddCan();
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
   const [manual, setManual] = useState("");
   const [camError, setCamError] = useState(false);
@@ -37,7 +37,7 @@ function Scanner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [brandId, setBrandId] = useState("");
-  const [flavour, setSaveur] = useState("");
+  const [flavour, setFlavour] = useState("");
   const [releaseYear, setReleaseYear] = useState("");
   const [category, setCategory] = useState<"Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition">("Energy Drink");
   const [description, setDescription] = useState("");
@@ -196,7 +196,7 @@ function Scanner() {
     setManual("");
     setName("");
     setBrandId("");
-    setSaveur("");
+    setFlavour("");
     setReleaseYear("");
     setDescription("");
     setImages({ front: null, back: null, barcode: null });
@@ -241,7 +241,7 @@ function Scanner() {
         <form onSubmit={submitProposal} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
-            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Monster Ultra Violet" className="h-12 rounded-xl" />
+            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
@@ -253,7 +253,7 @@ function Scanner() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label htmlFor="proposal-flavour" className="text-sm font-semibold">Saveur</label>
-              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setSaveur(e.target.value)} placeholder="e.g. Grape" className="h-12 rounded-xl" />
+              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setFlavour(e.target.value)} placeholder="ex. raisin" className="h-12 rounded-xl" />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-year" className="text-sm font-semibold">Année de sortie</label>
