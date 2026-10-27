@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Heart, Minus, Plus, Star } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Droplets, FlaskConical, Heart, Minus, Plus, Star, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/cans/$id")({
   head: () => ({
@@ -30,6 +31,10 @@ function CanPage() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const adjustCanQuantity = useAdjustCanQuantity();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportCategory, setReportCategory] = useState("Information incorrecte");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reporting, setReporting] = useState(false);
   const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
@@ -68,6 +73,17 @@ function CanPage() {
     qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
 
+  const submitReport = async () => {
+    if (!user) { toast("Connecte-toi pour signaler une erreur."); return; }
+    if (!reportDetails.trim()) { toast.error("Décris brièvement l’erreur à corriger."); return; }
+    setReporting(true);
+    const { error } = await supabase.from("can_reports").insert({ can_id: can.id, user_id: user.id, category: reportCategory, details: reportDetails.trim() });
+    setReporting(false);
+    if (error) { toast.error("Impossible d’envoyer le signalement. Réessaie plus tard."); return; }
+    toast.success("Merci ! Ton signalement a été envoyé.");
+    setReportDetails(""); setReportCategory("Information incorrecte"); setReportOpen(false);
+  };
+
   const changeQty = async (d: 1 | -1) => {
     if (!user) { toast("Connecte-toi pour collectionner."); return; }
     if (qty === 0) {
@@ -94,10 +110,12 @@ function CanPage() {
         <span>Design : <strong className="text-foreground">{designSummary.average}/5</strong>{designSummary.count > 0 ? ` · ${designSummary.count} avis` : " · aucun avis"}</span>
         <span>Goût : <strong className="text-foreground">{tasteSummary.average}/5</strong>{tasteSummary.count > 0 ? ` · ${tasteSummary.count} avis` : " · aucun avis"}</span>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-        {[["Marque", brand?.name], ["Saveur", can.flavour], ["Année", can.release_year]].map(([l, v]) => (
-          <div key={String(l)} className="rounded-xl bg-muted p-2"><p className="text-muted-foreground">{l}</p><p className="font-bold">{v}</p></div>
-        ))}
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        {brand?.name && <span>{brand.name}</span>}
+        {brand?.name && can.flavour && <span aria-hidden="true">·</span>}
+        {can.flavour && <span>{can.flavour}</span>}
+        {(brand?.name || can.flavour) && can.release_year && <span aria-hidden="true">·</span>}
+        {can.release_year && <span>{can.release_year}</span>}
       </div>
 
       <div className="mt-4 flex items-center justify-between rounded-2xl border bg-card p-3">
@@ -109,9 +127,79 @@ function CanPage() {
         </div>
       </div>
 
-      <p className="mt-5 leading-relaxed">{can.description}</p>
-      <h2 className="mt-5 text-sm font-bold uppercase tracking-widest text-muted-foreground">Historique</h2>
-      <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
+      {can.description?.trim() && <p className="mt-5 leading-relaxed">{can.description}</p>}
+
+      {(can.caffeine_mg_per_100ml != null || can.sugar_g_per_100ml != null || can.taurine_mg_per_100ml != null || can.energy_kcal_per_100ml != null || can.volume_ml != null) && (
+        <section className="mt-6 rounded-2xl border bg-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold">Le profil de la boisson</h2>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Données / 100 ml</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {can.caffeine_mg_per_100ml != null && <div className="rounded-xl bg-muted/60 p-3">
+              <div className="flex items-center gap-2 text-muted-foreground"><Zap className="h-4 w-4 text-primary" /><span className="text-xs">Caféine</span></div>
+              <p className="mt-1 text-xl font-black tabular-nums">{can.caffeine_mg_per_100ml}<span className="ml-1 text-xs font-medium text-muted-foreground">mg</span></p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-background"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Number(can.caffeine_mg_per_100ml) / 32 * 100)}%` }} /></div>
+            </div>}
+            {can.sugar_g_per_100ml != null && <div className="rounded-xl bg-muted/60 p-3">
+              <div className="flex items-center gap-2 text-muted-foreground"><Droplets className="h-4 w-4 text-primary" /><span className="text-xs">Sucres</span></div>
+              <p className="mt-1 text-xl font-black tabular-nums">{can.sugar_g_per_100ml}<span className="ml-1 text-xs font-medium text-muted-foreground">g</span></p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-background"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Number(can.sugar_g_per_100ml) / 11 * 100)}%` }} /></div>
+            </div>}
+            {can.taurine_mg_per_100ml != null && <div className="rounded-xl bg-muted/60 p-3">
+              <div className="flex items-center gap-2 text-muted-foreground"><FlaskConical className="h-4 w-4 text-primary" /><span className="text-xs">Taurine</span></div>
+              <p className="mt-1 text-xl font-black tabular-nums">{can.taurine_mg_per_100ml}<span className="ml-1 text-xs font-medium text-muted-foreground">mg</span></p>
+            </div>}
+            {can.energy_kcal_per_100ml != null && <div className="rounded-xl bg-muted/60 p-3">
+              <div className="flex items-center gap-2 text-muted-foreground"><Zap className="h-4 w-4" /><span className="text-xs">Énergie</span></div>
+              <p className="mt-1 text-xl font-black tabular-nums">{can.energy_kcal_per_100ml}<span className="ml-1 text-xs font-medium text-muted-foreground">kcal</span></p>
+            </div>}
+            {can.volume_ml != null && <div className="col-span-2 flex items-center justify-between rounded-xl border border-dashed px-3 py-2">
+              <span className="text-xs text-muted-foreground">Contenance</span><span className="text-sm font-bold">{can.volume_ml} ml</span>
+            </div>}
+          </div>
+          <p className="mt-3 text-[10px] text-muted-foreground">Les valeurs sont indiquées pour 100 ml. Les barres servent uniquement à visualiser les quantités, pas à noter la boisson.</p>
+        </section>
+      )}
+
+      {can.historical_context?.trim() && (
+        <section className="mt-6">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Histoire de la canette</h2>
+          <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
+        </section>
+      )}
+
+      <div className="mt-5 flex justify-end">
+        <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+          <AlertTriangle className="h-3.5 w-3.5" /> Signaler une erreur
+        </button>
+      </div>
+
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Signaler une erreur</DialogTitle>
+            <DialogDescription>Une information semble incorrecte sur cette fiche ? Explique-nous quoi vérifier.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium" htmlFor="report-category">Type d’erreur</label>
+            <select id="report-category" value={reportCategory} onChange={(e) => setReportCategory(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
+              <option>Information incorrecte</option>
+              <option>Photo ou design incorrect</option>
+              <option>Saveur ou édition incorrecte</option>
+              <option>Code-barres incorrect</option>
+              <option>Information manquante</option>
+              <option>Autre</option>
+            </select>
+            <label className="block text-sm font-medium" htmlFor="report-details">Commentaire</label>
+            <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Ex. : cette édition est sortie en 2022, pas en 2023…" maxLength={1000} className="rounded-xl" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
+            <Button onClick={() => void submitReport()} disabled={reporting || !reportDetails.trim()}>{reporting ? "Envoi…" : "Envoyer le signalement"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-bold">Donner ton avis</h2>
