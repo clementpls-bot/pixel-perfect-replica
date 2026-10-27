@@ -84,13 +84,18 @@ function Collection() {
                       ? <img src={brand.logo_url} alt={`Logo ${brand.name}`} className="h-6 w-6 object-contain" />
                       : <span className="text-xs font-black" style={{ color: brand?.color }}>{brand?.name.slice(0, 2).toUpperCase()}</span>}
                   </div>
-                  <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-black tabular-nums text-primary-foreground shadow-sm">×{quantity}</span>
+                  <span className="rounded-full bg-success px-2.5 py-1 text-xs font-black tabular-nums text-success-foreground shadow-sm">×{quantity}</span>
                 </div>
                 <div className="py-2">
                   <CanArt can={c} brandName={brand?.name} className="max-w-[110px] transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <span className="inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">Possédé</span>
-                <p className="mt-1.5 line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
+                <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">Possédé</span>
+                <div
+                  className="mt-1.5 rounded-lg border-l-[3px] px-2 py-1"
+                  style={{ background: `${brand?.color ?? "var(--color-muted)"}1f`, borderLeftColor: brand?.color ?? "var(--color-border)" }}
+                >
+                  <p className="line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
+                </div>
               </Link>
             );
           })}
