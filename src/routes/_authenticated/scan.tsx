@@ -268,7 +268,7 @@ function Scanner() {
           <div className="space-y-3 rounded-2xl border bg-card p-4">
             <div>
               <h2 className="font-bold">Photos</h2>
-              <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Les photos du dos et du code-barres nous aident à vérifier la proposition. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
+              <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Prends une photo avec la caméra ou choisis une image dans ta galerie. Les photos du dos et du code-barres sont facultatives. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
             </div>
             {([
               ["front", "Face avant de la canette *", true],
@@ -277,8 +277,8 @@ function Scanner() {
             ] as const).map(([key, label, required]) => (
               <div key={key} className="space-y-1">
                 <label htmlFor={`photo-${key}`} className="text-sm font-medium">{label}</label>
-                <input id={`photo-${key}`} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required={required} onChange={(e) => chooseImage(key, e.target.files?.[0])} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />
-                {images[key] && <p className="text-xs text-primary">{images[key]?.name}</p>}
+                <input id={`photo-${key}`} type="file" accept="image/jpeg,image/png,image/webp" required={required} onChange={(e) => chooseImage(key, e.target.files?.[0])} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />
+                {images[key] && <div className="mt-2 flex items-center gap-3"><img src={URL.createObjectURL(images[key]!)} alt={`Aperçu : ${label}`} className="h-20 w-16 rounded-lg border object-contain" /><p className="min-w-0 break-all text-xs text-primary">{images[key]?.name}</p></div>}
               </div>
             ))}
           </div>

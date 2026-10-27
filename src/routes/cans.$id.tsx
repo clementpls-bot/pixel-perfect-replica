@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -32,8 +33,10 @@ function CanPage() {
   const { data: owned } = useOwned();
   const adjustCanQuantity = useAdjustCanQuantity();
   const [reportOpen, setReportOpen] = useState(false);
-  const [reportCategory, setReportCategory] = useState("Information incorrecte");
+  const [reportCategory, setReportCategory] = useState("name");
+  const [reportValue, setReportValue] = useState("");
   const [reportDetails, setReportDetails] = useState("");
+  const [reportImages, setReportImages] = useState<File[]>([]);
   const [reporting, setReporting] = useState(false);
   const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
@@ -74,14 +77,39 @@ function CanPage() {
   };
 
   const submitReport = async () => {
-    if (!user) { toast("Connecte-toi pour signaler une erreur."); return; }
-    if (!reportDetails.trim()) { toast.error("Décris brièvement l’erreur à corriger."); return; }
+    if (!user) { toast("Connecte-toi pour contribuer."); return; }
+    if (!reportDetails.trim()) { toast.error("Ajoute un commentaire pour expliquer la modification."); return; }
+    if (!reportValue.trim() && reportCategory !== "image_url") { toast.error("Indique l’information que tu proposes."); return; }
+    if (reportCategory === "image_url" && !reportValue.trim() && reportImages.length === 0) { toast.error("Ajoute au moins une image ou une URL de photo."); return; }
     setReporting(true);
-    const { error } = await supabase.from("can_reports").insert({ can_id: can.id, user_id: user.id, category: reportCategory, details: reportDetails.trim() });
-    setReporting(false);
-    if (error) { toast.error("Impossible d’envoyer le signalement. Réessaie plus tard."); return; }
-    toast.success("Merci ! Ton signalement a été envoyé.");
-    setReportDetails(""); setReportCategory("Information incorrecte"); setReportOpen(false);
+    try {
+      const imageUrls: string[] = [];
+      for (const file of reportImages) {
+        const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
+        const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage.from("can-reports").upload(path, file, {
+          contentType: file.type, upsert: false,
+        });
+        if (uploadError) throw uploadError;
+        imageUrls.push(supabase.storage.from("can-reports").getPublicUrl(path).data.publicUrl);
+      }
+      const { error } = await supabase.from("can_reports").insert({
+        can_id: can.id,
+        user_id: user.id,
+        category: "Information incorrecte",
+        details: reportDetails.trim(),
+        proposed_field: reportCategory,
+        proposed_value: reportValue.trim() || null,
+        image_urls: imageUrls,
+      });
+      if (error) throw error;
+      toast.success("Merci ! Ta proposition a été envoyée pour vérification.");
+      setReportDetails(""); setReportValue(""); setReportImages([]); setReportCategory("name"); setReportOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible d’envoyer la proposition. Réessaie plus tard.");
+    } finally {
+      setReporting(false);
+    }
   };
 
   const changeQty = async (d: 1 | -1) => {
@@ -171,32 +199,58 @@ function CanPage() {
 
       <div className="mt-5 flex justify-end">
         <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <AlertTriangle className="h-3.5 w-3.5" /> Signaler une erreur
+          <AlertTriangle className="h-3.5 w-3.5" /> Contribuez à enrichir les informations
         </button>
       </div>
 
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Signaler une erreur</DialogTitle>
-            <DialogDescription>Une information semble incorrecte sur cette fiche ? Explique-nous quoi vérifier.</DialogDescription>
+            <DialogTitle>Contribuer à enrichir les informations</DialogTitle>
+            <DialogDescription>Propose une correction ou une information manquante. Elle sera vérifiée avant toute modification de la fiche officielle.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <label className="block text-sm font-medium" htmlFor="report-category">Type d’erreur</label>
-            <select id="report-category" value={reportCategory} onChange={(e) => setReportCategory(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
-              <option>Information incorrecte</option>
-              <option>Photo ou design incorrect</option>
-              <option>Saveur ou édition incorrecte</option>
-              <option>Code-barres incorrect</option>
-              <option>Information manquante</option>
-              <option>Autre</option>
+            <label className="block text-sm font-medium" htmlFor="report-category">Information à compléter ou corriger</label>
+            <select id="report-category" value={reportCategory} onChange={(e) => { setReportCategory(e.target.value); setReportValue(""); }} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
+              <option value="name">Nom</option>
+              <option value="brand_id">Marque</option>
+              <option value="barcode">Code-barres</option>
+              <option value="flavour">Saveur</option>
+              <option value="release_year">Année de sortie</option>
+              <option value="category">Catégorie</option>
+              <option value="description">Description</option>
+              <option value="historical_context">Contexte historique</option>
+              <option value="image_url">Photo principale</option>
+              <option value="color_primary">Couleur principale</option>
+              <option value="color_secondary">Couleur secondaire</option>
+              <option value="caffeine_mg_per_100ml">Caféine (mg / 100 ml)</option>
+              <option value="sugar_g_per_100ml">Sucres (g / 100 ml)</option>
+              <option value="taurine_mg_per_100ml">Taurine (mg / 100 ml)</option>
+              <option value="energy_kcal_per_100ml">Énergie (kcal / 100 ml)</option>
+              <option value="volume_ml">Contenance (ml)</option>
+              <option value="history_verified">Historique vérifié</option>
             </select>
+            {reportCategory === "brand_id" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Marque proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une marque</option>{data?.brands.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div> : reportCategory === "category" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Catégorie proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une catégorie</option><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></div> : reportCategory === "history_verified" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Historique vérifié ?</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir</option><option value="true">Oui</option><option value="false">Non</option></select></div> : reportCategory !== "image_url" && <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Information proposée</label><Input id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} placeholder="Saisis la valeur proposée" maxLength={1000} className="rounded-xl" /></div>}
             <label className="block text-sm font-medium" htmlFor="report-details">Commentaire</label>
-            <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Ex. : cette édition est sortie en 2022, pas en 2023…" maxLength={1000} className="rounded-xl" />
+            <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Explique pourquoi cette information doit être ajoutée ou remplacée…" maxLength={1000} className="rounded-xl" />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium" htmlFor="report-images">Photos ou images (facultatif)</label>
+              <input id="report-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024)) {
+                  toast.error("Choisis des images JPG, PNG ou WebP de 8 Mo maximum chacune.");
+                  e.currentTarget.value = "";
+                  return;
+                }
+                setReportImages(files.slice(0, 4));
+                if (files.length > 4) toast("Quatre images maximum seront envoyées.");
+              }} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />
+              {reportImages.length > 0 && <div className="flex flex-wrap gap-2">{reportImages.map((file, index) => <div key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg border p-2 text-xs"><span className="max-w-32 truncate">{file.name}</span><button type="button" className="text-destructive" onClick={() => setReportImages((current) => current.filter((_, i) => i !== index))}>Retirer</button></div>)}</div>}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
-            <Button onClick={() => void submitReport()} disabled={reporting || !reportDetails.trim()}>{reporting ? "Envoi…" : "Envoyer le signalement"}</Button>
+            <Button onClick={() => void submitReport()} disabled={reporting || !reportDetails.trim()}>{reporting ? "Envoi…" : "Envoyer la proposition"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
