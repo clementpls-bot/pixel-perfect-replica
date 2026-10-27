@@ -98,7 +98,7 @@ function Scanner() {
           void video.play().catch(() => setCamError(true));
         }
       } catch (error) {
-        console.error("Unable to start barcode camera:", error);
+        console.error("Impossible de démarrer la caméra pour lire le code-barres :", error);
         if (!cancelled) setCamError(true);
       }
     })();
@@ -223,7 +223,7 @@ function Scanner() {
       <div className="py-12 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✓</div>
         <h1 className="mt-5 text-2xl font-black">Proposition envoyée</h1>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">Thanks for helping grow the Cansdex catalogue. Your can is pending review and will not appear in the official catalogue until approved.</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">Merci de contribuer au catalogue Cansdex. Ta canette est en attente de vérification et ne sera publiée qu’après validation.</p>
         <Button className="mt-8 h-12 rounded-xl font-bold" onClick={resetScanner}>Scanner une autre canette</Button>
       </div>
     );
@@ -257,7 +257,7 @@ function Scanner() {
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-year" className="text-sm font-semibold">Année de sortie</label>
-              <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Optional" className="h-12 rounded-xl" />
+              <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Facultatif" className="h-12 rounded-xl" />
             </div>
           </div>
           <div className="space-y-1.5">
