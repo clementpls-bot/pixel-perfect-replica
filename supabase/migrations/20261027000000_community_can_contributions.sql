@@ -152,6 +152,12 @@ begin
       raise exception 'A value or an attached image is required';
     end if;
 
+    if p_field = 'barcode' and exists (
+      select 1 from public.cans where barcode = final_value and id <> report.can_id
+    ) then
+      raise exception 'This barcode already belongs to another can';
+    end if;
+
     case p_field
       when 'name' then update public.cans set name = final_value where id = report.can_id;
       when 'brand_id' then update public.cans set brand_id = final_value::uuid where id = report.can_id;
