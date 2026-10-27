@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
-import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -73,7 +72,7 @@ function Profile() {
   const usernameWaitMs = canChangeUsernameAt ? Math.max(0, canChangeUsernameAt - Date.now()) : 0;
   const canChangeUsername = usernameWaitMs === 0;
   const nextUsernameDate = canChangeUsernameAt
-    ? new Date(canChangeUsernameAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+    ? new Date(canChangeUsernameAt).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
     : null;
 
   if (!data || !owned || profileLoading) return null;
@@ -87,7 +86,6 @@ function Profile() {
   });
   const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
   const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
-  const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
   const signOut = async () => {
     await qc.cancelQueries(); qc.clear();
@@ -206,7 +204,7 @@ function Profile() {
                   <Clock3 className="h-3 w-3" /> Prochaine modification : {nextUsernameDate}
                 </p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">Collectionneur depuis {profile && new Date(profile.created_at).toLocaleDateString()}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Collectionneur depuis {profile && new Date(profile.created_at).toLocaleDateString("fr-FR")}</p>
             </>
           )}
         </div>
