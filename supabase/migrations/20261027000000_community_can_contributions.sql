@@ -31,6 +31,10 @@ create policy "Admins can update official cans"
   with check ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('can-submissions', 'can-submissions', true, 8388608, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('can-reports', 'can-reports', true, 8388608, array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do update set
   public = excluded.public,
