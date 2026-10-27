@@ -42,6 +42,14 @@ const fieldOptions = [
   ["description", "Description"],
   ["historical_context", "Contexte historique"],
   ["image_url", "Photo principale"],
+  ["color_primary", "Couleur principale"],
+  ["color_secondary", "Couleur secondaire"],
+  ["caffeine_mg_per_100ml", "Caféine (mg / 100 ml)"],
+  ["sugar_g_per_100ml", "Sucres (g / 100 ml)"],
+  ["taurine_mg_per_100ml", "Taurine (mg / 100 ml)"],
+  ["energy_kcal_per_100ml", "Énergie (kcal / 100 ml)"],
+  ["volume_ml", "Contenance (ml)"],
+  ["history_verified", "Historique vérifié"],
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/admin-submissions")({
@@ -217,41 +225,28 @@ function AdminSubmissions() {
       if (entered === null || !window.confirm("Confirmer le refus de cette proposition ?")) return;
       reason = entered.trim() || null;
     } else if (!window.confirm("Appliquer cette modification au catalogue officiel ?")) return;
+
     setBusyId(report.id);
     try {
-      if (approveIt) {
-        const edit = editFor(report);
-        const allowed = fieldOptions.map(([value]) => value);
-        if (!allowed.includes(edit.field as (typeof fieldOptions)[number][0])) throw new Error("Champ de modification non autorisé.");
-        let value: unknown = edit.value.trim();
-        if (edit.field === "image_url") value = report.image_urls?.[0] || value;
-        if (!value) throw new Error("Ajoute la valeur proposée ou joins une photo pour le champ photo.");
-        const payload: Record<string, unknown> = { [edit.field]: value };
-        if (edit.field === "release_year") {
-          const year = Number(value);
-          if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear() + 2) throw new Error("L’année de sortie est invalide.");
-          payload.release_year = year;
-        }
-        if (edit.field === "brand_id") {
-          const matchingBrand = catalog?.brands.find((brand) => brand.id === value || brand.name.toLowerCase() === String(value).toLowerCase());
-          if (!matchingBrand) throw new Error("Marque introuvable : choisis un nom de marque existant.");
-          payload.brand_id = matchingBrand.id;
-        }
-        const { error: canError } = await supabase.from("cans").update(payload as unknown as Database["public"]["Tables"]["cans"]["Update"]).eq("id", report.can_id);
-        if (canError) throw canError;
-      }
-      const { error } = await supabase.from("can_reports").update({
-        status: approveIt ? "approved" : "rejected",
-        review_notes: reason,
-        reviewed_by: user.id,
-        reviewed_at: new Date().toISOString(),
-      }).eq("id", report.id);
+      const edit = editFor(report);
+      const { error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ error: Error | null }>)("review_can_report", {
+        p_report_id: report.id,
+        p_approve: approveIt,
+        p_field: approveIt ? edit.field : null,
+        p_value: approveIt ? (edit.value.trim() || null) : null,
+        p_review_notes: reason,
+      });
       if (error) throw error;
       await refresh();
       toast.success(approveIt ? "Correction appliquée au catalogue." : "Proposition refusée.");
     } catch (error) {
       toast.error((error as Error).message || "Impossible de traiter cette proposition.");
-    } finally { setBusyId(null); }
+    } finally {
+      setBusyId(null);
+    }
   };
 
   if (!isAdmin) {
