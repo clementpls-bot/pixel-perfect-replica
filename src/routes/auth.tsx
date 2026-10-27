@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Cansdex" },
-      { name: "description", content: "Sign in to start scanning and collecting cans." },
-      { property: "og:title", content: "Sign in — Cansdex" },
-      { property: "og:description", content: "Sign in to start scanning and collecting cans." },
+      { title: "Connexion — Cansdex" },
+      { name: "description", content: "Connectez-vous pour scanner et collectionner des canettes." },
+      { property: "og:title", content: "Connexion — Cansdex" },
+      { property: "og:description", content: "Connectez-vous pour scanner et collectionner des canettes." },
     ],
   }),
   component: AuthPage,
@@ -21,9 +21,9 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const [mode, setMode] = useState<"in" | "up">("in");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [email, setAdresse e-mail] = useState("");
+  const [password, setMot de passe] = useState("");
+  const [username, setNom d’utilisateur] = useState("");
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,9 +38,9 @@ function AuthPage() {
         options: { emailRedirectTo: window.location.origin, data: { username } },
       });
       if (error) toast.error(error.message);
-      else toast.success("Check your email to confirm your account.");
+      else toast.success("Consultez vos e-mails pour confirmer votre compte.");
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithMot de passe({ email, password });
       if (error) toast.error(error.message);
     }
     setBusy(false);
@@ -48,22 +48,22 @@ function AuthPage() {
 
   const google = async () => {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (r.error) toast.error("Google sign-in failed");
+    if (r.error) toast.error("La connexion avec Google a échoué.");
   };
 
   return (
     <div className="pt-8">
       <h1 className="text-3xl font-black">CANS<span className="text-primary">DEX</span></h1>
-      <p className="mt-2 text-muted-foreground">{mode === "in" ? "Welcome back, collector." : "Start your collection."}</p>
+      <p className="mt-2 text-muted-foreground">{mode === "in" ? "Bon retour parmi les collectionneurs." : "Commencez votre collection."}</p>
       <form onSubmit={submit} className="mt-8 space-y-3">
-        {mode === "up" && <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required className="h-12 rounded-xl" />}
-        <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 rounded-xl" />
-        <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="h-12 rounded-xl" />
-        <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl font-bold">{mode === "in" ? "Sign in" : "Create account"}</Button>
+        {mode === "up" && <Input placeholder="Nom d’utilisateur" value={username} onChange={(e) => setNom d’utilisateur(e.target.value)} required className="h-12 rounded-xl" />}
+        <Input type="email" placeholder="Adresse e-mail" value={email} onChange={(e) => setAdresse e-mail(e.target.value)} required className="h-12 rounded-xl" />
+        <Input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setMot de passe(e.target.value)} required minLength={6} className="h-12 rounded-xl" />
+        <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl font-bold">{mode === "in" ? "Se connecter" : "Créer un compte"}</Button>
       </form>
-      <Button variant="secondary" onClick={google} className="mt-3 h-12 w-full rounded-xl font-semibold">Continue with Google</Button>
+      <Button variant="secondary" onClick={google} className="mt-3 h-12 w-full rounded-xl font-semibold">Continuer avec Google</Button>
       <button onClick={() => setMode(mode === "in" ? "up" : "in")} className="mt-6 w-full text-sm text-muted-foreground">
-        {mode === "in" ? "New here? Create an account" : "Already collecting? Sign in"}
+        {mode === "in" ? "Nouveau ici ? Créer un compte" : "Already collecting? Se connecter"}
       </button>
     </div>
   );
