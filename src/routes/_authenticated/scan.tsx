@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { useAddCan, useCatalog, type Can } from "@/lib/data";
+import { useAjouterCan, useCatalog, type Can } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
@@ -11,23 +11,23 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
-      { title: "Scan a can — Cansdex" },
-      { name: "description", content: "Point your camera at a can barcode to add it to your collection." },
-      { property: "og:title", content: "Scan a can — Cansdex" },
-      { property: "og:description", content: "Point your camera at a can barcode to add it to your collection." },
+      { title: "Scannerner une canette — Cansdex" },
+      { name: "description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
+      { property: "og:title", content: "Scannerner une canette — Cansdex" },
+      { property: "og:description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
     ],
   }),
-  component: Scan,
+  component: Scanner,
 });
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 type SubmissionImages = { front: File | null; back: File | null; barcode: File | null };
 
-function Scan() {
+function Scanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { data } = useCatalog();
   const { user } = useAuth();
-  const addCan = useAddCan();
+  const addCan = useAjouterCan();
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
   const [manual, setManual] = useState("");
   const [camError, setCamError] = useState(false);
@@ -37,9 +37,9 @@ function Scan() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [brandId, setBrandId] = useState("");
-  const [flavour, setFlavour] = useState("");
+  const [flavour, setSaveur] = useState("");
   const [releaseYear, setReleaseYear] = useState("");
-  const [category, setCategory] = useState<"Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition">("Energy Drink");
+  const [category, setCategory] = useState<"Boisson énergisante" | "Soda" | "Boisson sans alcool" | "Édition limitée">("Boisson énergisante");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<SubmissionImages>({ front: null, back: null, barcode: null });
   const busy = useRef(false);
@@ -58,7 +58,7 @@ function Scan() {
       return;
     }
     if (source !== "camera") {
-      toast.error("Scan the barcode with your camera to unlock this can for the first time.");
+      toast.error("Scanner the barcode with your camera to unlock this can for the first time.");
       busy.current = false;
       return;
     }
@@ -127,7 +127,7 @@ function Scan() {
   };
 
   const uploadImage = async (file: File, kind: string) => {
-    if (!user) throw new Error("Sign in to submit a can.");
+    if (!user) throw new Error("Connecte-toi pour proposer une canette.");
     const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
     const path = `${user.id}/${crypto.randomUUID()}-${kind}.${extension}`;
     const { error } = await supabase.storage.from("can-submissions").upload(path, file, {
@@ -141,19 +141,19 @@ function Scan() {
   const submitProposal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) {
-      toast.error("Sign in to submit a can.");
+      toast.error("Connecte-toi pour proposer une canette.");
       return;
     }
     if (!images.front) {
-      toast.error("Add a photo of the front of the can.");
+      toast.error("Ajouter a photo of the front of the can.");
       return;
     }
     if (!/^\d{8,14}$/.test(unknownBarcode)) {
-      toast.error("Check the barcode: enter 8 to 14 digits.");
+      toast.error("Vérifie le code-barres : saisis de 8 à 14 chiffres.");
       return;
     }
     if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
-      toast.error("This barcode is already in the catalogue. Scan it again.");
+      toast.error("This barcode is already in the catalogue. Scanner it again.");
       setUnknownBarcode("");
       return;
     }
@@ -176,19 +176,19 @@ function Scan() {
         barcode_image_url: barcodeUrl,
       });
       if (error) {
-        if (error.code === "23505") throw new Error("A proposal for this barcode is already awaiting review.");
+        if (error.code === "23505") throw new Error("Une proposition pour ce code-barres est déjà en attente de vérification.");
         throw error;
       }
       setSubmitted(true);
-      toast.success("Can submitted for review.");
+      toast.success("Canette proposée pour vérification.");
     } catch (error) {
-      toast.error((error as Error).message || "Unable to submit this can.");
+      toast.error((error as Error).message || "Impossible d’envoyer cette proposition.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetScan = () => {
+  const resetScanner = () => {
     busy.current = false;
     setFound(null);
     setUnknownBarcode("");
@@ -196,7 +196,7 @@ function Scan() {
     setManual("");
     setName("");
     setBrandId("");
-    setFlavour("");
+    setSaveur("");
     setReleaseYear("");
     setDescription("");
     setImages({ front: null, back: null, barcode: null });
@@ -206,13 +206,13 @@ function Scan() {
     const brand = data?.brands.find((b) => b.id === found.can.brand_id);
     return (
       <div className="pt-6 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "New can unlocked!" : "Already unlocked · quantity unchanged"}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "Nouvelle canette débloquée !" : "Déjà débloquée · quantité inchangée"}</p>
         <div className="mx-auto my-8 w-32 animate-pop-in"><CanArt can={found.can} brandName={brand?.name} /></div>
         <h1 className="text-2xl font-black">{found.can.name}</h1>
         <p className="text-muted-foreground">{brand?.name} · {found.can.release_year}</p>
         <div className="mt-8 flex gap-3">
-          <Link to="/cans/$id" params={{ id: found.can.id }} className="flex-1"><Button variant="secondary" className="h-12 w-full rounded-xl">View details</Button></Link>
-          <Button className="h-12 flex-1 rounded-xl font-bold" onClick={resetScan}>Scan another</Button>
+          <Link to="/cans/$id" params={{ id: found.can.id }} className="flex-1"><Button variant="secondary" className="h-12 w-full rounded-xl">Voir la fiche</Button></Link>
+          <Button className="h-12 flex-1 rounded-xl font-bold" onClick={resetScanner}>Scannerner une autre canette</Button>
         </div>
       </div>
     );
@@ -222,9 +222,9 @@ function Scan() {
     return (
       <div className="py-12 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✓</div>
-        <h1 className="mt-5 text-2xl font-black">Proposal sent</h1>
+        <h1 className="mt-5 text-2xl font-black">Proposition envoyée</h1>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">Thanks for helping grow the Cansdex catalogue. Your can is pending review and will not appear in the official catalogue until approved.</p>
-        <Button className="mt-8 h-12 rounded-xl font-bold" onClick={resetScan}>Scan another can</Button>
+        <Button className="mt-8 h-12 rounded-xl font-bold" onClick={resetScanner}>Scannerner une autre canette can</Button>
       </div>
     );
   }
@@ -232,53 +232,53 @@ function Scan() {
   if (unknownBarcode) {
     return (
       <div className="space-y-5">
-        <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); }} className="text-sm font-semibold text-muted-foreground">← Back to scanner</button>
+        <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); }} className="text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">Community contribution</p>
-          <h1 className="mt-1 text-2xl font-black">Can not found</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Barcode {unknownBarcode} is not in the catalogue. Submit its details for review.</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">Contribution communautaire</p>
+          <h1 className="mt-1 text-2xl font-black">Canette introuvable</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Le code-barres {unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.</p>
         </div>
         <form onSubmit={submitProposal} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="proposal-name" className="text-sm font-semibold">Can name *</label>
+            <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Monster Ultra Violet" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="proposal-brand" className="text-sm font-semibold">Brand *</label>
+            <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
             <select id="proposal-brand" required value={brandId} onChange={(e) => setBrandId(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
-              <option value="">Choose a brand</option>
+              <option value="">Choisir une marque</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label htmlFor="proposal-flavour" className="text-sm font-semibold">Flavour</label>
-              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setFlavour(e.target.value)} placeholder="e.g. Grape" className="h-12 rounded-xl" />
+              <label htmlFor="proposal-flavour" className="text-sm font-semibold">Saveur</label>
+              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setSaveur(e.target.value)} placeholder="e.g. Grape" className="h-12 rounded-xl" />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="proposal-year" className="text-sm font-semibold">Release year</label>
+              <label htmlFor="proposal-year" className="text-sm font-semibold">Année de sortie</label>
               <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Optional" className="h-12 rounded-xl" />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="proposal-category" className="text-sm font-semibold">Category *</label>
+            <label htmlFor="proposal-category" className="text-sm font-semibold">Catégorie *</label>
             <select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
-              <option>Energy Drink</option><option>Soda</option><option>Soft Drink</option><option>Limited Edition</option>
+              <option>Boisson énergisante</option><option>Soda</option><option>Boisson sans alcool</option><option>Édition limitée</option>
             </select>
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="proposal-description" className="text-sm font-semibold">Extra details</label>
+            <label htmlFor="proposal-description" className="text-sm font-semibold">Informations complémentaires</label>
             <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Anything that helps identify this can…" rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div className="space-y-3 rounded-2xl border bg-card p-4">
             <div>
               <h2 className="font-bold">Photos</h2>
-              <p className="text-xs text-muted-foreground">Front photo required. Back and barcode photos help us verify the submission. JPG, PNG or WebP; max 8 MB each.</p>
+              <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Les photos du dos et du code-barres nous aident à vérifier la proposition. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
             </div>
             {([
-              ["front", "Front of the can *", true],
-              ["back", "Back of the can (optional)", false],
-              ["barcode", "Close-up of barcode (optional)", false],
+              ["front", "Face avant de la canette *", true],
+              ["back", "Dos de la canette (facultatif)", false],
+              ["barcode", "Gros plan du code-barres (facultatif)", false],
             ] as const).map(([key, label, required]) => (
               <div key={key} className="space-y-1">
                 <label htmlFor={`photo-${key}`} className="text-sm font-medium">{label}</label>
@@ -287,11 +287,11 @@ function Scan() {
               </div>
             ))}
           </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">Submissions are checked before publication. Duplicate barcodes and incomplete or inappropriate submissions may be rejected.</div>
+          <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">Chaque proposition est vérifiée avant publication. Les codes-barres en double et les propositions incomplètes ou inappropriées peuvent être refusés.</div>
           <Button type="submit" disabled={isSubmitting || !user} className="h-12 w-full rounded-xl font-bold">
-            {isSubmitting ? "Sending proposal…" : "Submit for review"}
+            {isSubmitting ? "Envoi de la proposition…" : "Envoyer pour vérification"}
           </Button>
-          {!user && <p className="text-center text-xs text-muted-foreground">You must be signed in to contribute a can.</p>}
+          {!user && <p className="text-center text-xs text-muted-foreground">Vous devez être connecté pour proposer une canette.</p>}
         </form>
       </div>
     );
@@ -299,12 +299,12 @@ function Scan() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black">Scan</h1>
-      <p className="text-sm text-muted-foreground">Scan the barcode with your phone camera to unlock a can the first time. Scanning it again will not change its quantity.</p>
+      <h1 className="text-2xl font-black">Scanner</h1>
+      <p className="text-sm text-muted-foreground">Scanner the barcode with your phone camera to unlock a can the first time. Scannerning it again will not change its quantity.</p>
       <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
         <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
         {camError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Camera unavailable. Check browser camera permission and use Cansdex over HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Retry camera</Button></div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div>
         ) : (
           <>
             <div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" />
@@ -313,10 +313,10 @@ function Scan() {
         )}
       </div>
       <form onSubmit={(e) => { e.preventDefault(); void handle(manual, "manual"); }} className="mt-4 flex gap-2">
-        <Input inputMode="numeric" placeholder="Enter barcode manually" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
-        <Button type="submit" className="h-12 rounded-xl font-bold">Add</Button>
+        <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
+        <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
       </form>
-      <p className="mt-3 text-xs text-muted-foreground">Manual entry is only for reporting a barcode not yet in the catalogue. Known cans must be unlocked with the camera scan.</p>
+      <p className="mt-3 text-xs text-muted-foreground">La saisie manuelle sert uniquement à signaler un code-barres absent du catalogue. Les canettes déjà répertoriées doivent être débloquées par un scan caméra.</p>
     </div>
   );
 }
