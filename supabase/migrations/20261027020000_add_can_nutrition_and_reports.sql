@@ -4,7 +4,8 @@ alter table public.cans
   add column if not exists sugar_g_per_100ml numeric(7,2),
   add column if not exists taurine_mg_per_100ml numeric(7,2),
   add column if not exists energy_kcal_per_100ml numeric(7,2),
-  add column if not exists volume_ml integer;
+  add column if not exists volume_ml integer,
+  add column if not exists history_verified boolean not null default false;
 
 -- Community reports for correcting catalogue information.
 create table if not exists public.can_reports (
