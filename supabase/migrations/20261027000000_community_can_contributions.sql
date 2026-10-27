@@ -58,3 +58,131 @@ create policy "Users can read their own report photos"
   );
 
 -- Reports created by existing versions remain pending and visible to administrators.
+
+
+-- Recreate the publication function here too, so environments that missed the
+-- original migration can recover without relying on a stale PostgREST schema cache.
+create or replace function public.approve_can_submission(p_submission_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  submission public.can_submissions%rowtype;
+begin
+  if (select auth.jwt() -> 'app_metadata' ->> 'role') is distinct from 'admin' then
+    raise exception 'Only admins can approve can submissions';
+  end if;
+
+  select * into submission
+  from public.can_submissions
+  where id = p_submission_id and status = 'pending'
+  for update;
+
+  if not found then
+    raise exception 'Pending submission not found';
+  end if;
+
+  if exists (select 1 from public.cans where barcode = submission.barcode) then
+    raise exception 'This barcode already exists in the official catalogue';
+  end if;
+
+  insert into public.cans (
+    barcode, name, brand_id, release_year, flavour, description, image_url, category
+  ) values (
+    submission.barcode, submission.name, submission.brand_id, submission.release_year,
+    submission.flavour, submission.description, submission.image_url, submission.category
+  );
+
+  update public.can_submissions
+  set status = 'approved', reviewed_by = (select auth.uid()), reviewed_at = now()
+  where id = submission.id;
+end;
+$$;
+
+revoke all on function public.approve_can_submission(uuid) from public, anon;
+grant execute on function public.approve_can_submission(uuid) to authenticated;
+
+-- Apply a contribution and update its moderation status in one transaction.
+create or replace function public.review_can_report(
+  p_report_id uuid,
+  p_approve boolean,
+  p_field text default null,
+  p_value text default null,
+  p_review_notes text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  report public.can_reports%rowtype;
+  final_value text;
+begin
+  if (select auth.jwt() -> 'app_metadata' ->> 'role') is distinct from 'admin' then
+    raise exception 'Only admins can review can reports';
+  end if;
+
+  select * into report
+  from public.can_reports
+  where id = p_report_id and status = 'pending'
+  for update;
+
+  if not found then
+    raise exception 'Pending contribution not found';
+  end if;
+
+  if p_approve then
+    if p_field not in (
+      'name', 'brand_id', 'barcode', 'flavour', 'release_year', 'category',
+      'description', 'historical_context', 'image_url', 'color_primary',
+      'color_secondary', 'caffeine_mg_per_100ml', 'sugar_g_per_100ml',
+      'taurine_mg_per_100ml', 'energy_kcal_per_100ml', 'volume_ml', 'history_verified'
+    ) then
+      raise exception 'Field is not allowed';
+    end if;
+
+    final_value := nullif(trim(p_value), '');
+    if p_field = 'image_url' and final_value is null then
+      final_value := report.image_urls[1];
+    end if;
+    if final_value is null then
+      raise exception 'A value or an attached image is required';
+    end if;
+
+    case p_field
+      when 'name' then update public.cans set name = final_value where id = report.can_id;
+      when 'brand_id' then update public.cans set brand_id = final_value::uuid where id = report.can_id;
+      when 'barcode' then update public.cans set barcode = final_value where id = report.can_id;
+      when 'flavour' then update public.cans set flavour = final_value where id = report.can_id;
+      when 'release_year' then update public.cans set release_year = final_value::integer where id = report.can_id;
+      when 'category' then update public.cans set category = final_value::public.can_category where id = report.can_id;
+      when 'description' then update public.cans set description = final_value where id = report.can_id;
+      when 'historical_context' then update public.cans set historical_context = final_value where id = report.can_id;
+      when 'image_url' then update public.cans set image_url = final_value where id = report.can_id;
+      when 'color_primary' then update public.cans set color_primary = final_value where id = report.can_id;
+      when 'color_secondary' then update public.cans set color_secondary = final_value where id = report.can_id;
+      when 'caffeine_mg_per_100ml' then update public.cans set caffeine_mg_per_100ml = final_value::numeric where id = report.can_id;
+      when 'sugar_g_per_100ml' then update public.cans set sugar_g_per_100ml = final_value::numeric where id = report.can_id;
+      when 'taurine_mg_per_100ml' then update public.cans set taurine_mg_per_100ml = final_value::numeric where id = report.can_id;
+      when 'energy_kcal_per_100ml' then update public.cans set energy_kcal_per_100ml = final_value::numeric where id = report.can_id;
+      when 'volume_ml' then update public.cans set volume_ml = final_value::integer where id = report.can_id;
+      when 'history_verified' then update public.cans set history_verified = final_value::boolean where id = report.can_id;
+    end case;
+  end if;
+
+  update public.can_reports
+  set status = case when p_approve then 'approved' else 'rejected' end,
+      review_notes = nullif(trim(p_review_notes), ''),
+      reviewed_by = (select auth.uid()),
+      reviewed_at = now()
+  where id = report.id;
+end;
+$$;
+
+revoke all on function public.review_can_report(uuid, boolean, text, text, text) from public, anon;
+grant execute on function public.review_can_report(uuid, boolean, text, text, text) to authenticated;
+
+notify pgrst, 'reload schema';
