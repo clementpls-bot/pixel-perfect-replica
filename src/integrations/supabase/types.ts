@@ -109,6 +109,62 @@ export type Database = {
           },
         ]
       }
+      can_reports: {
+        Row: {
+          can_id: string
+          category: string
+          created_at: string
+          details: string
+          id: string
+          image_urls: string[]
+          proposed_field: string | null
+          proposed_value: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          can_id: string
+          category: string
+          created_at?: string
+          details: string
+          id?: string
+          image_urls?: string[]
+          proposed_field?: string | null
+          proposed_value?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          can_id?: string
+          category?: string
+          created_at?: string
+          details?: string
+          id?: string
+          image_urls?: string[]
+          proposed_field?: string | null
+          proposed_value?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "can_reports_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cans: {
         Row: {
           barcode: string
