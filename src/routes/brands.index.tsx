@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { useCatalog, useOwned } from "@/lib/data";
+import { useCatalog, useOwned, type Brand } from "@/lib/data";
 import { pct } from "@/lib/achievements";
 
 export const Route = createFileRoute("/brands/")({
@@ -26,7 +26,7 @@ function Brands() {
   // Avoid showing the same brand twice if duplicate rows exist in the catalogue.
   // Keep the entry with a logo where possible, so the best available branding wins.
   const brands = useMemo(() => {
-    const byName = new Map<string, (typeof data.brands)[number]>();
+    const byName = new Map<string, Brand>();
     for (const brand of data?.brands ?? []) {
       const key = normalizeBrandName(brand.name);
       const current = byName.get(key);
