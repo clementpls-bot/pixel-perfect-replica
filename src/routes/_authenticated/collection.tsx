@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { Minus, Plus, Search } from "lucide-react";
-import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
+import { Search } from "lucide-react";
+import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 
@@ -21,35 +19,18 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  const adjustQuantity = useAdjustCanQuantity();
-  const [busyCan, setBusyCan] = useState<string | null>(null);
   if (!data || !owned) return null;
 
   const mine = data.cans
     .filter((can) => owned.has(can.id))
     .sort((a, b) => {
-      const quantityDifference = (owned.get(b.id) ?? 0) - (owned.get(a.id) ?? 0);
-      if (quantityDifference !== 0) return quantityDifference;
-      const brandDifference = (data.brands.find((brand) => brand.id === a.brand_id)?.name ?? "")
-        .localeCompare(data.brands.find((brand) => brand.id === b.brand_id)?.name ?? "");
-      return brandDifference || a.name.localeCompare(b.name);
+      const q = (owned.get(b.id) ?? 0) - (owned.get(a.id) ?? 0);
+      if (q !== 0) return q;
+      const bd = (data.brands.find((x) => x.id === a.brand_id)?.name ?? "")
+        .localeCompare(data.brands.find((x) => x.id === b.brand_id)?.name ?? "");
+      return bd || a.name.localeCompare(b.name);
     });
-  const brandName = (id: string) => data.brands.find((b) => b.id === id)?.name ?? "";
 
-  const changeQuantity = async (canId: string, delta: 1 | -1) => {
-    if (busyCan) return;
-    setBusyCan(canId);
-    try {
-      await adjustQuantity(canId, delta);
-      if (delta === -1 && (owned.get(canId) ?? 0) === 1) {
-        toast.success("Canette retirée de votre collection.");
-      }
-    } catch (error) {
-      toast.error((error as Error).message || "Impossible de mettre à jour la quantité.");
-    } finally {
-      setBusyCan(null);
-    }
-  };
 
   return (
     <div>
@@ -92,27 +73,25 @@ function Collection() {
         <div className="mt-5 grid grid-cols-2 gap-3">
           {mine.map((c, i) => {
             const quantity = owned.get(c.id) ?? 0;
+            const brand = data.brands.find((b) => b.id === c.brand_id);
             return (
-              <article key={c.id}
-                className="group relative rounded-3xl p-[2px] transition-transform duration-300 hover:-translate-y-1 animate-pop-in"
-                style={{ background: `linear-gradient(140deg, ${c.color_primary}, ${c.color_secondary})`, animationDelay: `${i * 40}ms` }}>
-                <div className="relative h-full rounded-[calc(1.5rem-2px)] bg-card p-3 sm:p-4">
-                  <Link to="/cans/$id" params={{ id: c.id }} className="block">
-                    <div className="py-2"><CanArt can={c} brandName={brandName(c.brand_id)} className="max-w-[70px] transition-transform duration-500 group-hover:scale-110" /></div>
-                    <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{brandName(c.brand_id)}</p>
-                    <p className="line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
-                  </Link>
-                  <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-muted/60 p-1.5">
-                    <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
-                      aria-label={`Retirer une canette : ${c.name}`} disabled={busyCan !== null}
-                      onClick={() => void changeQuantity(c.id, -1)}><Minus className="h-4 w-4" /></Button>
-                    <span className="min-w-0 text-center text-xs font-black tabular-nums">×{quantity}</span>
-                    <Button type="button" variant="secondary" size="icon" className="h-9 w-9 shrink-0 rounded-lg"
-                      aria-label={`Ajouter une canette : ${c.name}`} disabled={busyCan !== null}
-                      onClick={() => void changeQuantity(c.id, 1)}><Plus className="h-4 w-4" /></Button>
+              <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
+                className="group relative block overflow-hidden rounded-3xl border bg-card p-3 shadow-sm transition-transform duration-300 hover:-translate-y-1 active:scale-95 animate-pop-in"
+                style={{ background: `radial-gradient(circle at 50% 40%, ${c.color_primary}33, transparent 70%)`, animationDelay: `${i * 40}ms` }}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border bg-background shadow-sm">
+                    {brand?.logo_url
+                      ? <img src={brand.logo_url} alt={`Logo ${brand.name}`} className="h-6 w-6 object-contain" />
+                      : <span className="text-xs font-black" style={{ color: brand?.color }}>{brand?.name.slice(0, 2).toUpperCase()}</span>}
                   </div>
+                  <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-black tabular-nums text-primary-foreground shadow-sm">×{quantity}</span>
                 </div>
-              </article>
+                <div className="py-2">
+                  <CanArt can={c} brandName={brand?.name} className="max-w-[110px] transition-transform duration-500 group-hover:scale-105" />
+                </div>
+                <span className="inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">Possédé</span>
+                <p className="mt-1.5 line-clamp-2 min-h-9 text-sm font-bold leading-tight">{c.name}</p>
+              </Link>
             );
           })}
         </div>
