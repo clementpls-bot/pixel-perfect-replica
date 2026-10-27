@@ -19,7 +19,6 @@ export type Database = {
           color: string
           created_at: string
           id: string
-          logo_url: string | null
           name: string
           slug: string
         }
@@ -27,7 +26,6 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
-          logo_url?: string | null
           name: string
           slug: string
         }
@@ -35,67 +33,10 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
-          logo_url?: string | null
           name?: string
           slug?: string
         }
         Relationships: []
-      }
-      cans: {
-        Row: {
-          barcode: string
-          brand_id: string
-          category: Database["public"]["Enums"]["can_category"]
-          color_primary: string
-          color_secondary: string
-          created_at: string
-          description: string | null
-          flavour: string | null
-          historical_context: string | null
-          id: string
-          image_url: string | null
-          name: string
-          release_year: number | null
-        }
-        Insert: {
-          barcode: string
-          brand_id: string
-          category?: Database["public"]["Enums"]["can_category"]
-          color_primary?: string
-          color_secondary?: string
-          created_at?: string
-          description?: string | null
-          flavour?: string | null
-          historical_context?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-          release_year?: number | null
-        }
-        Update: {
-          barcode?: string
-          brand_id?: string
-          category?: Database["public"]["Enums"]["can_category"]
-          color_primary?: string
-          color_secondary?: string
-          created_at?: string
-          description?: string | null
-          flavour?: string | null
-          historical_context?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-          release_year?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cans_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       can_submissions: {
         Row: {
@@ -158,6 +99,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "can_submissions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cans: {
+        Row: {
+          barcode: string
+          brand_id: string
+          category: Database["public"]["Enums"]["can_category"]
+          color_primary: string
+          color_secondary: string
+          created_at: string
+          description: string | null
+          flavour: string | null
+          historical_context: string | null
+          id: string
+          image_url: string | null
+          name: string
+          release_year: number | null
+        }
+        Insert: {
+          barcode: string
+          brand_id: string
+          category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          release_year?: number | null
+        }
+        Update: {
+          barcode?: string
+          brand_id?: string
+          category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          release_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cans_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
@@ -327,10 +324,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      approve_can_submission: {
-        Args: { p_submission_id: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       can_category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition"

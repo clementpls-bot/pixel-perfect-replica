@@ -21,7 +21,7 @@ function AdminSubmissions() {
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [filter, setFilter] = useState<ReviewFilter>("pending");
-  const isAdmin = user?.app_metadata?.role === "admin";
+  const isAdmin = user?.app_metadata?.["role"] === "admin";
 
   const {
     data: submissions,
@@ -57,7 +57,7 @@ function AdminSubmissions() {
     if (!window.confirm(`Accepter « ${name} » et l'ajouter au catalogue officiel ?`)) return;
     setBusyId(id);
     try {
-      const { error } = await supabase.rpc("approve_can_submission", { p_submission_id: id });
+      const { error } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: Error | null }>)("approve_can_submission", { p_submission_id: id });
       if (error) throw error;
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["can-submissions-review"] }),

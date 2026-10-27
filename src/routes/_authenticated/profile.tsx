@@ -66,8 +66,9 @@ function Profile() {
     },
   });
 
-  const canChangeUsernameAt = profile?.username_changed_at
-    ? new Date(profile.username_changed_at).getTime() + SEVEN_DAYS
+  const changedAt = (profile as { username_changed_at?: string | null } | null | undefined)?.username_changed_at;
+  const canChangeUsernameAt = changedAt
+    ? new Date(changedAt).getTime() + SEVEN_DAYS
     : null;
   const usernameWaitMs = canChangeUsernameAt ? Math.max(0, canChangeUsernameAt - Date.now()) : 0;
   const canChangeUsername = usernameWaitMs === 0;
@@ -212,7 +213,7 @@ function Profile() {
       </header>
       <p className="text-xs text-muted-foreground">Cliquez sur votre photo de profil pour la remplacer. JPG, PNG ou WebP · 5 Mo maximum.</p>
 
-      {user?.app_metadata?.role === "admin" && (
+      {user?.app_metadata?.["role"] === "admin" && (
         <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
       )}
 
