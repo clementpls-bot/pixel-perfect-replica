@@ -25,6 +25,13 @@ type SubmissionDraft = {
 type Report = Database["public"]["Tables"]["can_reports"]["Row"];
 type ReportEdit = { field: string; value: string };
 
+const resolveSubmissionImage = (value: string | null | undefined) => {
+  if (!value) return null;
+  if (/^https?:\\/\\//i.test(value)) return value;
+  const path = value.replace(/^\\/?storage\\/v1\\/object\\/public\\/can-submissions\\//, "");
+  return supabase.storage.from("can-submissions").getPublicUrl(path).data.publicUrl;
+};
+
 const fieldOptions = [
   ["name", "Nom"],
   ["brand_id", "Marque"],
@@ -283,9 +290,9 @@ function AdminSubmissions() {
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;
             const photos = [
-              { key: "front" as const, label: "Face avant", url: editing && draft ? draft.image_url : item.image_url },
-              { key: "back" as const, label: "Face arrière", url: editing && draft ? draft.back_image_url : item.back_image_url },
-              { key: "barcode" as const, label: "Code-barres", url: editing && draft ? draft.barcode_image_url : item.barcode_image_url },
+              { key: "front" as const, label: "Face avant", url: resolveSubmissionImage(editing && draft ? draft.image_url : item.image_url) },
+              { key: "back" as const, label: "Face arrière", url: resolveSubmissionImage(editing && draft ? draft.back_image_url : item.back_image_url) },
+              { key: "barcode" as const, label: "Code-barres", url: resolveSubmissionImage(editing && draft ? draft.barcode_image_url : item.barcode_image_url) },
             ];
             return <article key={item.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b p-4">
