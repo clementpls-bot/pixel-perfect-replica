@@ -37,30 +37,30 @@
 
 :root {
   --radius: 1.25rem;
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.2 0 0);
-  --card: oklch(1 0 0);
+  --background: oklch(0.985 0.018 300);
+  --foreground: oklch(0.25 0.025 285);
+  --card: oklch(0.998 0.012 330);
   --card-foreground: oklch(0.2 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.998 0.012 330);
   --popover-foreground: oklch(0.2 0 0);
-  --primary: oklch(0.24 0 0);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.24 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0 0);
-  --accent: oklch(0.95 0 0);
-  --accent-foreground: oklch(0.2 0 0);
+  --primary: oklch(0.56 0.16 300);
+  --primary-foreground: oklch(0.99 0.01 300);
+  --secondary: oklch(0.95 0.045 205);
+  --secondary-foreground: oklch(0.3 0.04 250);
+  --muted: oklch(0.96 0.025 300);
+  --muted-foreground: oklch(0.49 0.035 285);
+  --accent: oklch(0.94 0.06 145);
+  --accent-foreground: oklch(0.3 0.05 150);
   --gold: oklch(0.8 0.16 80);
   --success: oklch(0.62 0.14 155);
   --success-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.5 0 0);
-  --gradient-progress: linear-gradient(90deg, oklch(0.28 0 0), oklch(0.52 0 0));
-  --glow-primary: 0 8px 24px oklch(0 0 0 / 12%);
+  --border: oklch(0.9 0.035 300);
+  --input: oklch(0.9 0.035 300);
+  --ring: oklch(0.62 0.15 300);
+  --gradient-progress: linear-gradient(90deg, #b9a6f5, #f4b8d1 34%, #a9dcd2 68%, #a9c8f5);
+  --glow-primary: 0 8px 24px oklch(0.56 0.16 300 / 18%);
 }
 
 @layer base {
@@ -149,4 +149,28 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .can-add-glint, .can-add-glint-icon svg { animation: none; }
+}
+
+
+/* Pastel aluminium pull-tab: bright enough to feel tactile, soft enough to fit the app. */
+.drink-tab-button {
+  background: linear-gradient(120deg, #f6d6e8 0%, #d8d1ff 35%, #c9e8ff 68%, #d1f0e3 100%);
+  border: 1px solid rgba(124, 105, 170, 0.18);
+  box-shadow: 0 3px 0 rgba(114, 96, 150, 0.13), 0 5px 14px rgba(155, 130, 210, 0.15);
+  background-size: 180% 180%;
+  animation: tab-pastel-glow 4s ease-in-out infinite;
+}
+.drink-tab-button svg { filter: drop-shadow(0 1px 1px rgba(255,255,255,.9)); }
+.drink-tab-button:active { animation: tab-rattle .22s ease-in-out; }
+@keyframes tab-pastel-glow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes tab-rattle {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-2px) rotate(-2deg); }
+  75% { transform: translateX(2px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drink-tab-button { animation: none; }
 }
