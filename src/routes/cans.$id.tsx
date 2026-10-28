@@ -138,7 +138,9 @@ function CanPage() {
     } catch (error) {
       toast.error((error as Error).message || "Impossible d’ajouter ce Drink.");
     }
-  };\n\n  const saveDrinks = async () => {
+  };
+
+  const saveDrinks = async () => {
     if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
     const count = Number(drinksDraft);
     if (!Number.isInteger(count) || count < 0 || count > 100000) {
