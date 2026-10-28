@@ -70,7 +70,7 @@ function CanPage() {
   const rate = async (k: "design" | "taste", v: number) => {
     if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
     if (k === "taste" && qty === 0) {
-      toast("Ajoute d’abord cette canette à ta collection pour noter son goût.");
+      toast("Ajoute d’abord cette canette à ton mur pour noter son goût.");
       return;
     }
     const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
@@ -161,7 +161,7 @@ function CanPage() {
         : <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>}
       <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
-        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore collectionnée</p>}
+        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
@@ -216,7 +216,7 @@ function CanPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mes Drinks</DialogTitle>
-            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ta collection.</DialogDescription>
+            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ton mur.</DialogDescription>
           </DialogHeader>
           <label htmlFor="can-drinks-count" className="text-sm font-medium">Nombre de Drinks</label>
           <Input id="can-drinks-count" type="number" min={0} max={100000} step={1} value={drinksDraft} onChange={(e) => setDrinksDraft(e.target.value)} className="h-12 rounded-xl" />
@@ -351,7 +351,7 @@ function CanPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
                 <div className="mt-2 flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} disabled={tasteLocked} onClick={() => void rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`} title={tasteLocked ? "Ajoute cette canette à ta collection pour noter son goût" : undefined} className="disabled:cursor-not-allowed disabled:opacity-30">
+                    <button key={n} disabled={tasteLocked} onClick={() => void rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`} title={tasteLocked ? "Ajoute cette canette à ton mur pour noter son goût" : undefined} className="disabled:cursor-not-allowed disabled:opacity-30">
                       <Star className={`h-5 w-5 ${(mine?.[k] ?? 0) >= n ? "fill-gold text-gold" : "text-muted-foreground"}`} />
                     </button>
                   ))}
