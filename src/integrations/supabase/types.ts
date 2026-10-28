@@ -188,6 +188,7 @@ export type Database = {
           image_url: string
           model_id?: string | null
           name: string
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -202,7 +203,7 @@ export type Database = {
           back_image_url?: string | null
           barcode?: string
           barcode_image_url?: string | null
-          brand_id?: string
+          brand_id?: string | null
           category?: Database["public"]["Enums"]["can_category"]
           created_at?: string
           description?: string | null
@@ -212,6 +213,7 @@ export type Database = {
           image_url?: string
           model_id?: string | null
           name?: string
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
