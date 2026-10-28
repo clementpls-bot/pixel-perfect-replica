@@ -5,6 +5,8 @@ import { useAddCan, useCatalog, type Can } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
+import { recognizeCanImage } from "@/lib/can-vision";
+import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/scan")({
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 type SubmissionImages = { front: File | null; back: File | null; barcode: File | null };
+type VisionResult = Awaited<ReturnType<typeof recognizeCanImage>>;
 
 function Scanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,6 +32,13 @@ function Scanner() {
   const { user } = useAuth();
   const addCan = useAddCan();
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
+  const [scanMode, setScanMode] = useState<"vision" | "barcode">("vision");
+  const [visionBusy, setVisionBusy] = useState(false);
+  const [visionResult, setVisionResult] = useState<VisionResult | null>(null);
+  const [visionError, setVisionError] = useState("");
+  const [unknownVisual, setUnknownVisual] = useState(false);
+  const [proposedBrandName, setProposedBrandName] = useState("");
+  const [selectedVisionCanId, setSelectedVisionCanId] = useState("");
   const [manual, setManual] = useState("");
   const [camError, setCamError] = useState(false);
   const [cameraAttempt, setCameraAttempt] = useState(0);
@@ -73,7 +83,7 @@ function Scanner() {
   };
 
   useEffect(() => {
-    if (found || unknownBarcode || submitted) return;
+    if (scanMode !== "barcode" || found || unknownBarcode || submitted || visionResult) return;
     let controls: { stop: () => void } | undefined;
     let cancelled = false;
     setCamError(false);
@@ -108,8 +118,40 @@ function Scanner() {
       if (videoRef.current) videoRef.current.srcObject = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [found, unknownBarcode, submitted, cameraAttempt]);
+  }, [found, unknownBarcode, submitted, cameraAttempt, scanMode, visionResult]);
 
+  const analyzeVisionImage = async (file: File) => {
+    setVisionBusy(true); setVisionError(""); setVisionResult(null);
+    try {
+      if (!file.type.startsWith("image/")) throw new Error("Choisis une photo au format image.");
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 800 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Impossible de préparer cette image.");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
+      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Impossible de compresser la photo.")), "image/jpeg", 0.82));
+      const compressed = new File([blob], "cansdex-scan.jpg", { type: "image/jpeg" });
+      const imageDataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Impossible de lire la photo.")); reader.onerror = () => reject(new Error("Impossible de lire la photo.")); reader.readAsDataURL(compressed); });
+      setImages((current) => ({ ...current, front: compressed }));
+      const result = await recognizeCanImage({ data: { imageDataUrl } });
+      setVisionResult(result); setSelectedVisionCanId(result.candidates[0]?.id ?? "");
+    } catch (error) { const message = (error as Error).message || "Impossible d’analyser cette photo."; setVisionError(message); toast.error(message); }
+    finally { setVisionBusy(false); }
+  };
+
+  const startUnknownCanProposal = () => {
+    const vision = visionResult?.vision; if (!vision) return;
+    const matchedBrand = data?.brands.find((brand) => brand.name.toLowerCase() === (vision.brand_name ?? "").toLowerCase());
+    setName(vision.model_name || vision.brand_name || ""); setFlavour(vision.model_name || "");
+    setBrandId(matchedBrand?.id ?? ""); setProposedBrandName(matchedBrand ? "" : (vision.brand_name ?? ""));
+    setVariantName(vision.variant_name ?? ""); setRegion(vision.region ?? "");
+    setEditionType((vision.edition_type ?? "standard").toLowerCase().includes("limit") ? "limited" : (vision.edition_type ?? "standard").toLowerCase().includes("collab") ? "collab" : (vision.edition_type ?? "standard").toLowerCase().includes("import") ? "import" : "standard");
+    setVolumeMl(vision.volume_ml ? String(vision.volume_ml) : ""); setReleaseYear(vision.release_year ? String(vision.release_year) : "");
+    setUnknownBarcode(""); setUnknownVisual(true); setVisionResult(null);
+  };
   const chooseImage = (key: keyof SubmissionImages, file?: File) => {
     if (!file) {
       setImages((current) => ({ ...current, [key]: null }));
@@ -166,7 +208,8 @@ function Scanner() {
         submitted_by: user.id,
         barcode: unknownBarcode,
         name: name.trim(),
-        brand_id: brandId,
+        brand_id: brandId || null,
+        proposed_brand_name: brandId ? null : proposedBrandName.trim(),
         flavour: flavour.trim() || null,
         release_year: releaseYear ? Number(releaseYear) : null,
         category,
@@ -200,7 +243,7 @@ function Scanner() {
     setSubmitted(false);
     setManual("");
     setName("");
-    setBrandId("");
+    setBrandId("");\n    setProposedBrandName("");\n    setUnknownVisual(false);
     setFlavour("");
     setReleaseYear("");
     setDescription("");
@@ -235,7 +278,7 @@ function Scanner() {
     );
   }
 
-  if (unknownBarcode) {
+  if (unknownBarcode || unknownVisual) {
     return (
       <div className="space-y-5">
         <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); }} className="text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
@@ -244,17 +287,19 @@ function Scanner() {
           <h1 className="mt-1 text-2xl font-black">Canette introuvable</h1>
           <p className="mt-1 text-sm text-muted-foreground">Le code-barres {unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.</p>
         </div>
-        <form onSubmit={submitProposal} className="space-y-4">
+        <form onSubmit={submitProposal} className="space-y-4">\n          {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}\n          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
-            <select id="proposal-brand" required value={brandId} onChange={(e) => { setBrandId(e.target.value); setModelId(""); }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+            <select id="proposal-brand" required value={brandId || (proposedBrandName ? "__new__" : "")} onChange={(e) => { if (e.target.value === "__new__") { setBrandId(""); setModelId(""); } else { setBrandId(e.target.value); setProposedBrandName(""); setModelId(""); } }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
               <option value="">Choisir une marque</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+              <option value="__new__">＋ Proposer une nouvelle marque…</option>
             </select>
+            {(!brandId || proposedBrandName) && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-12 rounded-xl" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
           </div>
           {brandId && (
             <div className="space-y-1.5">
