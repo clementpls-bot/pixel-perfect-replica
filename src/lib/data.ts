@@ -95,21 +95,32 @@ export function useAddCan() {
     const { data: existing, error: lookupError } = await supabase
       .from("user_cans").select("id").eq("can_id", canId).limit(1).maybeSingle();
     if (lookupError) throw lookupError;
-    if (existing) return false;
 
-    const { error } = await supabase.from("user_cans").insert({
-      can_id: canId, user_id: user.id, quantity: 1, condition: "full",
-    });
-    // A concurrent scan may have inserted the same can. Don't turn it into a quantity increment.
-    if (error) {
-      if (error.code === "23505") {
-        await invalidateOwned(qc, user.id);
-        return false;
-      }
-      throw error;
+    if (!existing) {
+      const { error } = await supabase.from("user_cans").insert({
+        can_id: canId, user_id: user.id, quantity: 1, condition: "full",
+      });
+      // A concurrent scan may have inserted the same can. Don't turn it into a quantity increment.
+      if (error && error.code !== "23505") throw error;
     }
-    await invalidateOwned(qc, user.id);
-    return true;
+
+    // Every unlocked can has at least one Drink. Preserve any higher existing count.
+    const { data: drinkRow, error: drinkLookupError } = await supabase
+      .from("user_can_drinks").select("drinks_count").eq("can_id", canId).maybeSingle();
+    if (drinkLookupError) throw drinkLookupError;
+    if (!drinkRow || drinkRow.drinks_count < 1) {
+      const { error } = await supabase.from("user_can_drinks").upsert({
+        user_id: user.id, can_id: canId, drinks_count: 1, updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    }
+
+    await Promise.all([
+      invalidateOwned(qc, user.id),
+      qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
+      qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
+    ]);
+    return !existing;
   };
 }
 
@@ -150,17 +161,13 @@ export function useSetCanOwned() {
   const qc = useQueryClient();
   return async (canId: string, shouldOwn: boolean) => {
     if (!user) throw new Error("Connecte-toi pour gérer ton coffre.");
+    if (shouldOwn) {
+      throw new Error("Pour ajouter une canette pour la première fois, passe par le scanner Cansdex.");
+    }
     const { data: rows, error: lookupError } = await supabase
       .from("user_cans").select("id").eq("can_id", canId);
     if (lookupError) throw lookupError;
-    if (shouldOwn) {
-      if (!rows?.length) {
-        const { error } = await supabase.from("user_cans").insert({
-          can_id: canId, user_id: user.id, quantity: 1, condition: "full",
-        });
-        if (error && error.code !== "23505") throw error;
-      }
-    } else if (rows?.length) {
+    if (rows?.length) {
       const { error } = await supabase.from("user_cans").delete().eq("can_id", canId);
       if (error) throw error;
     }
@@ -174,10 +181,22 @@ export function useCanDrinks(canId: string) {
     queryKey: ["can-drinks", user?.id, canId],
     enabled: !!user && !!canId,
     queryFn: async () => {
+      const { data: ownedRow, error: ownedError } = await supabase
+        .from("user_cans").select("id").eq("can_id", canId).limit(1).maybeSingle();
+      if (ownedError) throw ownedError;
+      if (!ownedRow) return 0;
+
       const { data, error } = await supabase
         .from("user_can_drinks").select("drinks_count").eq("can_id", canId).maybeSingle();
       if (error) throw error;
-      return data?.drinks_count ?? 0;
+      if (data && data.drinks_count >= 1) return data.drinks_count;
+
+      // Repair older collections that were saved before the one-Drink minimum existed.
+      const { error: repairError } = await supabase.from("user_can_drinks").upsert({
+        user_id: user!.id, can_id: canId, drinks_count: 1, updated_at: new Date().toISOString(),
+      });
+      if (repairError) throw repairError;
+      return 1;
     },
   });
 }
@@ -187,7 +206,11 @@ export function useSetCanDrinks() {
   const qc = useQueryClient();
   return async (canId: string, drinksCount: number) => {
     if (!user) throw new Error("Connecte-toi pour enregistrer tes Drinks.");
-    const safeCount = Math.max(0, Math.min(100000, Math.floor(drinksCount)));
+    const { data: ownedRow, error: ownedError } = await supabase
+      .from("user_cans").select("id").eq("can_id", canId).limit(1).maybeSingle();
+    if (ownedError) throw ownedError;
+    if (!ownedRow) throw new Error("Scanne d’abord cette canette pour l’ajouter à ton mur.");
+    const safeCount = Math.max(1, Math.min(100000, Math.floor(drinksCount)));
     const { error } = await supabase.from("user_can_drinks").upsert({
       user_id: user.id, can_id: canId, drinks_count: safeCount, updated_at: new Date().toISOString(),
     });
