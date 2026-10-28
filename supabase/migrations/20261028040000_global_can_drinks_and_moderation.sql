@@ -15,4 +15,24 @@ $function$;
 revoke all on function public.get_total_can_drinks(uuid) from public;
 grant execute on function public.get_total_can_drinks(uuid) to anon, authenticated;
 
+-- Defense in depth: clients cannot bypass the moderation endpoint by inserting directly.
+create or replace function public.enforce_comment_moderation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'Community posts must be submitted through the moderation service'
+      using errcode = '42501';
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists enforce_comment_moderation_before_insert on public.comments;
+create trigger enforce_comment_moderation_before_insert
+before insert on public.comments
+for each row execute function public.enforce_comment_moderation();
+
 notify pgrst, 'reload schema';
