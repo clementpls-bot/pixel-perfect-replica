@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
     meta: [
-      { title: "Ma collection — Cansdex" },
-      { name: "description", content: "Votre collection personnelle de canettes." },
-      { property: "og:title", content: "Ma collection — Cansdex" },
-      { property: "og:description", content: "Votre collection personnelle de canettes." },
+      { title: "Mon mur — Cansdex" },
+      { name: "description", content: "Votre mur personnel de canettes." },
+      { property: "og:title", content: "Mon mur — Cansdex" },
+      { property: "og:description", content: "Votre mur personnel de canettes." },
     ],
   }),
   component: Collection,
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ta collection…</p>;
+  if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ton mur…</p>;
 
   const mine = data.cans
     .filter((can) => owned.has(can.id))
@@ -34,7 +34,7 @@ function Collection() {
     <div>
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black">Ma collection</h1>
+          <h1 className="text-2xl font-black">Mon mur</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mine.length} {mine.length === 1 ? "design" : "designs"} dans ton coffre
           </p>
@@ -55,9 +55,9 @@ function Collection() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Store className="h-6 w-6" />
           </div>
-          <h2 className="mt-4 text-lg font-bold">Votre collection est vide</h2>
+          <h2 className="mt-4 text-lg font-bold">Ton mur est encore vide</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Scannez une canette pour l’ajouter à votre collection, ou parcourez le catalogue pour en découvrir.
+            Scanne une canette pour l’ajouter à ton mur, ou parcours le catalogue pour en découvrir.
           </p>
           <div className="mt-5 flex flex-col gap-2">
             <Link to="/brands">
