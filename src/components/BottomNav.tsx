@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Library, ScanLine, User } from "lucide-react";
+import { Library, MessageCircle, ScanLine, User } from "lucide-react";
 
 const item = "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-muted-foreground transition-colors";
 const active = { className: "text-primary" };
@@ -14,6 +14,10 @@ export function BottomNav() {
           <Link to="/collection" className={item} activeProps={active}>
             <Library className="h-5 w-5" />
             Ma collection
+          </Link>
+          <Link to="/community" className={item} activeProps={active}>
+            <MessageCircle className="h-5 w-5" />
+            Communauté
           </Link>
           <Link to="/profile" className={item} activeProps={active}>
             <User className="h-5 w-5" />
