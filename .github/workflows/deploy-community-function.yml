@@ -31,9 +31,6 @@ jobs:
             exit 1
           fi
 
-      # OPENAI_API_KEY is configured once in the Supabase Dashboard.
-      # Keeping secret management out of this workflow avoids requiring
-      # edge_functions_secrets_write permission for every deployment.
       - name: Deploy publishing function
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
