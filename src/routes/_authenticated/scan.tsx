@@ -491,7 +491,7 @@ function Scanner() {
                 {images[key] && <div className="mt-2 flex items-center gap-3"><img src={URL.createObjectURL(images[key]!)} alt={`Aperçu : ${label}`} className="h-20 w-16 rounded-lg border object-contain" /><p className="min-w-0 break-all text-xs text-primary">{images[key]?.name}</p></div>}
               </div>
             ))}
-          </div>
+          </section>
           <div className="space-y-1.5"><label htmlFor="proposal-notes" className="text-sm font-semibold">Notes complémentaires</label><textarea id="proposal-notes" maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sources, références ou précisions utiles à la vérification…" rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={historyVerified} onChange={(e) => setHistoryVerified(e.target.checked)} /> J’ai vérifié les informations historiques renseignées</label>
           <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">Chaque proposition est vérifiée avant publication. Les codes-barres en double et les propositions incomplètes ou inappropriées peuvent être refusés.</div>
@@ -499,7 +499,6 @@ function Scanner() {
             {isSubmitting ? "Envoi de la proposition…" : "Envoyer pour vérification"}
           </Button>
           {!user && <p className="text-center text-xs text-muted-foreground">Vous devez être connecté pour proposer une canette.</p>}
-          </section>
         </form>
       </div>
     );
