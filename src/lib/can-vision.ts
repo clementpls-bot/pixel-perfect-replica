@@ -49,13 +49,13 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
     const brandById = new Map(brands.map((brand) => [brand.id, brand.name]));
     const modelById = new Map(models.map((model) => [model.id, model.name]));
     const compactCatalog = {
-      brands: brands.map((brand) => brand.name),
-      models: models.map((model) => ({
+      brands: brands.slice(0, 300).map((brand) => brand.name),
+      models: models.slice(0, 500).map((model) => ({
         brand: brandById.get(model.brand_id) ?? "",
         name: model.name,
         flavour: model.flavour,
       })),
-      variants: cans.map((can) => ({
+      variants: cans.slice(0, 350).map((can) => ({
         brand: brandById.get(can.brand_id) ?? "",
         model: can.model_id ? modelById.get(can.model_id) ?? can.name : can.name,
         variant: can.variant_name,
