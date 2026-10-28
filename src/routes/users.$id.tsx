@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { pastelCanColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/users/$id")({
   head: () => ({ meta: [
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/users/$id")({
 
 type PublicProfile = { id: string; username: string; avatar_url: string | null; created_at: string };
 type UserComment = { id: string; can_id: string; body: string | null; image_url: string | null; parent_id: string | null; created_at: string };
-type CanSummary = { id: string; name: string; image_url: string | null };
+type CanSummary = { id: string; name: string; image_url: string | null; color_primary: string };
 
 function PublicUserProfile() {
   const { id } = Route.useParams();
@@ -35,7 +36,7 @@ function PublicUserProfile() {
       const rows = (data ?? []) as UserComment[];
       const canIds = [...new Set(rows.map((comment) => comment.can_id))];
       if (!canIds.length) return { comments: rows, cans: [] as CanSummary[] };
-      const { data: cans, error: cansError } = await supabase.from("cans").select("id,name,image_url").in("id", canIds);
+      const { data: cans, error: cansError } = await supabase.from("cans").select("id,name,image_url,color_primary").in("id", canIds);
       if (cansError) throw cansError;
       return { comments: rows, cans: (cans ?? []) as CanSummary[] };
     },
@@ -65,7 +66,7 @@ function PublicUserProfile() {
         : !comments.data?.comments.length ? <div className="rounded-2xl border border-dashed p-6 text-center"><MessageCircle className="mx-auto h-7 w-7 text-muted-foreground" /><p className="mt-2 text-sm font-semibold">Pas encore de commentaire</p></div>
         : <div className="space-y-3">{comments.data.comments.map((comment) => {
           const can = canMap.get(comment.can_id);
-          return <article key={comment.id} className="rounded-2xl border bg-card p-4">
+          return <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: pastelCanColor(can?.color_primary) }}>
             {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{comment.body}</p>}
             {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
