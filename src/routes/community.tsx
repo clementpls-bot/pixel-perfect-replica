@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { useOwned } from "@/lib/data";
 
 export const Route = createFileRoute("/community")({
   head: () => ({ meta: [
@@ -16,6 +18,8 @@ type CanRow = { id: string; name: string; image_url: string | null; brand_id: st
 type BrandRow = { id: string; name: string; logo_url: string | null };
 
 function CommunityFeedPage() {
+  const { user } = useAuth();
+  const { data: owned } = useOwned();
   const posts = useQuery({
     queryKey: ["community-feed"],
     queryFn: async () => {
@@ -57,7 +61,7 @@ function CommunityFeedPage() {
         return <Link key={post.id} to="/cans/$id" params={{ id: post.can_id }} className="block overflow-hidden rounded-2xl border bg-card transition hover:border-primary/40 hover:shadow-sm">
           <div className="flex items-center gap-3 border-b bg-muted/30 p-3">
             {can.image_url ? <img src={can.image_url} alt="" className="h-11 w-8 rounded-md object-contain" /> : <div className="flex h-11 w-8 items-center justify-center rounded-md bg-muted"><MessageCircle className="h-4 w-4 text-muted-foreground" /></div>}
-            <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{can.name}</p><p className="truncate text-xs text-muted-foreground">{brand?.name ?? "Marque"} · espace de discussion</p></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{can.name}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><p className="truncate text-xs text-muted-foreground">{brand?.name ?? "Marque"} · espace de discussion</p>{user && owned && <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${owned.has(can.id) ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>{owned.has(can.id) ? "✓ Dans ma collection" : "Pas dans ma collection"}</span>}</div></div>
             <span className="text-[10px] text-muted-foreground">{new Date(post.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
           </div>
           {post.body?.trim() && <p className="whitespace-pre-wrap break-words px-4 pt-3 text-sm leading-relaxed">{post.body}</p>}
