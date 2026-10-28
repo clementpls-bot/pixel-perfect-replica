@@ -6,6 +6,15 @@ alter table public.cans
   add column if not exists back_image_url text,
   add column if not exists barcode_image_url text;
 
+-- Make sure all fields used by the new-can form exist even in projects
+-- whose earlier schema was created manually rather than through migrations.
+alter table public.can_submissions
+  add column if not exists model_id uuid references public.can_models(id) on delete set null,
+  add column if not exists variant_name text,
+  add column if not exists region text,
+  add column if not exists edition_type text default 'standard',
+  add column if not exists volume_ml integer;
+
 -- Enforce the same relationship at database level, not only in the admin UI.
 create or replace function public.validate_can_model_brand()
 returns trigger
@@ -53,14 +62,6 @@ create policy "Users manage their own can drinks"
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
--- Make sure all fields used by the new-can form exist even in projects
--- whose earlier schema was created manually rather than through migrations.
-alter table public.can_submissions
-  add column if not exists model_id uuid references public.can_models(id) on delete set null,
-  add column if not exists variant_name text,
-  add column if not exists region text,
-  add column if not exists edition_type text default 'standard',
-  add column if not exists volume_ml integer;
 
 -- Let a can submission propose a brand that is not in the catalogue yet.
 alter table public.can_submissions
