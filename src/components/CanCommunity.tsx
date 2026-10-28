@@ -53,24 +53,37 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     if (!user) { toast("Connecte-toi pour participer à la communauté."); return; }
     if (!body.trim() && !photo) { toast.error("Ajoute un commentaire ou une photo."); return; }
     setPosting(true);
+    let tempImagePath: string | null = null;
     try {
-      let imageUrl: string | null = null;
+      // Store selected photos privately first; they stay inaccessible to the public until approved.
       if (photo) {
         const extension = photo.type === "image/jpeg" ? "jpg" : photo.type === "image/png" ? "png" : "webp";
-        const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage.from("community-posts").upload(path, photo, { contentType: photo.type, upsert: false });
-        if (uploadError) throw uploadError;
-        imageUrl = supabase.storage.from("community-posts").getPublicUrl(path).data.publicUrl;
+        tempImagePath = `${user.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: tempUploadError } = await supabase.storage.from("community-moderation-temp").upload(tempImagePath, photo, {
+          contentType: photo.type,
+          upsert: false,
+        });
+        if (tempUploadError) throw new Error("La photo n’a pas pu être envoyée au contrôle de sécurité.");
       }
-      const { error: insertError } = await supabase.from("comments").insert({
-        can_id: canId, user_id: user.id, body: body.trim() || null, image_url: imageUrl, parent_id: replyTo,
+
+      const { data: publication, error: publishError } = await supabase.functions.invoke("publish-community-post", {
+        body: { canId, parentId: replyTo, text: body.trim(), tempImagePath },
       });
-      if (insertError) throw insertError;
+      if (tempImagePath) await supabase.storage.from("community-moderation-temp").remove([tempImagePath]);
+      if (publishError) {
+        throw new Error("Le contrôle de sécurité ou l’enregistrement a échoué. Rien n’a été publié. Réessaie plus tard.");
+      }
+      if (!publication?.published) {
+        toast.error(publication?.message ?? "Cette publication doit être modifiée avant de pouvoir être publiée.");
+        return;
+      }
+
       setBody(""); setPhoto(null); setReplyTo(null);
       if (fileRef.current) fileRef.current.value = "";
       await refresh();
       toast.success("Publication ajoutée à cette canette.");
     } catch (e) {
+      if (tempImagePath) await supabase.storage.from("community-moderation-temp").remove([tempImagePath]);
       toast.error((e as Error).message || "Impossible de publier. Réessaie.");
     } finally { setPosting(false); }
   };
@@ -134,7 +147,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
         <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="rounded-xl"><ImagePlus className="mr-2 h-4 w-4" /> Photo</Button>
         <Button type="button" onClick={() => void post()} disabled={posting || (!body.trim() && !photo)} className="rounded-xl font-bold">{posting ? "Publication…" : "Publier"}</Button>
       </div>
-      <p className="mt-2 text-[10px] text-muted-foreground">Chaque publication reste liée à la fiche de cette canette.</p>
+      <p className="mt-2 text-[10px] text-muted-foreground">Chaque publication reste liée à cette canette. Le texte et la photo sont contrôlés automatiquement avant publication.</p>
     </div> : <Link to="/auth" className="mb-4 block rounded-xl border p-3 text-sm text-primary">Connecte-toi pour publier une photo, commenter ou voter.</Link>}
     {isLoading ? <p className="py-5 text-center text-sm text-muted-foreground">Chargement des échanges…</p>
       : error ? <p className="rounded-xl border border-destructive/30 p-3 text-sm text-destructive">Impossible de charger les commentaires.</p>
