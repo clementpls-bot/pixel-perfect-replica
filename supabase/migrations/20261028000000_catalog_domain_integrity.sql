@@ -75,7 +75,7 @@ alter table public.can_submissions
   check (
     brand_id is not null
     or (proposed_brand_name is not null and char_length(trim(proposed_brand_name)) between 2 and 100)
-  );
+  ) not valid;
 
 create or replace function public.approve_can_submission(p_submission_id uuid)
 returns void
