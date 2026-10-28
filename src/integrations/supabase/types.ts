@@ -244,7 +244,7 @@ export type Database = {
           back_image_url: string | null
           barcode_image_url: string | null
           barcode: string
-          brand_id?: string | null
+          brand_id: string
           caffeine_mg_per_100ml: number | null
           category: Database["public"]["Enums"]["can_category"]
           color_primary: string
@@ -273,7 +273,7 @@ export type Database = {
           back_image_url?: string | null
           barcode_image_url?: string | null
           barcode: string
-          brand_id: string | null
+          brand_id: string
           caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
           color_primary?: string
