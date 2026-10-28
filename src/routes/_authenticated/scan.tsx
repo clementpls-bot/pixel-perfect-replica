@@ -41,6 +41,11 @@ function Scanner() {
   const [releaseYear, setReleaseYear] = useState("");
   const [category, setCategory] = useState<"Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition">("Energy Drink");
   const [description, setDescription] = useState("");
+  const [modelId, setModelId] = useState("");
+  const [variantName, setVariantName] = useState("");
+  const [region, setRegion] = useState("");
+  const [editionType, setEditionType] = useState("standard");
+  const [volumeMl, setVolumeMl] = useState("");
   const [images, setImages] = useState<SubmissionImages>({ front: null, back: null, barcode: null });
   const busy = useRef(false);
   const catalogRef = useRef(data);
@@ -169,6 +174,11 @@ function Scanner() {
         image_url: frontUrl,
         back_image_url: backUrl,
         barcode_image_url: barcodeUrl,
+        model_id: modelId || null,
+        variant_name: variantName.trim() || null,
+        region: region.trim() || null,
+        edition_type: editionType,
+        volume_ml: volumeMl ? Number(volumeMl) : null,
       });
       if (error) {
         if (error.code === "23505") throw new Error("Une proposition pour ce code-barres est déjà en attente de vérification.");
@@ -194,6 +204,7 @@ function Scanner() {
     setFlavour("");
     setReleaseYear("");
     setDescription("");
+    setModelId(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl("");
     setImages({ front: null, back: null, barcode: null });
   };
 
@@ -240,10 +251,44 @@ function Scanner() {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
-            <select id="proposal-brand" required value={brandId} onChange={(e) => setBrandId(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+            <select id="proposal-brand" required value={brandId} onChange={(e) => { setBrandId(e.target.value); setModelId(""); }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
               <option value="">Choisir une marque</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
             </select>
+          </div>
+          {brandId && (
+            <div className="space-y-1.5">
+              <label htmlFor="proposal-model" className="text-sm font-semibold">Modèle</label>
+              <select id="proposal-model" value={modelId} onChange={(e) => {
+                setModelId(e.target.value);
+                const m = data?.models.find((x) => x.id === e.target.value);
+                if (m) { setName(m.name); if (m.flavour) setFlavour(m.flavour); }
+              }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+                <option value="">Nouveau modèle (utilise le nom ci-dessus)</option>
+                {data?.models.filter((m) => m.brand_id === brandId).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground">Si la saveur existe déjà, choisis-la : ta canette sera ajoutée comme nouveau design de ce modèle.</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label htmlFor="proposal-variant" className="text-sm font-semibold">Nom du design</label>
+              <Input id="proposal-variant" maxLength={120} value={variantName} onChange={(e) => setVariantName(e.target.value)} placeholder="ex. Collab Call of Duty" className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="proposal-edition" className="text-sm font-semibold">Type d’édition</label>
+              <select id="proposal-edition" value={editionType} onChange={(e) => setEditionType(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+                <option value="standard">Standard</option><option value="limited">Édition limitée</option><option value="collab">Collab</option><option value="import">Import</option><option value="redesign">Redesign</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="proposal-region" className="text-sm font-semibold">Pays / région</label>
+              <Input id="proposal-region" maxLength={60} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="ex. Japon" className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="proposal-volume" className="text-sm font-semibold">Contenance (ml)</label>
+              <Input id="proposal-volume" type="number" min={50} max={2000} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="ex. 500" className="h-12 rounded-xl" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

@@ -1,6 +1,6 @@
 export type AchievementInput = {
   ownedCanIds: Set<string>;
-  cans: { id: string; brand_id: string; category: string; flavour?: string | null; release_year?: number | null }[];
+  cans: { id: string; brand_id: string; category: string; model_id?: string | null; flavour?: string | null; release_year?: number | null }[];
   brands: { id: string; slug: string }[];
 };
 
@@ -23,6 +23,10 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
   const monster = brands.find((brand) => brand.slug === "monster");
   const redBull = brands.find((brand) => brand.slug === "red-bull");
   const hasVintageCan = ownedYears.some((year) => year < 2000);
+  const modelVariants = new Map<string, string[]>();
+  for (const can of cans) if (can.model_id) modelVariants.set(can.model_id, [...(modelVariants.get(can.model_id) ?? []), can.id]);
+  const completeMultiDesignModels = [...modelVariants.values()]
+    .filter((ids) => ids.length >= 2 && ids.every((id) => ownedCanIds.has(id))).length;
   const hasRecentCan = ownedYears.some((year) => year >= 2025);
 
   return [
@@ -52,6 +56,8 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
     { id: "decades-3", title: "À travers les décennies", description: "Possède des canettes de 3 décennies différentes", icon: "📆", earned: ownedDecades.size >= 3 },
     { id: "vintage", title: "Chasseur de vintage", description: "Possède une canette sortie avant 2000", icon: "📻", earned: hasVintageCan },
     { id: "recent", title: "Tout juste sortie", description: "Possède une canette sortie en 2025 ou après", icon: "🆕", earned: hasRecentCan },
+    { id: "model-designs-1", title: "Tous les designs", description: "Possède tous les designs d’un modèle (au moins 2)", icon: "🎨", earned: completeMultiDesignModels >= 1 },
+    { id: "model-designs-5", title: "Chasseur de designs", description: "Possède tous les designs de 5 modèles", icon: "🖼️", earned: completeMultiDesignModels >= 5 },
   ];
 }
 
