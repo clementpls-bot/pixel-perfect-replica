@@ -70,7 +70,7 @@ function CanPage() {
   const rate = async (k: "design" | "taste", v: number) => {
     if (!user) { toast("Connecte-toi pour noter cette canette."); return; }
     if (k === "taste" && qty === 0) {
-      toast("Ajoute d’abord cette canette à ta collection pour noter son goût.");
+      toast("Ajoute d’abord cette canette à ton mur pour noter son goût.");
       return;
     }
     const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
@@ -117,15 +117,26 @@ function CanPage() {
   const model = data.models.find((m) => m.id === can.model_id);
   const siblings = data.cans.filter((c) => c.model_id && c.model_id === can.model_id && c.id !== can.id);
   const toggleOwnership = async () => {
-    if (!user) { toast("Connecte-toi pour gérer ton coffre."); return; }
+    if (!user) { toast("Connecte-toi pour gérer ton mur."); return; }
     setSavingCollection(true);
     try {
       await setCanOwned(can.id, qty === 0);
-      toast.success(qty === 0 ? "Canette ajoutée à ton coffre." : "Canette retirée de ton coffre.");
+      toast.success(qty === 0 ? "Canette ajoutée à ton mur." : "Canette retirée de ton mur.");
     } catch (error) {
-      toast.error((error as Error).message || "Impossible de mettre à jour ton coffre.");
+      toast.error((error as Error).message || "Impossible de mettre à jour ton mur.");
     } finally {
       setSavingCollection(false);
+    }
+  };
+
+  const addDrink = async () => {
+    if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
+    try {
+      if ("vibrate" in navigator) navigator.vibrate?.(35);
+      await setCanDrinks(can.id, (canDrinks.data ?? 0) + 1);
+      toast.success("Nouveau Drink ajouté !");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible d’ajouter ce Drink.");
     }
   };
 
@@ -146,13 +157,13 @@ function CanPage() {
   };
 
   return (
-    <div>
+    <div className="can-detail-page -mx-4 min-h-screen px-4 pb-8 pt-2" style={{ background: `linear-gradient(180deg, ${can.color_primary}24 0%, ${can.color_secondary}12 34%, transparent 620px)` }}>
       {model
         ? <Link to="/models/$id" params={{ id: model.id }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name} · {model.name}</Link>
         : <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>}
       <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
-        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore collectionnée</p>}
+        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
@@ -178,13 +189,13 @@ function CanPage() {
       <div className="mt-4 rounded-2xl border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold">Mon coffre</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{qty > 0 ? "Cette canette fait partie de ta collection." : "Tu possèdes cette canette ?"}</p>
+            <p className="text-sm font-bold">Mon mur</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{qty > 0 ? "Cette canette est sur ton mur." : "Tu possèdes cette canette ?"}</p>
           </div>
           <span className={qty > 0 ? "rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary" : "rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground"}>{qty > 0 ? "Possédée" : "Non possédée"}</span>
         </div>
-        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className="mt-3 h-11 w-full rounded-xl font-bold">
-          {qty > 0 ? "Retirer de mon coffre" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
+        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className={`mt-3 h-10 w-full rounded-xl text-sm font-semibold ${qty > 0 ? "border border-border/60 bg-transparent text-muted-foreground shadow-none hover:bg-muted/50" : ""}`}>
+          {qty > 0 ? "Retirer du mur" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
         </Button>
         <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -192,18 +203,22 @@ function CanPage() {
             <span className="text-sm">Drinks</span>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{canDrinks.data ?? 0}</span>
           </div>
-          <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user} className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40">
-            Modifier
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user} className="rounded-full px-2 py-1 text-[11px] text-muted-foreground/75 transition hover:bg-muted hover:text-foreground disabled:opacity-40">Modifier</button>
+            <button type="button" onClick={() => void addDrink()} disabled={!user} aria-label="Dégoupiller une canette et ajouter un Drink" title="Dégoupiller une nouvelle canette" className="drink-tab-button inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-extrabold text-slate-800 shadow-sm transition active:scale-95 disabled:opacity-40">
+              <svg viewBox="0 0 32 32" aria-hidden="true" className="h-5 w-5 shrink-0"><circle cx="16" cy="16" r="14" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="1.8"/><path d="M12 8.5h8a3 3 0 0 1 3 3v2.2a3.3 3.3 0 0 1-3.3 3.3h-1.4l-2.8 6.1a1.8 1.8 0 0 1-3.3-1.4l2.1-4.7h-.8a3.5 3.5 0 0 1-3.5-3.5v-2a3 3 0 0 1 3-3Z" fill="currentColor" fillOpacity=".72"/><circle cx="12" cy="12" r="1.3" fill="white"/></svg>
+              +1 Drink
+            </button>
+          </div>
         </div>
-        {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton coffre et tes Drinks.</p>}
+        {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton mur et tes Drinks.</p>}
       </div>
 
       <Dialog open={drinksOpen} onOpenChange={setDrinksOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mes Drinks</DialogTitle>
-            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ta collection.</DialogDescription>
+            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ton mur.</DialogDescription>
           </DialogHeader>
           <label htmlFor="can-drinks-count" className="text-sm font-medium">Nombre de Drinks</label>
           <Input id="can-drinks-count" type="number" min={0} max={100000} step={1} value={drinksDraft} onChange={(e) => setDrinksDraft(e.target.value)} className="h-12 rounded-xl" />
@@ -338,7 +353,7 @@ function CanPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
                 <div className="mt-2 flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} disabled={tasteLocked} onClick={() => void rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`} title={tasteLocked ? "Ajoute cette canette à ta collection pour noter son goût" : undefined} className="disabled:cursor-not-allowed disabled:opacity-30">
+                    <button key={n} disabled={tasteLocked} onClick={() => void rate(k, n)} aria-label={`Noter ${k === "design" ? "le design" : "le goût"} ${n}`} title={tasteLocked ? "Ajoute cette canette à ton mur pour noter son goût" : undefined} className="disabled:cursor-not-allowed disabled:opacity-30">
                       <Star className={`h-5 w-5 ${(mine?.[k] ?? 0) >= n ? "fill-gold text-gold" : "text-muted-foreground"}`} />
                     </button>
                   ))}

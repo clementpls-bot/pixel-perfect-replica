@@ -13,7 +13,7 @@ export function BottomNav() {
         <div className="mx-auto flex max-w-lg items-end">
           <Link to="/collection" className={item} activeProps={active}>
             <Library className="h-5 w-5" />
-            Ma collection
+            Mon mur
           </Link>
           <Link to="/community" className={item} activeProps={active}>
             <MessageCircle className="h-5 w-5" />
