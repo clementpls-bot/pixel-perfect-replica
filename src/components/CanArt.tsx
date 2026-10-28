@@ -3,7 +3,7 @@ import { LockKeyhole } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Can } from "@/lib/data";
 
-/** Shows the real product photo; unowned cans stay visible beneath a subtle lock overlay. */
+/** Affiche la photo d'origine sans filtre ; le cadenas reste discret dans un coin. */
 export function CanArt({ can, brandName, missing, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; className?: string | undefined }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const showPhoto = Boolean(can.image_url && failedImageUrl !== can.image_url);
@@ -27,11 +27,13 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
         </div>
       )}
       {missing && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/20" aria-label="Canette non possédée" title="Ajoute cette canette à ton mur pour la débloquer">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-black/45 text-white shadow-lg backdrop-blur-sm">
-            <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-          </span>
-        </div>
+        <span
+          className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 bg-white/95 text-slate-700 shadow-md ring-1 ring-black/5"
+          aria-label="Canette non possédée"
+          title="Ajoute cette canette à ton mur pour la débloquer"
+        >
+          <LockKeyhole className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden="true" />
+        </span>
       )}
     </div>
   );
