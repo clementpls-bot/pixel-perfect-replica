@@ -127,3 +127,26 @@
 @media (prefers-reduced-motion: reduce) {
   .bat-overlay { display: none; }
 }
+
+
+/* A restrained multicolour light sweep makes the primary add-can action easier to spot. */
+.can-add-glint {
+  background: linear-gradient(112deg, #6558a8 0%, #a65f9a 28%, #548f83 52%, #5c77b6 74%, #6558a8 100%);
+  background-size: 240% 100%;
+  animation: cansdex-glint 3.6s ease-in-out infinite;
+}
+.can-add-glint-icon svg {
+  animation: cansdex-sparkle 3.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+}
+@keyframes cansdex-glint {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes cansdex-sparkle {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255,255,255,.25)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 7px rgba(255,255,255,.9)); transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .can-add-glint, .can-add-glint-icon svg { animation: none; }
+}
