@@ -91,7 +91,7 @@
 }
 @utility animate-scan-line { animation: scan-line 2.2s ease-in-out infinite; }
 
-/* Subtle Halloween bats: decorative only, with no impact on interaction. */
+/* Decorative bats: slightly larger silhouettes and a more lively, swooping flight. */
 .bat-overlay {
   position: fixed;
   inset: 0;
@@ -102,26 +102,40 @@
 }
 .bat {
   position: absolute;
-  left: -52px;
-  width: 18px;
-  height: 10px;
+  left: -56px;
+  width: 30px;
+  height: 15px;
   fill: #29211f;
   opacity: 0;
-  animation: bat-fly 31s linear infinite;
-  will-change: transform;
+  transform-origin: center;
+  animation: bat-fly 25s linear infinite;
+  will-change: transform, opacity;
 }
-.bat-one { top: 17%; animation-delay: -7s; animation-duration: 34s; }
-.bat-two { top: 43%; width: 14px; height: 7px; animation-delay: -21s; animation-duration: 39s; opacity: 0; }
-.bat-three { top: 72%; width: 16px; height: 8px; animation-delay: -13s; animation-duration: 36s; }
+.bat path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bat-flutter 0.42s ease-in-out infinite alternate;
+}
+.bat-one { top: 17%; width: 31px; height: 16px; animation-delay: -7s; animation-duration: 29s; }
+.bat-two { top: 43%; width: 25px; height: 13px; animation-delay: -19s; animation-duration: 33s; }
+.bat-three { top: 72%; width: 28px; height: 14px; animation-delay: -12s; animation-duration: 31s; }
+.bat-two path { animation-delay: -0.18s; animation-duration: 0.5s; }
+.bat-three path { animation-delay: -0.08s; animation-duration: 0.36s; }
 
 @keyframes bat-fly {
-  0% { transform: translate3d(-5vw, 0, 0) rotate(-5deg); opacity: 0; }
-  5% { opacity: 0.32; }
-  20% { transform: translate3d(20vw, -9px, 0) rotate(4deg); }
-  40% { transform: translate3d(45vw, 8px, 0) rotate(-3deg); }
-  60% { transform: translate3d(70vw, -5px, 0) rotate(5deg); }
-  90% { opacity: 0.28; }
-  100% { transform: translate3d(110vw, 3px, 0) rotate(-4deg); opacity: 0; }
+  0% { transform: translate3d(-4vw, 12px, 0) rotate(-10deg) scale(.78); opacity: 0; }
+  4% { opacity: .34; }
+  14% { transform: translate3d(12vw, -17px, 0) rotate(8deg) scale(1); }
+  27% { transform: translate3d(28vw, 5px, 0) rotate(-7deg) scale(.94); }
+  41% { transform: translate3d(45vw, -24px, 0) rotate(11deg) scale(1.08); }
+  56% { transform: translate3d(62vw, 10px, 0) rotate(-9deg) scale(.92); }
+  71% { transform: translate3d(78vw, -14px, 0) rotate(6deg) scale(1.04); opacity: .3; }
+  87% { transform: translate3d(96vw, 8px, 0) rotate(-5deg) scale(.9); opacity: .24; }
+  100% { transform: translate3d(112vw, -5px, 0) rotate(7deg) scale(.82); opacity: 0; }
+}
+@keyframes bat-flutter {
+  from { transform: scaleY(.72) rotate(-3deg); }
+  to { transform: scaleY(1.08) rotate(3deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
