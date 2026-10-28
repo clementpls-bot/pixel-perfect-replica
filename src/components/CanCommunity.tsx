@@ -44,7 +44,10 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       return (data ?? []) as unknown as CommunityComment[];
     },
   });
-  const refresh = () => qc.invalidateQueries({ queryKey: ["comments", canId] });
+  const refresh = () => Promise.all([
+    qc.invalidateQueries({ queryKey: ["comments", canId] }),
+    qc.invalidateQueries({ queryKey: ["community-feed"] }),
+  ]);
 
   const post = async () => {
     if (!user) { toast("Connecte-toi pour participer à la communauté."); return; }
