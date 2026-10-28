@@ -137,7 +137,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthProvider>
-        <main className="mx-auto min-h-screen max-w-lg px-4 pb-28 pt-6">
+        <main className="min-h-screen w-full px-4 pb-28 pt-6 md:ml-60 md:w-[calc(100%-15rem)] md:px-8 md:pb-10 md:pt-8 lg:px-10 xl:px-12">
           <Outlet />
         </main>
         <BottomNav />
