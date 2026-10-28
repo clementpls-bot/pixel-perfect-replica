@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Droplets, FlaskConical, PenLine, Star, Zap, Wine } from "lucide-react";
+import { ArrowLeft, Droplets, FlaskConical, PenLine, Sparkles, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -276,8 +276,11 @@ function CanPage() {
       )}
 
       <div className="mt-5 flex justify-end">
-        <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <PenLine className="h-3.5 w-3.5" /> Contribuer aux informations
+        <button onClick={() => setReportOpen(true)} className="contribute-magic-button group relative inline-flex items-center gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <span className="contribute-magic-sheen" aria-hidden="true" />
+          <PenLine className="relative z-10 h-3.5 w-3.5 transition-transform duration-300 group-hover:-rotate-12" />
+          <span className="relative z-10">Contribuer aux informations</span>
+          <Sparkles className="contribute-magic-sparkle relative z-10 h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
 
