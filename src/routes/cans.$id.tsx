@@ -33,6 +33,15 @@ function CanPage() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const canDrinks = useCanDrinks(id);
+  const communityDrinks = useQuery({
+    queryKey: ["can-drinks-community", id],
+    queryFn: async () => {
+      const { data: total, error } = await supabase.rpc("get_total_can_drinks", { p_can_id: id });
+      if (error) throw error;
+      return Number(total ?? 0);
+    },
+    staleTime: 30_000,
+  });
   const setCanDrinks = useSetCanDrinks();
   const setCanOwned = useSetCanOwned();
   const [reportOpen, setReportOpen] = useState(false);
@@ -211,6 +220,7 @@ function CanPage() {
             </button>
           </div>
         </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">Tous les utilisateurs : <strong className="text-foreground tabular-nums">{(communityDrinks.data ?? 0).toLocaleString("fr-FR")}</strong> Drinks au total</p>
         {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton mur et tes Drinks.</p>}
       </div>
 
