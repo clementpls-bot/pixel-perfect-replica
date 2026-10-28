@@ -37,7 +37,7 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
     const [brandsResult, modelsResult, cansResult] = await Promise.all([
       supabase.from("brands").select("id,name").order("name"),
       supabase.from("can_models").select("id,brand_id,name,flavour").order("name"),
-      supabase.from("cans").select("id,name,brand_id,model_id,variant_name,edition_type,volume_ml,region,release_year,image_url,barcode").order("name").limit(2500),
+      supabase.from("cans").select("*").order("name").limit(2500),
     ]);
     if (brandsResult.error) throw new Error("Impossible de charger les marques du catalogue.");
     if (modelsResult.error) throw new Error("Impossible de charger les modèles du catalogue.");
