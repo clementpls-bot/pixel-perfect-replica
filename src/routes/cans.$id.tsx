@@ -359,7 +359,8 @@ function CanPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="mt-8">
+      <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="min-w-0 rounded-2xl border bg-card p-5">
         <h2 className="mb-3 text-sm font-bold">Donner ton avis</h2>
         <div className="grid grid-cols-2 gap-3">
           {(["design", "taste"] as const).map((k) => {
@@ -382,6 +383,7 @@ function CanPage() {
       </section>
 
       <CanCommunity canId={id} canName={can.name} />
+      </div>
     </div>
   );
 }
