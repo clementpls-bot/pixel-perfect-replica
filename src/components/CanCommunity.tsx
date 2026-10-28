@@ -53,20 +53,23 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     if (!user) { toast("Connecte-toi pour participer à la communauté."); return; }
     if (!body.trim() && !photo) { toast.error("Ajoute un commentaire ou une photo."); return; }
     setPosting(true);
+    let tempImagePath: string | null = null;
     try {
-      // Convert the selected image to a data URL so the server can moderate it before storage.
-      const imageDataUrl = photo ? await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => typeof reader.result === "string"
-          ? resolve(reader.result)
-          : reject(new Error("Impossible de préparer la photo pour le contrôle de sécurité."));
-        reader.onerror = () => reject(new Error("Impossible de lire la photo pour le contrôle de sécurité."));
-        reader.readAsDataURL(photo);
-      }) : null;
+      // Store selected photos privately first; they stay inaccessible to the public until approved.
+      if (photo) {
+        const extension = photo.type === "image/jpeg" ? "jpg" : photo.type === "image/png" ? "png" : "webp";
+        tempImagePath = `${user.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: tempUploadError } = await supabase.storage.from("community-moderation-temp").upload(tempImagePath, photo, {
+          contentType: photo.type,
+          upsert: false,
+        });
+        if (tempUploadError) throw new Error("La photo n’a pas pu être envoyée au contrôle de sécurité.");
+      }
 
       const { data: publication, error: publishError } = await supabase.functions.invoke("publish-community-post", {
-        body: { canId, parentId: replyTo, text: body.trim(), imageDataUrl },
+        body: { canId, parentId: replyTo, text: body.trim(), tempImagePath },
       });
+      if (tempImagePath) await supabase.storage.from("community-moderation-temp").remove([tempImagePath]);
       if (publishError) {
         throw new Error("Le contrôle de sécurité ou l’enregistrement a échoué. Rien n’a été publié. Réessaie plus tard.");
       }
@@ -80,6 +83,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       await refresh();
       toast.success("Publication ajoutée à cette canette.");
     } catch (e) {
+      if (tempImagePath) await supabase.storage.from("community-moderation-temp").remove([tempImagePath]);
       toast.error((e as Error).message || "Impossible de publier. Réessaie.");
     } finally { setPosting(false); }
   };
