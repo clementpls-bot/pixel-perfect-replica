@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, Clock3, ImagePlus, LogOut, Pencil, Trash2, X } from "lucide-react";
+import { Camera, Check, ImagePlus, LogOut, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -240,18 +240,13 @@ function Profile() {
               <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 onClick={() => {
                   if (!canChangeUsername) {
-                    toast.info(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
+                    toast.error(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
                     return;
                   }
                   setEditing(true);
                 }}>
                 <Pencil className="h-3 w-3" /> Modifier le nom d’utilisateur
               </button>
-              {!canChangeUsername && (
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3 w-3" /> Prochaine modification : {nextUsernameDate}
-                </p>
-              )}
             </>
           )}
         </div>
