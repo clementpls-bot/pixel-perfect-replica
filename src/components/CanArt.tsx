@@ -28,11 +28,11 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
       )}
       {missing && (
         <span
-          className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 bg-white/95 text-slate-700 shadow-md ring-1 ring-black/5"
+          className="can-lock-magic absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 text-violet-800 shadow-md ring-1 ring-white/80"
           aria-label="Canette non possédée"
           title="Ajoute cette canette à ton mur pour la débloquer"
         >
-          <LockKeyhole className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden="true" />
+          <LockKeyhole className="h-3.5 w-3.5 drop-shadow-[0_0_3px_rgba(255,255,255,0.9)]" strokeWidth={2.2} aria-hidden="true" />
         </span>
       )}
     </div>
