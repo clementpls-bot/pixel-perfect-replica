@@ -278,6 +278,43 @@ function Scanner() {
     );
   }
 
+  if (visionResult) {
+    const selected = visionResult.candidates.find((candidate) => candidate.id === selectedVisionCanId) ?? visionResult.candidates[0];
+    return (
+      <div className="space-y-5">
+        <button type="button" onClick={() => { setVisionResult(null); setVisionError(""); setCameraAttempt((n) => n + 1); }} className="text-sm font-semibold text-muted-foreground">← Reprendre une photo</button>
+        <div className="rounded-3xl border bg-card p-5">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"><Sparkles className="h-4 w-4" />Résultat de l’IA</div>
+          <h1 className="mt-2 text-2xl font-black">{visionResult.vision.model_name || visionResult.vision.brand_name || "Canette identifiée"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{visionResult.vision.variant_name || visionResult.vision.edition_type || "Variante à confirmer"} · Confiance {Math.round(visionResult.vision.confidence * 100)}%</p>
+          {visionResult.vision.visual_cues.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Indices visuels : {visionResult.vision.visual_cues.join(" · ")}</p>}
+        </div>
+        {visionResult.match_type !== "unknown" && visionResult.candidates.length > 0 ? (
+          <div className="space-y-3">
+            <h2 className="font-bold">{visionResult.match_type === "exact" ? "Variante reconnue" : "Laquelle possèdes-tu ?"}</h2>
+            {visionResult.candidates.map((candidate) => {
+              const brand = data?.brands.find((item) => item.id === candidate.brand_id);
+              const active = candidate.id === (selected?.id ?? "");
+              return <button key={candidate.id} type="button" onClick={() => setSelectedVisionCanId(candidate.id)} className={active ? "flex w-full items-center gap-3 rounded-2xl border-2 border-primary bg-primary/5 p-3 text-left" : "flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left"}>
+                <div className="w-14 shrink-0"><CanArt can={candidate as unknown as Can} brandName={brand?.name} /></div>
+                <div className="min-w-0 flex-1"><p className="font-bold">{candidate.name}</p><p className="text-xs text-muted-foreground">{brand?.name} · {candidate.variant_name}</p><p className="text-xs text-muted-foreground">{candidate.region || "Région inconnue"} · {candidate.release_year || "Année inconnue"} · {candidate.volume_ml ? candidate.volume_ml + " ml" : "Format inconnu"}</p></div>
+                {active && <CheckCircle2 className="h-5 w-5 text-primary" />}
+              </button>;
+            })}
+            <Button className="h-12 w-full rounded-xl font-bold" disabled={!selected || !user} onClick={async () => { if (!selected) return; try { const isNew = await addCan(selected.id); setFound({ can: selected as unknown as Can, isNew }); setVisionResult(null); } catch (error) { toast.error((error as Error).message); } }}>Ajouter à mon coffre</Button>
+            {selected && <Link to="/cans/$id" params={{ id: selected.id }} className="block text-center text-sm font-semibold text-primary">Voir la fiche complète</Link>}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed p-5 text-center">
+            <p className="font-bold">Aucune variante correspondante</p>
+            <p className="mt-1 text-sm text-muted-foreground">Tu peux proposer cette canette à la communauté. Les informations de l’IA seront reprises dans le formulaire.</p>
+            <Button className="mt-4 h-12 w-full rounded-xl font-bold" onClick={startUnknownCanProposal}>Proposer cette canette à la communauté</Button>
+          </div>
+        )}
+        <Button variant="outline" className="w-full rounded-xl" onClick={() => { setVisionResult(null); setCameraAttempt((n) => n + 1); }}>Scanner une autre canette</Button>
+      </div>
+    );
+  }
   if (unknownBarcode || unknownVisual) {
     return (
       <div className="space-y-5">
@@ -384,35 +421,39 @@ function Scanner() {
 
   return (
     <div>
-      <Button
-        type="button"
-        variant="ghost"
-        className="-ml-3 mb-2 rounded-xl"
-        onClick={() => {
-          if (window.history.length > 1) window.history.back();
-          else window.location.assign("/");
-        }}
-      >
-        ← Retour
-      </Button>
-      <h1 className="text-2xl font-black">Scanner</h1>
-      <p className="text-sm text-muted-foreground">Scanne le code-barres avec la caméra de ton téléphone pour débloquer une canette. La rescanner ne modifiera pas sa quantité.</p>
-      <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
-        <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
-        {camError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div>
-        ) : (
-          <>
-            <div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" />
-            <div className="absolute inset-x-[14%] h-0.5 bg-primary shadow-glow animate-scan-line" />
-          </>
-        )}
+      <Button type="button" variant="ghost" className="-ml-3 mb-2 rounded-xl" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}>← Retour</Button>
+      <h1 className="text-2xl font-black">Scanner une canette</h1>
+      <p className="text-sm text-muted-foreground">Identifie une canette par son design ou passe au code-barres pour une recherche rapide.</p>
+      <div className="mt-4 grid grid-cols-2 rounded-2xl bg-muted p-1">
+        <button type="button" onClick={() => setScanMode("vision")} className={scanMode === "vision" ? "flex items-center justify-center gap-2 rounded-xl bg-background px-2 py-3 text-sm font-bold shadow-sm" : "flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-semibold text-muted-foreground"}><Sparkles className="h-4 w-4" />Reconnaissance IA</button>
+        <button type="button" onClick={() => setScanMode("barcode")} className={scanMode === "barcode" ? "flex items-center justify-center gap-2 rounded-xl bg-background px-2 py-3 text-sm font-bold shadow-sm" : "flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-semibold text-muted-foreground"}><ScanBarcode className="h-4 w-4" />Code-barres</button>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
-        <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
-        <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
-      </form>
-      <p className="mt-3 text-xs text-muted-foreground">Tu peux scanner le code-barres avec la caméra ou le saisir ici pour ajouter une canette déjà répertoriée. Si le code est absent du catalogue, tu pourras proposer la canette.</p>
+      {scanMode === "vision" ? (
+        <div className="mt-4 space-y-4">
+          <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-3xl border bg-card p-6 text-center">
+            <div className="pointer-events-none absolute inset-x-[24%] inset-y-[8%] rounded-[42%/12%] border-2 border-primary/70" />
+            <div className="relative max-w-xs"><Sparkles className="mx-auto h-10 w-10 text-primary" /><p className="mt-3 font-bold">Place la canette face à l’objectif</p><p className="mt-1 text-sm text-muted-foreground">Prends une photo nette de face ou importe une image.</p></div>
+            {visionBusy && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/85 p-6 backdrop-blur-sm"><div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" /><p className="font-bold">Analyse du design et de l’édition en cours…</p><p className="text-xs text-muted-foreground">On compare la photo au catalogue Cansdex.</p></div>}
+          </div>
+          <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground"><ImagePlus className="h-4 w-4" />Prendre une photo ou choisir dans la galerie<input className="sr-only" type="file" accept="image/*" capture="environment" disabled={visionBusy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void analyzeVisionImage(file); e.currentTarget.value = ""; }} /></label>
+          {visionError && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{visionError}</p>}
+          <p className="text-xs text-muted-foreground">L’IA peut se tromper : vérifie toujours la variante proposée. Les photos sont réduites avant envoi pour accélérer l’analyse.</p>
+        </div>
+      ) : (
+        <>
+          <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
+            <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+            {camError ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div>
+            ) : <><div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" /><div className="absolute inset-x-[14%] h-0.5 bg-primary shadow-glow animate-scan-line" /></>}
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
+            <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
+            <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
+          </form>
+          <p className="mt-3 text-xs text-muted-foreground">Scanne un code-barres pour retrouver une canette déjà répertoriée. S’il est inconnu, tu pourras la proposer à la communauté.</p>
+        </>
+      )}
     </div>
   );
 }
