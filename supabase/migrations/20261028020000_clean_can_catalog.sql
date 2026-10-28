@@ -23,6 +23,12 @@ select
   coalesce((select jsonb_agg(to_jsonb(uc)) from public.user_cans uc where uc.can_id = c.id), '[]'::jsonb),
   jsonb_build_object(
     'comments', coalesce((select jsonb_agg(to_jsonb(cm)) from public.comments cm where cm.can_id = c.id), '[]'::jsonb),
+    'comment_likes', coalesce((
+      select jsonb_agg(to_jsonb(v))
+      from public.comment_likes v
+      join public.comments cm on cm.id = v.comment_id
+      where cm.can_id = c.id
+    ), '[]'::jsonb),
     'ratings', coalesce((select jsonb_agg(to_jsonb(r)) from public.ratings r where r.can_id = c.id), '[]'::jsonb),
     'can_reports', coalesce((select jsonb_agg(to_jsonb(cr)) from public.can_reports cr where cr.can_id = c.id), '[]'::jsonb)
   )
