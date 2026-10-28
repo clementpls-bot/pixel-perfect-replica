@@ -54,6 +54,16 @@ function Scanner() {
   const [releaseYear, setReleaseYear] = useState("");
   const [category, setCategory] = useState<"Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition">("Energy Drink");
   const [description, setDescription] = useState("");
+  const [historicalContext, setHistoricalContext] = useState("");
+  const [colorPrimary, setColorPrimary] = useState("#222222");
+  const [colorSecondary, setColorSecondary] = useState("#ffffff");
+  const [tabColor, setTabColor] = useState("");
+  const [caffeine, setCaffeine] = useState("");
+  const [sugar, setSugar] = useState("");
+  const [taurine, setTaurine] = useState("");
+  const [energy, setEnergy] = useState("");
+  const [historyVerified, setHistoryVerified] = useState(false);
+  const [notes, setNotes] = useState("");
   const [modelId, setModelId] = useState("");
   const [variantName, setVariantName] = useState("");
   const [region, setRegion] = useState("");
@@ -246,6 +256,16 @@ function Scanner() {
         release_year: releaseYear ? Number(releaseYear) : null,
         category,
         description: description.trim() || null,
+        historical_context: historicalContext.trim() || null,
+        color_primary: colorPrimary.trim() || "#222222",
+        color_secondary: colorSecondary.trim() || "#ffffff",
+        tab_color: tabColor.trim() || null,
+        caffeine_mg_per_100ml: caffeine ? Number(caffeine) : null,
+        sugar_g_per_100ml: sugar ? Number(sugar) : null,
+        taurine_mg_per_100ml: taurine ? Number(taurine) : null,
+        energy_kcal_per_100ml: energy ? Number(energy) : null,
+        history_verified: historyVerified,
+        notes: notes.trim() || null,
         image_url: frontUrl,
         back_image_url: backUrl,
         barcode_image_url: barcodeUrl,
@@ -285,6 +305,8 @@ function Scanner() {
     setFlavour("");
     setReleaseYear("");
     setDescription("");
+    setHistoricalContext(""); setColorPrimary("#222222"); setColorSecondary("#ffffff"); setTabColor("");
+    setCaffeine(""); setSugar(""); setTaurine(""); setEnergy(""); setHistoryVerified(false); setNotes("");
     setModelId(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl("");
     setImages({ front: null, back: null, barcode: null });
   };
@@ -365,6 +387,7 @@ function Scanner() {
         <form onSubmit={submitProposal} className="space-y-6 rounded-2xl border bg-card p-4 sm:p-6">
           {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}
           {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-10 rounded-md" /></div>}
+          <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Identification</h2>
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-10 rounded-md" />
@@ -392,6 +415,8 @@ function Scanner() {
               <p className="text-xs text-muted-foreground">Si la saveur existe déjà, choisis-la : ta canette sera ajoutée comme nouveau design de ce modèle.</p>
             </div>
           )}
+          </section>
+          <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Modèle et design</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label htmlFor="proposal-variant" className="text-sm font-semibold">Nom du design</label>
@@ -422,6 +447,8 @@ function Scanner() {
               <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" />
             </div>
           </div>
+          </section>
+          <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Description et historique</h2>
           <div className="space-y-1.5">
             <label htmlFor="proposal-category" className="text-sm font-semibold">Catégorie *</label>
             <select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -432,7 +459,23 @@ function Scanner() {
             <label htmlFor="proposal-description" className="text-sm font-semibold">Informations complémentaires</label>
             <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Toute information permettant d’identifier cette canette…" rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
-          <div className="space-y-3 rounded-xl border p-4">
+          <div className="space-y-1.5">
+            <label htmlFor="proposal-history" className="text-sm font-semibold">Contexte historique</label>
+            <textarea id="proposal-history" maxLength={1500} value={historicalContext} onChange={(e) => setHistoricalContext(e.target.value)} placeholder="Origine, année de lancement, évolution du design…" rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          </div>
+          </section>
+          <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Caractéristiques et couleurs</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5"><label htmlFor="proposal-caffeine" className="text-sm font-semibold">Caféine (mg / 100 ml)</label><Input id="proposal-caffeine" type="number" min={0} value={caffeine} onChange={(e) => setCaffeine(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-sugar" className="text-sm font-semibold">Sucres (g / 100 ml)</label><Input id="proposal-sugar" type="number" min={0} step="0.1" value={sugar} onChange={(e) => setSugar(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-taurine" className="text-sm font-semibold">Taurine (mg / 100 ml)</label><Input id="proposal-taurine" type="number" min={0} value={taurine} onChange={(e) => setTaurine(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-energy" className="text-sm font-semibold">Énergie (kcal / 100 ml)</label><Input id="proposal-energy" type="number" min={0} step="0.1" value={energy} onChange={(e) => setEnergy(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-primary" className="text-sm font-semibold">Couleur principale (hex)</label><Input id="proposal-primary" value={colorPrimary} onChange={(e) => setColorPrimary(e.target.value)} placeholder="#222222" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-secondary" className="text-sm font-semibold">Couleur secondaire (hex)</label><Input id="proposal-secondary" value={colorSecondary} onChange={(e) => setColorSecondary(e.target.value)} placeholder="#ffffff" className="h-10 rounded-md" /></div>
+            <div className="space-y-1.5"><label htmlFor="proposal-tab" className="text-sm font-semibold">Couleur de la languette</label><Input id="proposal-tab" value={tabColor} onChange={(e) => setTabColor(e.target.value)} placeholder="ex. argentée, rouge…" className="h-10 rounded-md" /></div>
+          </div>
+          </section>
+          <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Photos et vérification</h2>
             <div>
               <h2 className="font-bold">Photos</h2>
               <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Prends une photo avec la caméra ou choisis une image dans ta galerie. Les photos du dos et du code-barres sont facultatives. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
@@ -449,11 +492,14 @@ function Scanner() {
               </div>
             ))}
           </div>
+          <div className="space-y-1.5"><label htmlFor="proposal-notes" className="text-sm font-semibold">Notes complémentaires</label><textarea id="proposal-notes" maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sources, références ou précisions utiles à la vérification…" rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={historyVerified} onChange={(e) => setHistoryVerified(e.target.checked)} /> J’ai vérifié les informations historiques renseignées</label>
           <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">Chaque proposition est vérifiée avant publication. Les codes-barres en double et les propositions incomplètes ou inappropriées peuvent être refusés.</div>
           <Button type="submit" disabled={isSubmitting || !user} className="h-12 w-full rounded-xl font-bold">
             {isSubmitting ? "Envoi de la proposition…" : "Envoyer pour vérification"}
           </Button>
           {!user && <p className="text-center text-xs text-muted-foreground">Vous devez être connecté pour proposer une canette.</p>}
+          </section>
         </form>
       </div>
     );
