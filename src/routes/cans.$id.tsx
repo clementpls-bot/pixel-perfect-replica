@@ -5,7 +5,7 @@ import { ArrowLeft, Droplets, FlaskConical, PenLine, Plus, Star, Zap, Wine } fro
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { EDITION_LABELS, useCanDrinks, useCatalog, useOwned, useSetCanDrinks, useSetCanOwned } from "@/lib/data";
+import { useCanDrinks, useCatalog, useOwned, useSetCanDrinks, useSetCanOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,8 +48,6 @@ function CanPage() {
   const [drinksOpen, setDrinksOpen] = useState(false);
   const [drinksDraft, setDrinksDraft] = useState("0");
   const [savingCollection, setSavingCollection] = useState(false);
-  const [reportCategory, setReportCategory] = useState("name");
-  const [reportValue, setReportValue] = useState("");
   const [reportDetails, setReportDetails] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [reporting, setReporting] = useState(false);
@@ -89,9 +87,7 @@ function CanPage() {
 
   const submitReport = async () => {
     if (!user) { toast("Connecte-toi pour contribuer."); return; }
-    if (!reportDetails.trim()) { toast.error("Ajoute un commentaire pour expliquer la modification."); return; }
-    if (!reportValue.trim() && reportCategory !== "image_url") { toast.error("Indique l’information que tu proposes."); return; }
-    if (reportCategory === "image_url" && !reportValue.trim() && reportImages.length === 0) { toast.error("Ajoute au moins une image ou une URL de photo."); return; }
+    if (!reportDetails.trim() && reportImages.length === 0) { toast.error("Écris un message ou ajoute au moins une image."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
@@ -107,15 +103,15 @@ function CanPage() {
       const { error } = await supabase.from("can_reports").insert({
         can_id: can.id,
         user_id: user.id,
-        category: "Information incorrecte",
-        details: reportDetails.trim(),
-        proposed_field: reportCategory,
-        proposed_value: reportValue.trim() || null,
+        category: "Contribution libre",
+        details: reportDetails.trim() || null,
+        proposed_field: "general",
+        proposed_value: null,
         image_urls: imageUrls,
       });
       if (error) throw error;
       toast.success("Merci ! Ta proposition a été envoyée pour vérification.");
-      setReportDetails(""); setReportValue(""); setReportImages([]); setReportCategory("name"); setReportOpen(false);
+      setReportDetails(""); setReportImages([]); setReportOpen(false);
     } catch (error) {
       toast.error((error as Error).message || "Impossible d’envoyer la proposition. Réessaie plus tard.");
     } finally {
@@ -178,7 +174,6 @@ function CanPage() {
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-bold text-primary">{can.variant_name}</span>
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{EDITION_LABELS[can.edition_type] ?? can.edition_type}</span>
         {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
         {can.region && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.region}</span>}
         {can.tab_color && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">Languette {can.tab_color}</span>}
@@ -304,35 +299,14 @@ function CanPage() {
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contribuer à enrichir les informations</DialogTitle>
-            <DialogDescription>Propose une correction ou une information manquante. Elle sera vérifiée avant toute modification de la fiche officielle.</DialogDescription>
+            <DialogTitle>Contribuer aux informations</DialogTitle>
+            <DialogDescription>Écris librement ce que tu souhaites ajouter ou corriger sur cette canette. Ta contribution sera vérifiée avant publication.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <label className="block text-sm font-medium" htmlFor="report-category">Information à compléter ou corriger</label>
-            <select id="report-category" value={reportCategory} onChange={(e) => { setReportCategory(e.target.value); setReportValue(""); }} className="w-full rounded-xl border bg-background px-3 py-2 text-sm">
-              <option value="name">Nom</option>
-              <option value="brand_id">Marque</option>
-              <option value="barcode">Code-barres</option>
-              <option value="flavour">Saveur</option>
-              <option value="release_year">Année de sortie</option>
-              <option value="category">Catégorie</option>
-              <option value="description">Description</option>
-              <option value="historical_context">Contexte historique</option>
-              <option value="image_url">Photo principale</option>
-              <option value="color_primary">Couleur principale</option>
-              <option value="color_secondary">Couleur secondaire</option>
-              <option value="caffeine_mg_per_100ml">Caféine (mg / 100 ml)</option>
-              <option value="sugar_g_per_100ml">Sucres (g / 100 ml)</option>
-              <option value="taurine_mg_per_100ml">Taurine (mg / 100 ml)</option>
-              <option value="energy_kcal_per_100ml">Énergie (kcal / 100 ml)</option>
-              <option value="volume_ml">Contenance (ml)</option>
-              <option value="history_verified">Historique vérifié</option>
-            </select>
-            {reportCategory === "brand_id" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Marque proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une marque</option>{data?.brands.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div> : reportCategory === "category" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Catégorie proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une catégorie</option><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></div> : reportCategory === "history_verified" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Historique vérifié ?</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir</option><option value="true">Oui</option><option value="false">Non</option></select></div> : reportCategory !== "image_url" && <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Information proposée</label><Input id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} placeholder="Saisis la valeur proposée" maxLength={1000} className="rounded-xl" /></div>}
-            <label className="block text-sm font-medium" htmlFor="report-details">Commentaire</label>
-            <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Explique pourquoi cette information doit être ajoutée ou remplacée…" maxLength={1000} className="rounded-xl" />
+            <label className="block text-sm font-medium" htmlFor="report-details">Ton message</label>
+            <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Une précision sur la canette, son histoire, sa saveur, une erreur à corriger…" maxLength={3000} rows={5} className="rounded-xl" />
             <div className="space-y-2">
-              <label className="block text-sm font-medium" htmlFor="report-images">Photos ou images (facultatif)</label>
+              <label className="block text-sm font-medium" htmlFor="report-images">Ajouter des images (jusqu’à 5)</label>
               <input id="report-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => {
                 const files = Array.from(e.target.files ?? []);
                 if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024)) {
@@ -340,15 +314,22 @@ function CanPage() {
                   e.currentTarget.value = "";
                   return;
                 }
-                setReportImages(files.slice(0, 4));
-                if (files.length > 4) toast("Quatre images maximum seront envoyées.");
+                setReportImages((current) => {
+                  const combined = [...current, ...files];
+                  if (combined.length > 5) toast("Cinq images maximum : seules les cinq premières seront conservées.");
+                  return combined.slice(0, 5);
+                });
+                e.currentTarget.value = "";
               }} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />
-              {reportImages.length > 0 && <div className="flex flex-wrap gap-2">{reportImages.map((file, index) => <div key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg border p-2 text-xs"><span className="max-w-32 truncate">{file.name}</span><button type="button" className="text-destructive" onClick={() => setReportImages((current) => current.filter((_, i) => i !== index))}>Retirer</button></div>)}</div>}
+              {reportImages.length > 0 && <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">{reportImages.length}/5 image(s) ajoutée(s)</p>
+                <div className="flex flex-wrap gap-2">{reportImages.map((file, index) => <div key={file.name + "-" + index} className="flex items-center gap-2 rounded-lg border p-2 text-xs"><span className="max-w-32 truncate">{file.name}</span><button type="button" className="text-destructive" onClick={() => setReportImages((current) => current.filter((_, i) => i !== index))}>Retirer</button></div>)}</div>
+              </div>}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
-            <Button onClick={() => void submitReport()} disabled={reporting || !reportDetails.trim()}>{reporting ? "Envoi…" : "Envoyer la proposition"}</Button>
+            <Button onClick={() => void submitReport()} disabled={reporting || (!reportDetails.trim() && reportImages.length === 0)}>{reporting ? "Envoi…" : "Envoyer la contribution"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
