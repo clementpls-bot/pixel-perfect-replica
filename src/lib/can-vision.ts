@@ -83,7 +83,7 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
             role: "user",
             content: [
               { type: "text", text: "Identifie cette canette et sa variante de design précise. Signale l’incertitude plutôt que de deviner." },
-              { type: "image_url", image_url: { url: data.imageDataUrl, detail: "low" } },
+              { type: "image_url", image_url: { url: data.imageDataUrl, detail: "high" } },
             ],
           },
         ],
