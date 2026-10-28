@@ -240,6 +240,8 @@ export type Database = {
       }
       cans: {
         Row: {
+          back_image_url: string | null
+          barcode_image_url: string | null
           barcode: string
           brand_id: string
           caffeine_mg_per_100ml: number | null
@@ -267,6 +269,8 @@ export type Database = {
           volume_ml: number | null
         }
         Insert: {
+          back_image_url?: string | null
+          barcode_image_url?: string | null
           barcode: string
           brand_id: string
           caffeine_mg_per_100ml?: number | null
@@ -294,6 +298,8 @@ export type Database = {
           volume_ml?: number | null
         }
         Update: {
+          back_image_url?: string | null
+          barcode_image_url?: string | null
           barcode?: string
           brand_id?: string
           caffeine_mg_per_100ml?: number | null
