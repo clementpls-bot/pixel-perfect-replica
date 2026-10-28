@@ -110,7 +110,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       <div className="rounded-2xl border bg-card p-3.5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold">{comment.profiles?.username ?? "Collectionneur"}</p>
+            <Link to="/users/$id" params={{ id: comment.user_id }} className="block truncate text-sm font-bold hover:text-primary hover:underline">{comment.profiles?.username ?? "Collectionneur"}</Link>
             <p className="text-[11px] text-muted-foreground">{new Date(comment.created_at).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}</p>
           </div>
           {comment.parent_id && <span className="text-[10px] text-muted-foreground">Réponse</span>}
