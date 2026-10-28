@@ -39,7 +39,7 @@ function ModelPage() {
       {model.flavour && <p className="mt-1 text-sm text-muted-foreground">{model.flavour}</p>}
       {model.description?.trim() && <p className="mt-3 text-sm leading-relaxed">{model.description}</p>}
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Designs collectionnés" value={n} total={variants.length} color={brand?.color} />
+        <ProgressBar label="Designs collectionnés" value={n} total={variants.length} color={brand?.color ?? "#888888"} />
       </div>
       <h2 className="mt-6 text-sm font-bold uppercase tracking-widest text-muted-foreground">Variantes de design</h2>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
