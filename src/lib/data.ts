@@ -160,6 +160,28 @@ export function useSetCanOwned() {
         });
         if (error && error.code !== "23505") throw error;
       }
+
+      // Owning a can sets a minimum of one Drink without overwriting a higher total.
+      const { data: existingDrinks, error: drinksLookupError } = await supabase
+        .from("user_can_drinks")
+        .select("drinks_count")
+        .eq("user_id", user.id)
+        .eq("can_id", canId)
+        .maybeSingle();
+      if (drinksLookupError) throw drinksLookupError;
+      if (!existingDrinks || existingDrinks.drinks_count < 1) {
+        const { error: drinksSaveError } = await supabase.from("user_can_drinks").upsert({
+          user_id: user.id,
+          can_id: canId,
+          drinks_count: Math.max(1, existingDrinks?.drinks_count ?? 0),
+          updated_at: new Date().toISOString(),
+        });
+        if (drinksSaveError) throw drinksSaveError;
+      }
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
+        qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
+      ]);
     } else if (rows?.length) {
       const { error } = await supabase.from("user_cans").delete().eq("can_id", canId);
       if (error) throw error;
