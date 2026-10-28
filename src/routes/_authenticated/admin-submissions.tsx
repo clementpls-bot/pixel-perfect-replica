@@ -15,6 +15,11 @@ type SubmissionDraft = {
   barcode: string;
   brand_id: string;
   proposed_brand_name: string;
+  model_id: string;
+  variant_name: string;
+  region: string;
+  edition_type: string;
+  volume_ml: string;
   flavour: string;
   release_year: string;
   category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition";
@@ -116,6 +121,11 @@ function AdminSubmissions() {
       barcode: item.barcode,
       brand_id: item.brand_id ?? "",
       proposed_brand_name: item.proposed_brand_name ?? "",
+      model_id: item.model_id ?? "",
+      variant_name: item.variant_name ?? "",
+      region: item.region ?? "",
+      edition_type: item.edition_type ?? "standard",
+      volume_ml: item.volume_ml?.toString() ?? "",
       flavour: item.flavour ?? "",
       release_year: item.release_year?.toString() ?? "",
       category: item.category,
@@ -144,6 +154,10 @@ function AdminSubmissions() {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
       return;
     }
+    if (draft.model_id && !catalog?.models.some((model) => model.id === draft.model_id && model.brand_id === draft.brand_id)) {
+      toast.error("Le modèle choisi doit appartenir à la marque sélectionnée.");
+      return;
+    }
     setBusyId(id);
     try {
       const image_url = replacementFiles.front ? await uploadReplacement(replacementFiles.front, "front") : draft.image_url;
@@ -154,6 +168,11 @@ function AdminSubmissions() {
         barcode: draft.barcode.trim(),
         brand_id: draft.brand_id || null,
         proposed_brand_name: draft.brand_id ? null : draft.proposed_brand_name.trim() || null,
+        model_id: draft.model_id || null,
+        variant_name: draft.variant_name.trim() || null,
+        region: draft.region.trim() || null,
+        edition_type: draft.edition_type || "standard",
+        volume_ml: draft.volume_ml ? Number(draft.volume_ml) : null,
         flavour: draft.flavour.trim() || null,
         release_year: draft.release_year ? Number(draft.release_year) : null,
         category: draft.category,
@@ -309,6 +328,11 @@ function AdminSubmissions() {
                 <label className="space-y-1 text-sm font-medium">Code-barres<input value={draft.barcode} onChange={(e) => setDraft({ ...draft, barcode: e.target.value })} inputMode="numeric" className="h-10 w-full rounded-lg border bg-background px-3 font-mono" /></label>
                 <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id || (draft.proposed_brand_name ? "__new__" : "")} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value === "__new__" ? "" : e.target.value, proposed_brand_name: e.target.value === "__new__" ? draft.proposed_brand_name : "" })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Choisir une marque</option>{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}<option value="__new__">＋ Nouvelle marque proposée</option></select></label>
                 {!draft.brand_id && <label className="space-y-1 text-sm font-medium">Nom de la nouvelle marque<input value={draft.proposed_brand_name} onChange={(e) => setDraft({ ...draft, proposed_brand_name: e.target.value })} maxLength={100} className="h-10 w-full rounded-lg border bg-background px-3" /></label>}
+                {draft.brand_id && <label className="space-y-1 text-sm font-medium">Modèle<select value={draft.model_id} onChange={(e) => setDraft({ ...draft, model_id: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Nouveau modèle / sans modèle</option>{catalog?.models.filter((model) => model.brand_id === draft.brand_id).map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}</select></label>}
+                <label className="space-y-1 text-sm font-medium">Nom de la variante / design<input value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} maxLength={120} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
+                <label className="space-y-1 text-sm font-medium">Type d’édition<select value={draft.edition_type} onChange={(e) => setDraft({ ...draft, edition_type: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="standard">Standard</option><option value="limited">Édition limitée</option><option value="collab">Collab</option><option value="import">Import</option><option value="redesign">Redesign</option></select></label>
+                <label className="space-y-1 text-sm font-medium">Pays / région<input value={draft.region} onChange={(e) => setDraft({ ...draft, region: e.target.value })} maxLength={60} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
+                <label className="space-y-1 text-sm font-medium">Contenance (ml)<input type="number" min={50} max={2000} value={draft.volume_ml} onChange={(e) => setDraft({ ...draft, volume_ml: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Saveur<input value={draft.flavour} onChange={(e) => setDraft({ ...draft, flavour: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Année de sortie<input type="number" min="1900" max={new Date().getFullYear() + 2} value={draft.release_year} onChange={(e) => setDraft({ ...draft, release_year: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Catégorie<select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as SubmissionDraft["category"] })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></label>
