@@ -301,8 +301,6 @@ function CanPage() {
 
       </div>
 
-      </div>
-
       <div className="mt-5 flex justify-end">
         <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
           <PenLine className="h-3.5 w-3.5" /> Contribuer aux informations
