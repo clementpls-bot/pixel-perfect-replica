@@ -26,6 +26,31 @@ function normalize(value: string | null | undefined) {
   return (value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+/** Sample catalog entries across brands instead of favouring alphabetically early brands. */
+function sampleByBrand<T extends { brand_id: string }>(items: T[], limit: number): T[] {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const group = groups.get(item.brand_id) ?? [];
+    group.push(item);
+    groups.set(item.brand_id, group);
+  }
+
+  const result: T[] = [];
+  const brandGroups = [...groups.values()];
+  for (let index = 0; result.length < limit; index++) {
+    let added = false;
+    for (const group of brandGroups) {
+      if (index < group.length) {
+        result.push(group[index]);
+        added = true;
+        if (result.length === limit) break;
+      }
+    }
+    if (!added) break;
+  }
+  return result;
+}
+
 export const recognizeCanImage = createServerFn({ method: "POST" })
   .inputValidator(inputSchema)
   .handler(async ({ data }) => {
@@ -50,12 +75,12 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
     const modelById = new Map(models.map((model) => [model.id, model.name]));
     const compactCatalog = {
       brands: brands.slice(0, 300).map((brand) => brand.name),
-      models: models.slice(0, 500).map((model) => ({
+      models: sampleByBrand(models, 500).map((model) => ({
         brand: brandById.get(model.brand_id) ?? "",
         name: model.name,
         flavour: model.flavour,
       })),
-      variants: cans.slice(0, 350).map((can) => ({
+      variants: sampleByBrand(cans, 350).map((can) => ({
         brand: brandById.get(can.brand_id) ?? "",
         model: can.model_id ? modelById.get(can.model_id) ?? can.name : can.name,
         variant: can.variant_name,
