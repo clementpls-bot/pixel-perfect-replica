@@ -188,3 +188,41 @@
 @media (prefers-reduced-motion: reduce) {
   .drink-tab-button { animation: none; }
 }
+
+
+/* Subtle magical shimmer for the can-information contribution button. */
+.contribute-magic-button {
+  color: #6f5799;
+  border-color: rgba(161, 132, 205, .28);
+  background: linear-gradient(110deg, rgba(245, 226, 248, .82), rgba(226, 230, 255, .9), rgba(220, 246, 238, .82));
+  box-shadow: 0 2px 10px rgba(139, 112, 190, .09);
+}
+.contribute-magic-button:hover {
+  border-color: rgba(161, 132, 205, .55);
+  box-shadow: 0 5px 18px rgba(139, 112, 190, .2);
+}
+.contribute-magic-sheen {
+  position: absolute;
+  inset: -20% auto -20% -45%;
+  width: 35%;
+  transform: skewX(-22deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent);
+  animation: contribute-magic-sweep 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.contribute-magic-sparkle {
+  color: #9a78c8;
+  animation: contribute-magic-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes contribute-magic-sweep {
+  0%, 58%, 100% { left: -45%; opacity: 0; }
+  66% { opacity: .85; }
+  82% { left: 115%; opacity: 0; }
+}
+@keyframes contribute-magic-twinkle {
+  0%, 100% { transform: scale(.86) rotate(-8deg); opacity: .7; }
+  50% { transform: scale(1.12) rotate(10deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contribute-magic-sheen, .contribute-magic-sparkle { animation: none; }
+}
