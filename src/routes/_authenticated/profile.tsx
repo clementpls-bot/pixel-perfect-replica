@@ -143,7 +143,6 @@ function Profile() {
     return { ...b, total: list.length, have: list.filter((c) => ownedSet.has(c.id)).length,
       copies: list.reduce((s, c) => s + (owned.get(c.id) ?? 0), 0) };
   });
-  const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
   const sortedBrandStats = [...brandStats].sort((a, b) => (b.total ? b.have / b.total : 0) - (a.total ? a.have / a.total : 0) || b.have - a.have || a.name.localeCompare(b.name, "fr"));
   const totalDrinks = drinkRows.reduce((sum, row) => sum + (row.drinks_count ?? 0), 0);
   const drinksByBrand = new Map<string, number>();
