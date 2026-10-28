@@ -31,7 +31,7 @@ function Collection() {
 
 
   return (
-    <div>
+    <div className="collection-page">
       <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black">Mon mur</h1>
