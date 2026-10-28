@@ -203,7 +203,7 @@ function Profile() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="profile-page space-y-6">
       <header className="flex items-center gap-4">
         <label className="group relative flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground">
           {profile?.avatar_url
