@@ -124,7 +124,6 @@ export function useAdjustCanQuantity() {
     if (lookupError) throw lookupError;
     if (!rows || rows.length === 0) throw new Error("Scanne d’abord cette canette pour l’ajouter à ta collection.");
     const row = rows.find((r) => r.condition === condition);
-    const total = rows.reduce((s, r) => s + r.quantity, 0);
 
     if (delta === 1) {
       const { error } = row
@@ -133,7 +132,6 @@ export function useAdjustCanQuantity() {
       if (error) throw error;
     } else if (row) {
       if (row.quantity <= 1) {
-        if (total <= 1) throw new Error("Garde au moins un exemplaire : cette variante reste débloquée dans ta collection.");
         const { error } = await supabase.from("user_cans").delete().eq("id", row.id);
         if (error) throw error;
       } else {
