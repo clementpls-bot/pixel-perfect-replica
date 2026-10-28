@@ -150,6 +150,7 @@ export function useSetCanOwned() {
   const qc = useQueryClient();
   return async (canId: string, shouldOwn: boolean) => {
     if (!user) throw new Error("Connecte-toi pour gérer ton coffre.");
+    if (shouldOwn) throw new Error("Scanne cette canette pour l’ajouter à ton mur.");
     const { data: rows, error: lookupError } = await supabase
       .from("user_cans").select("id").eq("can_id", canId);
     if (lookupError) throw lookupError;
