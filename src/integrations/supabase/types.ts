@@ -576,6 +576,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_total_can_drinks: {
+        Args: { p_can_id: string }
+        Returns: number
+      }
       approve_can_submission: {
         Args: { p_submission_id: string }
         Returns: undefined
