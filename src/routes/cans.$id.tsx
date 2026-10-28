@@ -173,13 +173,17 @@ function CanPage() {
   };
 
   return (
-    <div className="can-detail-page -mx-4 min-h-screen px-4 pb-8 pt-2" style={{ ...canTheme, background: `linear-gradient(180deg, ${can.color_primary}24 0%, ${can.color_secondary}12 34%, transparent 620px)` }}>
+    <div className="can-detail-page mx-auto min-h-screen w-full max-w-7xl px-4 pb-10 pt-3 sm:px-6 lg:px-8" style={{ ...canTheme, background: `linear-gradient(180deg, ${can.color_primary}24 0%, ${can.color_secondary}12 34%, transparent 620px)` }}>
       <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
-      <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
-        <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
-        {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
-      </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(300px,0.85fr)_minmax(0,1.15fr)] lg:items-start xl:gap-10">
+        <div className="min-w-0">
+          <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-3xl border p-8 sm:min-h-[440px] lg:sticky lg:top-6 lg:min-h-[560px] lg:p-12" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
+            <div className="mx-auto w-40 sm:w-48 lg:w-56"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
+            {qty === 0 && <p className="absolute bottom-5 left-4 right-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
+          </div>
+        </div>
+        <div className="min-w-0">
+      <p className="text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
@@ -234,6 +238,8 @@ function CanPage() {
         <p className="mt-2 text-[11px] text-muted-foreground">Tous les utilisateurs : <strong className="text-foreground tabular-nums">{(communityDrinks.data ?? 0).toLocaleString("fr-FR")}</strong> Drinks au total</p>
         {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton mur et tes Drinks.</p>}
       </div>
+        </div>
+      </div>
 
       <Dialog open={drinksOpen} onOpenChange={setDrinksOpen}>
         <DialogContent>
@@ -250,10 +256,11 @@ function CanPage() {
         </DialogContent>
       </Dialog>
 
-      {can.description?.trim() && <p className="mt-5 leading-relaxed">{can.description}</p>}
+      <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:gap-8">
+      {can.description?.trim() && <section className="min-w-0 rounded-2xl border bg-card p-5"><h2 className="mb-2 text-sm font-bold">À propos</h2><p className="leading-relaxed text-muted-foreground">{can.description}</p></section>}
 
       {(can.caffeine_mg_per_100ml != null || can.sugar_g_per_100ml != null || can.taurine_mg_per_100ml != null || can.energy_kcal_per_100ml != null || can.volume_ml != null) && (
-        <section className="mt-6 rounded-2xl border bg-card p-4">
+        <section className="min-w-0 rounded-2xl border bg-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold">Le profil de la boisson</h2>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Données / 100 ml</span>
@@ -286,11 +293,15 @@ function CanPage() {
       )}
 
       {can.history_verified && can.historical_context?.trim() && (
-        <section className="mt-6">
+        <section className="min-w-0 rounded-2xl border bg-card p-5">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Histoire de la canette</h2>
           <p className="mt-1 leading-relaxed text-muted-foreground">{can.historical_context}</p>
         </section>
       )}
+
+      </div>
+
+      </div>
 
       <div className="mt-5 flex justify-end">
         <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
