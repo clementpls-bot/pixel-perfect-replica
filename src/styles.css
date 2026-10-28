@@ -174,3 +174,22 @@
 @media (prefers-reduced-motion: reduce) {
   .drink-tab-button { animation: none; }
 }
+
+
+/* Soft magical pastel shimmer for the lock on unowned cans. */
+.can-lock-magic {
+  background: linear-gradient(125deg, #ffe0ed 0%, #eadfff 24%, #d9f6f0 48%, #dceaff 72%, #fff0cf 100%);
+  background-size: 260% 260%;
+  box-shadow:
+    0 2px 8px rgba(163, 126, 218, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.8),
+    0 0 12px rgba(209, 174, 255, 0.42);
+  animation: can-lock-prism 5s ease-in-out infinite;
+}
+@keyframes can-lock-prism {
+  0%, 100% { background-position: 0% 50%; box-shadow: 0 2px 8px rgba(163, 126, 218, 0.22), 0 0 0 1px rgba(255,255,255,.8), 0 0 10px rgba(209,174,255,.35); }
+  50% { background-position: 100% 50%; box-shadow: 0 2px 10px rgba(126, 177, 218, 0.3), 0 0 0 1px rgba(255,255,255,.9), 0 0 15px rgba(174,235,225,.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .can-lock-magic { animation: none; }
+}
