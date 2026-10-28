@@ -6,6 +6,35 @@ alter table public.cans
   add column if not exists back_image_url text,
   add column if not exists barcode_image_url text;
 
+-- Enforce the same relationship at database level, not only in the admin UI.
+create or replace function public.validate_can_model_brand()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if new.model_id is not null and not exists (
+    select 1
+      from public.can_models model
+     where model.id = new.model_id
+       and model.brand_id = new.brand_id
+  ) then
+    raise exception 'The selected model must belong to the same brand as the can';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists validate_can_model_brand_on_cans on public.cans;
+create trigger validate_can_model_brand_on_cans
+before insert or update of model_id, brand_id on public.cans
+for each row execute function public.validate_can_model_brand();
+
+drop trigger if exists validate_can_model_brand_on_submissions on public.can_submissions;
+create trigger validate_can_model_brand_on_submissions
+before insert or update of model_id, brand_id on public.can_submissions
+for each row execute function public.validate_can_model_brand();
+
 create or replace function public.approve_can_submission(p_submission_id uuid)
 returns void
 language plpgsql
