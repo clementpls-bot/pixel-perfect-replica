@@ -28,6 +28,7 @@ type VisionResult = Awaited<ReturnType<typeof recognizeCanImage>>;
 
 function Scanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const visionVideoRef = useRef<HTMLVideoElement>(null);
   const { data } = useCatalog();
   const { user } = useAuth();
   const addCan = useAddCan();
@@ -36,6 +37,7 @@ function Scanner() {
   const [visionBusy, setVisionBusy] = useState(false);
   const [visionResult, setVisionResult] = useState<VisionResult | null>(null);
   const [visionError, setVisionError] = useState("");
+  const [visionCameraError, setVisionCameraError] = useState(false);
   const [unknownVisual, setUnknownVisual] = useState(false);
   const [proposedBrandName, setProposedBrandName] = useState("");
   const [newBrandSelected, setNewBrandSelected] = useState(false);
@@ -121,6 +123,31 @@ function Scanner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [found, unknownBarcode, submitted, cameraAttempt, scanMode, visionResult]);
 
+  useEffect(() => {
+    if (scanMode !== "vision" || found || submitted || unknownVisual || visionResult || visionBusy) return;
+    let stream: MediaStream | null = null;
+    let cancelled = false;
+    setVisionCameraError(false);
+    if (!navigator.mediaDevices?.getUserMedia) { setVisionCameraError(true); return; }
+    void navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" } } })
+      .then((media) => {
+        if (cancelled) { media.getTracks().forEach((track) => track.stop()); return; }
+        stream = media;
+        if (visionVideoRef.current) { visionVideoRef.current.srcObject = media; void visionVideoRef.current.play().catch(() => setVisionCameraError(true)); }
+      })
+      .catch(() => { if (!cancelled) setVisionCameraError(true); });
+    return () => { cancelled = true; stream?.getTracks().forEach((track) => track.stop()); if (visionVideoRef.current) visionVideoRef.current.srcObject = null; };
+  }, [scanMode, found, submitted, unknownVisual, visionResult, visionBusy, cameraAttempt]);
+
+  const captureVisionPhoto = async () => {
+    const video = visionVideoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) { setVisionCameraError(true); return; }
+    const canvas = document.createElement("canvas"); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d"); if (!context) { setVisionError("Impossible de capturer la photo."); return; }
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+    if (blob) await analyzeVisionImage(new File([blob], "canette.jpg", { type: "image/jpeg" }));
+  };
   const analyzeVisionImage = async (file: File) => {
     setVisionBusy(true); setVisionError(""); setVisionResult(null);
     try {
@@ -443,12 +470,15 @@ function Scanner() {
       </div>
       {scanMode === "vision" ? (
         <div className="mt-4 space-y-4">
-          <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-3xl border bg-card p-6 text-center">
-            <div className="pointer-events-none absolute inset-x-[24%] inset-y-[8%] rounded-[42%/12%] border-2 border-primary/70" />
-            <div className="relative max-w-xs"><Sparkles className="mx-auto h-10 w-10 text-primary" /><p className="mt-3 font-bold">Place la canette face à l’objectif</p><p className="mt-1 text-sm text-muted-foreground">Prends une photo nette de face ou importe une image.</p></div>
-            {visionBusy && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/85 p-6 backdrop-blur-sm"><div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" /><p className="font-bold">Analyse du design et de l’édition en cours…</p><p className="text-xs text-muted-foreground">On compare la photo au catalogue Cansdex.</p></div>}
+          <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
+            <video ref={visionVideoRef} className="h-full w-full object-cover" muted playsInline />
+            <div className="pointer-events-none absolute inset-x-[24%] inset-y-[8%] rounded-[42%/12%] border-2 border-white/90 shadow-[0_0_0_999px_rgba(0,0,0,0.12)]" />
+            <div className="pointer-events-none absolute inset-x-[24%] top-1/2 h-0.5 -translate-y-1/2 bg-primary shadow-[0_0_18px_rgba(100,220,180,0.9)]" />
+            {visionCameraError && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90 p-6 text-center"><Sparkles className="h-8 w-8 text-primary" /><p className="font-bold">Caméra indisponible</p><p className="text-sm text-muted-foreground">Tu peux importer une photo depuis ta galerie.</p><Button variant="outline" onClick={() => setCameraAttempt((n) => n + 1)}>Réessayer</Button></div>}
+            {visionBusy && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/85 p-6 text-center backdrop-blur-sm"><div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" /><p className="font-bold">Analyse du design et de l’édition en cours…</p><p className="text-xs text-muted-foreground">On compare la photo au catalogue Cansdex.</p></div>}
           </div>
-          <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground"><ImagePlus className="h-4 w-4" />Prendre une photo ou choisir dans la galerie<input className="sr-only" type="file" accept="image/*" capture="environment" disabled={visionBusy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void analyzeVisionImage(file); e.currentTarget.value = ""; }} /></label>
+          <Button disabled={visionBusy || visionCameraError} onClick={() => void captureVisionPhoto()} className="h-12 w-full rounded-xl font-bold"><Sparkles className="mr-2 h-4 w-4" />Prendre une photo</Button>
+          <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border bg-card text-sm font-semibold"><ImagePlus className="h-4 w-4" />Choisir dans la galerie<input className="sr-only" type="file" accept="image/*" disabled={visionBusy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void analyzeVisionImage(file); e.currentTarget.value = ""; }} /></label>
           {visionError && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{visionError}</p>}
           <p className="text-xs text-muted-foreground">L’IA peut se tromper : vérifie toujours la variante proposée. Les photos sont réduites avant envoi pour accélérer l’analyse.</p>
         </div>
