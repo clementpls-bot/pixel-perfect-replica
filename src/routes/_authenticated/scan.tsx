@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
-      { title: "Scanner — Cansdex" },
-      { name: "description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
-      { property: "og:title", content: "Scanner — Cansdex" },
-      { property: "og:description", content: "Pointez votre caméra vers le code-barres d’une canette pour l’ajouter à votre collection." },
+      { title: "Reconnaissance de canettes — Cansdex" },
+      { name: "description", content: "Identifie une canette par reconnaissance visuelle IA ou par code-barres." },
+      { property: "og:title", content: "Reconnaissance de canettes — Cansdex" },
+      { property: "og:description", content: "Identifie une canette par reconnaissance visuelle IA ou par code-barres." },
     ],
   }),
   component: Scanner,
@@ -166,7 +166,7 @@ function Scanner() {
       setImages((current) => ({ ...current, front: compressed }));
       const result = await recognizeCanImage({ data: { imageDataUrl } });
       setVisionResult(result); setSelectedVisionCanId(result.candidates[0]?.id ?? "");
-    } catch (error) { const message = (error as Error).message || "Impossible d’analyser cette photo."; setVisionError(message); toast.error(message); }
+    } catch (error) { const message = (error as Error).message || "Impossible d’analyser cette photo."; setVisionError((error as Error).name === "AbortError" ? "L’analyse prend trop de temps. Vérifie ta connexion puis réessaie." : message); toast.error((error as Error).name === "AbortError" ? "L’analyse prend trop de temps. Réessaie." : message); }
     finally { setVisionBusy(false); }
   };
 
@@ -356,7 +356,7 @@ function Scanner() {
   if (unknownBarcode || unknownVisual) {
     return (
       <div className="space-y-5">
-        <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); }} className="text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
+        <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); setUnknownVisual(false); setProposedBrandName(""); setNewBrandSelected(false); }} className="text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Contribution communautaire</p>
           <h1 className="mt-1 text-2xl font-black">Canette introuvable</h1>
