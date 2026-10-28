@@ -173,7 +173,6 @@ function CanPage() {
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{EDITION_LABELS[can.edition_type] ?? can.edition_type}</span>
         {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
         {can.region && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.region}</span>}
         {can.tab_color && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">Languette {can.tab_color}</span>}
