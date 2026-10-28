@@ -358,13 +358,13 @@ function Scanner() {
       <div className="space-y-5">
         <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); setUnknownVisual(false); setProposedBrandName(""); setNewBrandSelected(false); }} className="text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">Contribution communautaire</p>
-          <h1 className="mt-1 text-2xl font-black">Canette introuvable</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Le code-barres {unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">{unknownVisual ? "Nouvelle découverte" : "Contribution communautaire"}</p>
+          <h1 className="mt-1 text-2xl font-black">{unknownVisual ? "Proposer cette canette" : "Canette introuvable"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{unknownVisual ? "L’IA n’a pas trouvé de variante correspondante. Vérifie les informations préremplies et ajoute le code-barres." : `Le code-barres ${unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.`}</p>
         </div>
         <form onSubmit={submitProposal} className="space-y-4">
           {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}
-          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
+          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-xl" />
