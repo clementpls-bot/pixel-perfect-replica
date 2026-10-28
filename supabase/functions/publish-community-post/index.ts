@@ -37,13 +37,13 @@ Deno.serve(async (req: Request) => {
   let canId = "";
   let parentId: string | null = null;
   let text = "";
-  let imageDataUrl: string | null = null;
+  let tempImagePath: string | null = null;
   try {
     const payload = await req.json();
     canId = typeof payload.canId === "string" ? payload.canId : "";
     parentId = typeof payload.parentId === "string" && payload.parentId ? payload.parentId : null;
     text = typeof payload.text === "string" ? payload.text.trim() : "";
-    imageDataUrl = typeof payload.imageDataUrl === "string" ? payload.imageDataUrl : null;
+    tempImagePath = typeof payload.tempImagePath === "string" ? payload.tempImagePath : null;
   } catch {
     return jsonResponse({ error: "Invalid request body" }, 400);
   }
@@ -53,28 +53,31 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Invalid can or reply identifier" }, 400);
   }
   if (text.length > 1000) return jsonResponse({ error: "Text is too long" }, 400);
-  if (!text && !imageDataUrl) return jsonResponse({ error: "A text or photo is required" }, 400);
+  if (!text && !tempImagePath) return jsonResponse({ error: "A text or photo is required" }, 400);
+  if (tempImagePath && (!tempImagePath.startsWith(`${user.id}/`) || tempImagePath.length > 300)) {
+    return jsonResponse({ error: "Invalid temporary image path" }, 400);
+  }
 
-  let imageMime: string | null = null;
-  let imageBytes: Uint8Array | null = null;
-  if (imageDataUrl) {
-    const match = imageDataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-    if (!match) return jsonResponse({ error: "Unsupported image format" }, 400);
-    if (imageDataUrl.length > 12_000_000) return jsonResponse({ error: "Image is too large to moderate" }, 413);
-    imageMime = match[1];
-    try {
-      imageBytes = Uint8Array.from(atob(match[2]), (character) => character.charCodeAt(0));
-    } catch {
-      return jsonResponse({ error: "Invalid image data" }, 400);
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  let temporarySignedUrl: string | null = null;
+  if (tempImagePath) {
+    const { data: signed, error: signedError } = await admin.storage
+      .from("community-moderation-temp").createSignedUrl(tempImagePath, 90);
+    if (signedError || !signed?.signedUrl) {
+      return jsonResponse({ error: "La photo temporaire est introuvable. Rien n’a été publié." }, 400);
     }
-    if (imageBytes.byteLength > 8 * 1024 * 1024) return jsonResponse({ error: "Image exceeds the 8 MB limit" }, 413);
+    temporarySignedUrl = signed.signedUrl;
   }
 
   const moderationInput: Array<Record<string, unknown>> = [{
     type: "text",
     text: text || "A user submitted an image to a community about beverage cans.",
   }];
-  if (imageDataUrl) moderationInput.push({ type: "image_url", image_url: { url: imageDataUrl } });
+  if (temporarySignedUrl) {
+    moderationInput.push({ type: "image_url", image_url: { url: temporarySignedUrl } });
+  }
 
   try {
     const moderationResponse = await fetch("https://api.openai.com/v1/moderations", {
@@ -84,15 +87,18 @@ Deno.serve(async (req: Request) => {
     });
     if (!moderationResponse.ok) {
       console.error("OpenAI moderation request failed", moderationResponse.status);
-      return jsonResponse({ error: "Safety check unavailable. Nothing was published." }, 503);
+      if (tempImagePath) await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
+      return jsonResponse({ error: "Le contrôle de sécurité est indisponible. Rien n’a été publié." }, 503);
     }
     const moderation = await moderationResponse.json();
     const result = moderation?.results?.[0];
     if (!result || typeof result.flagged !== "boolean") {
       console.error("OpenAI moderation response was missing expected fields");
-      return jsonResponse({ error: "Safety check unavailable. Nothing was published." }, 503);
+      if (tempImagePath) await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
+      return jsonResponse({ error: "Le contrôle de sécurité est indisponible. Rien n’a été publié." }, 503);
     }
     if (result.flagged) {
+      if (tempImagePath) await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
       return jsonResponse({
         published: false,
         allowed: false,
@@ -100,24 +106,34 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
     let imageUrl: string | null = null;
-    let storagePath: string | null = null;
-    if (imageBytes && imageMime) {
-      const extension = imageMime === "image/jpeg" ? "jpg" : imageMime === "image/png" ? "png" : "webp";
-      storagePath = `${user.id}/${crypto.randomUUID()}.${extension}`;
-      const { error: uploadError } = await admin.storage.from("community-posts").upload(storagePath, imageBytes, {
-        contentType: imageMime,
+    let publicImagePath: string | null = null;
+    if (tempImagePath) {
+      const { data: file, error: downloadError } = await admin.storage
+        .from("community-moderation-temp").download(tempImagePath);
+      if (downloadError || !file) {
+        await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
+        return jsonResponse({ error: "La photo n’a pas pu être récupérée après le contrôle." }, 500);
+      }
+      const mime = file.type.toLowerCase();
+      if (!["image/jpeg", "image/png", "image/webp"].includes(mime) || file.size > 8 * 1024 * 1024) {
+        await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
+        return jsonResponse({ error: "Format de photo non autorisé." }, 400);
+      }
+      const extension = mime === "image/jpeg" ? "jpg" : mime === "image/png" ? "png" : "webp";
+      publicImagePath = `${user.id}/${crypto.randomUUID()}.${extension}`;
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const { error: uploadError } = await admin.storage.from("community-posts").upload(publicImagePath, bytes, {
+        contentType: mime,
         upsert: false,
       });
       if (uploadError) {
-        console.error("Community image upload failed", uploadError.message);
-        return jsonResponse({ error: "La photo n’a pas pu être enregistrée. Rien n’a été publié." }, 500);
+        await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
+        console.error("Approved community image upload failed", uploadError.message);
+        return jsonResponse({ error: "La photo approuvée n’a pas pu être enregistrée." }, 500);
       }
-      imageUrl = admin.storage.from("community-posts").getPublicUrl(storagePath).data.publicUrl;
+      imageUrl = admin.storage.from("community-posts").getPublicUrl(publicImagePath).data.publicUrl;
+      await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
     }
 
     const { data: comment, error: insertError } = await admin.from("comments").insert({
@@ -129,13 +145,14 @@ Deno.serve(async (req: Request) => {
     }).select("id").single();
 
     if (insertError) {
-      if (storagePath) await admin.storage.from("community-posts").remove([storagePath]);
+      if (publicImagePath) await admin.storage.from("community-posts").remove([publicImagePath]);
       console.error("Community post insert failed", insertError.message);
       return jsonResponse({ error: "La publication n’a pas pu être enregistrée." }, 500);
     }
 
     return jsonResponse({ published: true, allowed: true, commentId: comment.id });
   } catch (error) {
+    if (tempImagePath) await admin.storage.from("community-moderation-temp").remove([tempImagePath]);
     console.error("Community publishing error", error);
     return jsonResponse({ error: "Le contrôle de sécurité a échoué. Rien n’a été publié." }, 503);
   }
