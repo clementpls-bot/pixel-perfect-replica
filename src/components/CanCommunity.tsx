@@ -54,6 +54,26 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     if (!body.trim() && !photo) { toast.error("Ajoute un commentaire ou une photo."); return; }
     setPosting(true);
     try {
+      // Check text and the original image before uploading or creating a public post.
+      const imageDataUrl = photo ? await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => typeof reader.result === "string"
+          ? resolve(reader.result)
+          : reject(new Error("Impossible de préparer la photo pour le contrôle de sécurité."));
+        reader.onerror = () => reject(new Error("Impossible de lire la photo pour le contrôle de sécurité."));
+        reader.readAsDataURL(photo);
+      }) : null;
+      const { data: moderation, error: moderationError } = await supabase.functions.invoke("moderate-community-post", {
+        body: { text: body.trim(), imageDataUrl },
+      });
+      if (moderationError) {
+        throw new Error("Le contrôle de sécurité est indisponible. Rien n’a été publié. Réessaie plus tard.");
+      }
+      if (!moderation?.allowed) {
+        toast.error(moderation?.message ?? "Cette publication doit être modifiée avant de pouvoir être publiée.");
+        return;
+      }
+
       let imageUrl: string | null = null;
       if (photo) {
         const extension = photo.type === "image/jpeg" ? "jpg" : photo.type === "image/png" ? "png" : "webp";
@@ -134,7 +154,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
         <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="rounded-xl"><ImagePlus className="mr-2 h-4 w-4" /> Photo</Button>
         <Button type="button" onClick={() => void post()} disabled={posting || (!body.trim() && !photo)} className="rounded-xl font-bold">{posting ? "Publication…" : "Publier"}</Button>
       </div>
-      <p className="mt-2 text-[10px] text-muted-foreground">Chaque publication reste liée à la fiche de cette canette.</p>
+      <p className="mt-2 text-[10px] text-muted-foreground">Chaque publication reste liée à cette canette. Le texte et la photo sont contrôlés automatiquement avant publication.</p>
     </div> : <Link to="/auth" className="mb-4 block rounded-xl border p-3 text-sm text-primary">Connecte-toi pour publier une photo, commenter ou voter.</Link>}
     {isLoading ? <p className="py-5 text-center text-sm text-muted-foreground">Chargement des échanges…</p>
       : error ? <p className="rounded-xl border border-destructive/30 p-3 text-sm text-destructive">Impossible de charger les commentaires.</p>
