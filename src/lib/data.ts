@@ -6,7 +6,7 @@ export type Brand = { id: string; slug: string; name: string; color: string; log
 export type Can = {
   id: string; barcode: string; name: string; brand_id: string; release_year: number | null;
   flavour: string | null; description: string | null; historical_context: string | null;
-  image_url: string | null; color_primary: string; color_secondary: string; category: string;
+  image_url: string | null; back_image_url: string | null; barcode_image_url: string | null; color_primary: string; color_secondary: string; category: string;
   caffeine_mg_per_100ml: number | null; sugar_g_per_100ml: number | null; taurine_mg_per_100ml: number | null;
   energy_kcal_per_100ml: number | null; volume_ml: number | null; history_verified: boolean;
   model_id: string | null; variant_name: string; region: string | null; edition_type: string;
