@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
+import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -294,7 +295,7 @@ function Profile() {
             {comments.map((comment) => {
               const can = data.cans.find((item) => item.id === comment.can_id);
               return (
-                <article key={comment.id} className="rounded-2xl border bg-card p-4">
+                <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: pastelCanColor(can?.color_primary) }}>
                   {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>}
                   {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
