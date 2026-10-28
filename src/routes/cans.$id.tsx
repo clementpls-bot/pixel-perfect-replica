@@ -5,7 +5,7 @@ import { ArrowLeft, Droplets, FlaskConical, PenLine, Plus, Star, Zap, Wine } fro
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { EDITION_LABELS, useCanDrinks, useCatalog, useOwned, useSetCanDrinks, useSetCanOwned } from "@/lib/data";
+import { useCanDrinks, useCatalog, useOwned, useSetCanDrinks, useSetCanOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,8 +123,6 @@ function CanPage() {
     }
   };
 
-  const model = data.models.find((m) => m.id === can.model_id);
-  const siblings = data.cans.filter((c) => c.model_id && c.model_id === can.model_id && c.id !== can.id);
   const toggleOwnership = async () => {
     if (!user) { toast("Connecte-toi pour gérer ton mur."); return; }
     setSavingCollection(true);
@@ -167,9 +165,7 @@ function CanPage() {
 
   return (
     <div className="can-detail-page -mx-4 min-h-screen px-4 pb-8 pt-2" style={{ background: `linear-gradient(180deg, ${can.color_primary}24 0%, ${can.color_secondary}12 34%, transparent 620px)` }}>
-      {model
-        ? <Link to="/models/$id" params={{ id: model.id }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name} · {model.name}</Link>
-        : <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>}
+      <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
       <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
         {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
@@ -177,7 +173,6 @@ function CanPage() {
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-bold text-primary">{can.variant_name}</span>
         <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{EDITION_LABELS[can.edition_type] ?? can.edition_type}</span>
         {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
         {can.region && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.region}</span>}
@@ -238,20 +233,6 @@ function CanPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {siblings.length > 0 && (
-        <section className="mt-5">
-          <h2 className="mb-2 text-sm font-bold">Autres designs de ce modèle</h2>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {siblings.map((c) => (
-              <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="w-24 shrink-0 rounded-2xl border bg-card p-2 text-center">
-                <CanArt can={c} brandName={brand?.name} missing={!owned?.has(c.id)} className="max-w-[48px]" />
-                <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-tight">{c.variant_name}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {can.description?.trim() && <p className="mt-5 leading-relaxed">{can.description}</p>}
 
