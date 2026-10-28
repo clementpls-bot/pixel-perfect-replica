@@ -53,6 +53,15 @@ create policy "Users manage their own can drinks"
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
+-- Make sure all fields used by the new-can form exist even in projects
+-- whose earlier schema was created manually rather than through migrations.
+alter table public.can_submissions
+  add column if not exists model_id uuid references public.can_models(id) on delete set null,
+  add column if not exists variant_name text,
+  add column if not exists region text,
+  add column if not exists edition_type text default 'standard',
+  add column if not exists volume_ml integer;
+
 -- Let a can submission propose a brand that is not in the catalogue yet.
 alter table public.can_submissions
   alter column brand_id drop not null,
