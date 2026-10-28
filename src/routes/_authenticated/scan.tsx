@@ -319,7 +319,7 @@ function Scanner() {
   if (visionResult) {
     const selected = visionResult.candidates.find((candidate) => candidate.id === selectedVisionCanId) ?? visionResult.candidates[0];
     return (
-      <div className="space-y-5">
+      <div className="scan-page space-y-5">
         <button type="button" onClick={() => { setVisionResult(null); setVisionError(""); setCameraAttempt((n) => n + 1); }} className="text-sm font-semibold text-muted-foreground">← Reprendre une photo</button>
         <div className="rounded-3xl border bg-card p-5">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"><Sparkles className="h-4 w-4" />Résultat de l’IA</div>
