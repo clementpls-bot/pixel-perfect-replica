@@ -129,7 +129,16 @@ function CanPage() {
     }
   };
 
-  const addDrink = async () => {\n    if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }\n    try {\n      if ("vibrate" in navigator) navigator.vibrate?.(35);\n      await setCanDrinks(can.id, (canDrinks.data ?? 0) + 1);\n      toast.success("Nouveau Drink ajouté !");\n    } catch (error) {\n      toast.error((error as Error).message || "Impossible d’ajouter ce Drink.");\n    }\n  };\n\n  const saveDrinks = async () => {
+  const addDrink = async () => {
+    if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
+    try {
+      if ("vibrate" in navigator) navigator.vibrate?.(35);
+      await setCanDrinks(can.id, (canDrinks.data ?? 0) + 1);
+      toast.success("Nouveau Drink ajouté !");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible d’ajouter ce Drink.");
+    }
+  };\n\n  const saveDrinks = async () => {
     if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
     const count = Number(drinksDraft);
     if (!Number.isInteger(count) || count < 0 || count > 100000) {
