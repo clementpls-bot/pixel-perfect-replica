@@ -54,7 +54,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     if (!body.trim() && !photo) { toast.error("Ajoute un commentaire ou une photo."); return; }
     setPosting(true);
     try {
-      // Check text and the original image before uploading or creating a public post.
+      // Convert the selected image to a data URL so the server can moderate it before storage.
       const imageDataUrl = photo ? await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => typeof reader.result === "string"
@@ -63,29 +63,18 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
         reader.onerror = () => reject(new Error("Impossible de lire la photo pour le contrôle de sécurité."));
         reader.readAsDataURL(photo);
       }) : null;
-      const { data: moderation, error: moderationError } = await supabase.functions.invoke("moderate-community-post", {
-        body: { text: body.trim(), imageDataUrl },
+
+      const { data: publication, error: publishError } = await supabase.functions.invoke("publish-community-post", {
+        body: { canId, parentId: replyTo, text: body.trim(), imageDataUrl },
       });
-      if (moderationError) {
-        throw new Error("Le contrôle de sécurité est indisponible. Rien n’a été publié. Réessaie plus tard.");
+      if (publishError) {
+        throw new Error("Le contrôle de sécurité ou l’enregistrement a échoué. Rien n’a été publié. Réessaie plus tard.");
       }
-      if (!moderation?.allowed) {
-        toast.error(moderation?.message ?? "Cette publication doit être modifiée avant de pouvoir être publiée.");
+      if (!publication?.published) {
+        toast.error(publication?.message ?? "Cette publication doit être modifiée avant de pouvoir être publiée.");
         return;
       }
 
-      let imageUrl: string | null = null;
-      if (photo) {
-        const extension = photo.type === "image/jpeg" ? "jpg" : photo.type === "image/png" ? "png" : "webp";
-        const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await supabase.storage.from("community-posts").upload(path, photo, { contentType: photo.type, upsert: false });
-        if (uploadError) throw uploadError;
-        imageUrl = supabase.storage.from("community-posts").getPublicUrl(path).data.publicUrl;
-      }
-      const { error: insertError } = await supabase.from("comments").insert({
-        can_id: canId, user_id: user.id, body: body.trim() || null, image_url: imageUrl, parent_id: replyTo,
-      });
-      if (insertError) throw insertError;
       setBody(""); setPhoto(null); setReplyTo(null);
       if (fileRef.current) fileRef.current.value = "";
       await refresh();
