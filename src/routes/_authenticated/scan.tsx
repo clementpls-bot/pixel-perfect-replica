@@ -174,7 +174,7 @@ function Scanner() {
     const vision = visionResult?.vision; if (!vision) return;
     const matchedBrand = data?.brands.find((brand) => brand.name.toLowerCase() === (vision.brand_name ?? "").toLowerCase());
     setName(vision.model_name || vision.brand_name || ""); setFlavour(vision.model_name || "");
-    setBrandId(matchedBrand?.id ?? ""); setProposedBrandName(matchedBrand ? "" : (vision.brand_name ?? "")); setNewBrandSelected(!matchedBrand);
+    setBrandId(matchedBrand?.id ?? ""); setProposedBrandName(matchedBrand ? "" : (vision.brand_name ?? "")); setNewBrandSelected(!matchedBrand); setModelId(""); setDescription(""); setImages((current) => ({ front: current.front, back: null, barcode: null }));
     setVariantName(vision.variant_name ?? ""); setRegion(vision.region ?? "");
     setEditionType((vision.edition_type ?? "standard").toLowerCase().includes("limit") ? "limited" : (vision.edition_type ?? "standard").toLowerCase().includes("collab") ? "collab" : (vision.edition_type ?? "standard").toLowerCase().includes("import") ? "import" : "standard");
     setVolumeMl(vision.volume_ml ? String(vision.volume_ml) : ""); setReleaseYear(vision.release_year ? String(vision.release_year) : "");
