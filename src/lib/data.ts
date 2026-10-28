@@ -53,7 +53,7 @@ export function useOwned() {
       const { data, error } = await supabase.from("user_cans").select("can_id,quantity,condition");
       if (error) throw error;
       const totals = new Map<string, number>();
-      for (const r of data) totals.set(r.can_id, (totals.get(r.can_id) ?? 0) + r.quantity);
+      for (const r of data) totals.set(r.can_id, 1);
       return totals;
     },
   });
@@ -140,5 +140,58 @@ export function useAdjustCanQuantity() {
       }
     }
     await invalidateOwned(qc, user.id);
+  };
+}
+
+
+/** Ownership is a simple yes/no toggle; legacy condition rows are treated as ownership. */
+export function useSetCanOwned() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return async (canId: string, shouldOwn: boolean) => {
+    if (!user) throw new Error("Connecte-toi pour gérer ton coffre.");
+    const { data: rows, error: lookupError } = await supabase
+      .from("user_cans").select("id").eq("can_id", canId);
+    if (lookupError) throw lookupError;
+    if (shouldOwn) {
+      if (!rows?.length) {
+        const { error } = await supabase.from("user_cans").insert({
+          can_id: canId, user_id: user.id, quantity: 1, condition: "full",
+        });
+        if (error && error.code !== "23505") throw error;
+      }
+    } else if (rows?.length) {
+      const { error } = await supabase.from("user_cans").delete().eq("can_id", canId);
+      if (error) throw error;
+    }
+    await invalidateOwned(qc, user.id);
+  };
+}
+
+export function useCanDrinks(canId: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["can-drinks", user?.id, canId],
+    enabled: !!user && !!canId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_can_drinks").select("drinks_count").eq("can_id", canId).maybeSingle();
+      if (error) throw error;
+      return data?.drinks_count ?? 0;
+    },
+  });
+}
+
+export function useSetCanDrinks() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return async (canId: string, drinksCount: number) => {
+    if (!user) throw new Error("Connecte-toi pour enregistrer tes Drinks.");
+    const safeCount = Math.max(0, Math.min(100000, Math.floor(drinksCount)));
+    const { error } = await supabase.from("user_can_drinks").upsert({
+      user_id: user.id, can_id: canId, drinks_count: safeCount, updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+    await qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] });
   };
 }
