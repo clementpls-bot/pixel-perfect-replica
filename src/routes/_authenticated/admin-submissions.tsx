@@ -14,6 +14,7 @@ type SubmissionDraft = {
   name: string;
   barcode: string;
   brand_id: string;
+  proposed_brand_name: string;
   flavour: string;
   release_year: string;
   category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition";
@@ -113,7 +114,8 @@ function AdminSubmissions() {
     setDraft({
       name: item.name,
       barcode: item.barcode,
-      brand_id: item.brand_id,
+      brand_id: item.brand_id ?? "",
+      proposed_brand_name: item.proposed_brand_name ?? "",
       flavour: item.flavour ?? "",
       release_year: item.release_year?.toString() ?? "",
       category: item.category,
@@ -138,7 +140,7 @@ function AdminSubmissions() {
 
   const saveEdit = async (id: string) => {
     if (!draft || !user) return;
-    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || !draft.brand_id) {
+    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && draft.proposed_brand_name.trim().length < 2)) {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
       return;
     }
@@ -150,7 +152,8 @@ function AdminSubmissions() {
       const { data, error } = await supabase.from("can_submissions").update({
         name: draft.name.trim(),
         barcode: draft.barcode.trim(),
-        brand_id: draft.brand_id,
+        brand_id: draft.brand_id || null,
+        proposed_brand_name: draft.brand_id ? null : draft.proposed_brand_name.trim() || null,
         flavour: draft.flavour.trim() || null,
         release_year: draft.release_year ? Number(draft.release_year) : null,
         category: draft.category,
@@ -280,7 +283,7 @@ function AdminSubmissions() {
 
         <div className="space-y-5">
           {visibleSubmissions.map((item) => {
-            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? "Marque inconnue";
+            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? item.proposed_brand_name ?? "Marque inconnue";
             const pending = item.status === "pending";
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;
@@ -304,7 +307,8 @@ function AdminSubmissions() {
               {editing && draft ? <div className="grid gap-3 border-t p-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium">Nom<input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Code-barres<input value={draft.barcode} onChange={(e) => setDraft({ ...draft, barcode: e.target.value })} inputMode="numeric" className="h-10 w-full rounded-lg border bg-background px-3 font-mono" /></label>
-                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3">{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
+                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id || (draft.proposed_brand_name ? "__new__" : "")} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value === "__new__" ? "" : e.target.value, proposed_brand_name: e.target.value === "__new__" ? draft.proposed_brand_name : "" })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Choisir une marque</option>{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}<option value="__new__">＋ Nouvelle marque proposée</option></select></label>
+                {!draft.brand_id && <label className="space-y-1 text-sm font-medium">Nom de la nouvelle marque<input value={draft.proposed_brand_name} onChange={(e) => setDraft({ ...draft, proposed_brand_name: e.target.value })} maxLength={100} className="h-10 w-full rounded-lg border bg-background px-3" /></label>}
                 <label className="space-y-1 text-sm font-medium">Saveur<input value={draft.flavour} onChange={(e) => setDraft({ ...draft, flavour: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Année de sortie<input type="number" min="1900" max={new Date().getFullYear() + 2} value={draft.release_year} onChange={(e) => setDraft({ ...draft, release_year: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Catégorie<select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as SubmissionDraft["category"] })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></label>
