@@ -104,17 +104,9 @@ begin
     delete from public.can_models where brand_id = ciao_brand;
 
     if to_regclass('public.can_submissions') is not null then
-      select is_nullable = 'YES' into brand_id_nullable
-      from information_schema.columns
-      where table_schema = 'public'
-        and table_name = 'can_submissions'
-        and column_name = 'brand_id';
-
-      if coalesce(brand_id_nullable, false) then
-        update public.can_submissions set brand_id = null where brand_id = ciao_brand;
-      else
-        raise exception 'Ciao Energie is referenced by can_submissions and brand_id is NOT NULL; resolve submissions before retrying.';
-      end if;
+      -- The current submission workflow supports proposed brands, so brand_id may be nullable.
+      alter table public.can_submissions alter column brand_id drop not null;
+      update public.can_submissions set brand_id = null where brand_id = ciao_brand;
     end if;
 
     delete from public.brands where id = ciao_brand;
