@@ -111,7 +111,7 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
       const modelName = normalize(can.model_id ? modelById.get(can.model_id) : can.name);
       return modelNeedle && (modelName === modelNeedle || modelName.includes(modelNeedle) || modelNeedle.includes(modelName));
     });
-    const ranked = (sameModel.length ? sameModel : sameBrand).map((can) => {
+    const ranked = sameModel.map((can) => {
       let score = 0;
       if (normalize(can.variant_name) === variantNeedle) score += 0.5;
       if (normalize(can.edition_type) === normalize(vision.edition_type)) score += 0.15;
