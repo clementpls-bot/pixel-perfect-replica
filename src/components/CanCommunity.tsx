@@ -74,7 +74,19 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       });
       if (tempImagePath) await supabase.storage.from("community-moderation-temp").remove([tempImagePath]);
       if (publishError) {
-        throw new Error("Le contrôle de sécurité ou l’enregistrement a échoué. Rien n’a été publié. Réessaie plus tard.");
+        // Surface the safe error returned by the Edge Function so configuration
+        // problems (for example a missing moderation secret) are diagnosable.
+        let serverMessage = "";
+        try {
+          const context = (publishError as { context?: unknown }).context;
+          if (context instanceof Response) {
+            const payload = await context.clone().json();
+            if (typeof payload?.error === "string") serverMessage = payload.error;
+          }
+        } catch {
+          // Keep the friendly fallback when the response is not JSON.
+        }
+        throw new Error(serverMessage || "Le contrôle de sécurité ou l’enregistrement a échoué. Rien n’a été publié. Réessaie plus tard.");
       }
       if (!publication?.published) {
         toast.error(publication?.message ?? "Cette publication doit être modifiée avant de pouvoir être publiée.");
