@@ -150,6 +150,17 @@ export type Database = {
       }
       can_submissions: {
         Row: {
+          caffeine_mg_per_100ml: number | null
+          color_primary: string
+          color_secondary: string
+          energy_kcal_per_100ml: number | null
+          historical_context: string | null
+          history_verified: boolean
+          notes: string | null
+          sugar_g_per_100ml: number | null
+          tab_color: string | null
+          taurine_mg_per_100ml: number | null
+
           back_image_url: string | null
           barcode: string
           barcode_image_url: string | null
@@ -175,6 +186,17 @@ export type Database = {
           volume_ml: number | null
         }
         Insert: {
+          caffeine_mg_per_100ml?: number | null
+          color_primary?: string
+          color_secondary?: string
+          energy_kcal_per_100ml?: number | null
+          historical_context?: string | null
+          history_verified?: boolean
+          notes?: string | null
+          sugar_g_per_100ml?: number | null
+          tab_color?: string | null
+          taurine_mg_per_100ml?: number | null
+
           back_image_url?: string | null
           barcode: string
           barcode_image_url?: string | null
@@ -200,6 +222,17 @@ export type Database = {
           volume_ml?: number | null
         }
         Update: {
+          caffeine_mg_per_100ml?: number | null
+          color_primary?: string
+          color_secondary?: string
+          energy_kcal_per_100ml?: number | null
+          historical_context?: string | null
+          history_verified?: boolean
+          notes?: string | null
+          sugar_g_per_100ml?: number | null
+          tab_color?: string | null
+          taurine_mg_per_100ml?: number | null
+
           back_image_url?: string | null
           barcode?: string
           barcode_image_url?: string | null
