@@ -14,6 +14,13 @@ type SubmissionDraft = {
   name: string;
   barcode: string;
   brand_id: string;
+  proposed_brand_name: string;
+  new_brand_selected: boolean;
+  model_id: string;
+  variant_name: string;
+  region: string;
+  edition_type: string;
+  volume_ml: string;
   flavour: string;
   release_year: string;
   category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition";
@@ -113,7 +120,14 @@ function AdminSubmissions() {
     setDraft({
       name: item.name,
       barcode: item.barcode,
-      brand_id: item.brand_id,
+      brand_id: item.brand_id ?? "",
+      proposed_brand_name: item.proposed_brand_name ?? "",
+      new_brand_selected: !item.brand_id,
+      model_id: item.model_id ?? "",
+      variant_name: item.variant_name ?? "",
+      region: item.region ?? "",
+      edition_type: item.edition_type ?? "standard",
+      volume_ml: item.volume_ml?.toString() ?? "",
       flavour: item.flavour ?? "",
       release_year: item.release_year?.toString() ?? "",
       category: item.category,
@@ -138,8 +152,12 @@ function AdminSubmissions() {
 
   const saveEdit = async (id: string) => {
     if (!draft || !user) return;
-    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || !draft.brand_id) {
+    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && (!draft.new_brand_selected || draft.proposed_brand_name.trim().length < 2))) {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
+      return;
+    }
+    if (draft.model_id && (!catalog || !catalog.models.some((model) => model.id === draft.model_id && model.brand_id === draft.brand_id))) {
+      toast.error("Le modèle choisi doit appartenir à la marque sélectionnée.");
       return;
     }
     setBusyId(id);
@@ -150,7 +168,13 @@ function AdminSubmissions() {
       const { data, error } = await supabase.from("can_submissions").update({
         name: draft.name.trim(),
         barcode: draft.barcode.trim(),
-        brand_id: draft.brand_id,
+        brand_id: draft.brand_id || null,
+        proposed_brand_name: draft.brand_id ? null : draft.proposed_brand_name.trim() || null,
+        model_id: draft.model_id || null,
+        variant_name: draft.variant_name.trim() || null,
+        region: draft.region.trim() || null,
+        edition_type: draft.edition_type || "standard",
+        volume_ml: draft.volume_ml ? Number(draft.volume_ml) : null,
         flavour: draft.flavour.trim() || null,
         release_year: draft.release_year ? Number(draft.release_year) : null,
         category: draft.category,
@@ -280,7 +304,7 @@ function AdminSubmissions() {
 
         <div className="space-y-5">
           {visibleSubmissions.map((item) => {
-            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? "Marque inconnue";
+            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? item.proposed_brand_name ?? "Marque inconnue";
             const pending = item.status === "pending";
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;
@@ -304,7 +328,13 @@ function AdminSubmissions() {
               {editing && draft ? <div className="grid gap-3 border-t p-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium">Nom<input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Code-barres<input value={draft.barcode} onChange={(e) => setDraft({ ...draft, barcode: e.target.value })} inputMode="numeric" className="h-10 w-full rounded-lg border bg-background px-3 font-mono" /></label>
-                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3">{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
+                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id || (draft.new_brand_selected ? "__new__" : "")} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value === "__new__" ? "" : e.target.value, new_brand_selected: e.target.value === "__new__", proposed_brand_name: e.target.value === "__new__" ? draft.proposed_brand_name : "", model_id: "" })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Choisir une marque</option>{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}<option value="__new__">＋ Nouvelle marque proposée</option></select></label>
+                {draft.new_brand_selected && <label className="space-y-1 text-sm font-medium">Nom de la nouvelle marque<input value={draft.proposed_brand_name} onChange={(e) => setDraft({ ...draft, proposed_brand_name: e.target.value })} maxLength={100} className="h-10 w-full rounded-lg border bg-background px-3" /></label>}
+                {draft.brand_id && <label className="space-y-1 text-sm font-medium">Modèle<select value={draft.model_id} onChange={(e) => setDraft({ ...draft, model_id: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Nouveau modèle / sans modèle</option>{catalog?.models.filter((model) => model.brand_id === draft.brand_id).map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}</select></label>}
+                <label className="space-y-1 text-sm font-medium">Nom de la variante / design<input value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} maxLength={120} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
+                <label className="space-y-1 text-sm font-medium">Type d’édition<select value={draft.edition_type} onChange={(e) => setDraft({ ...draft, edition_type: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="standard">Standard</option><option value="limited">Édition limitée</option><option value="collab">Collab</option><option value="import">Import</option><option value="redesign">Redesign</option></select></label>
+                <label className="space-y-1 text-sm font-medium">Pays / région<input value={draft.region} onChange={(e) => setDraft({ ...draft, region: e.target.value })} maxLength={60} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
+                <label className="space-y-1 text-sm font-medium">Contenance (ml)<input type="number" min={50} max={2000} value={draft.volume_ml} onChange={(e) => setDraft({ ...draft, volume_ml: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Saveur<input value={draft.flavour} onChange={(e) => setDraft({ ...draft, flavour: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Année de sortie<input type="number" min="1900" max={new Date().getFullYear() + 2} value={draft.release_year} onChange={(e) => setDraft({ ...draft, release_year: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Catégorie<select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as SubmissionDraft["category"] })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></label>
@@ -315,6 +345,11 @@ function AdminSubmissions() {
                 <div><dt className="text-xs text-muted-foreground">Saveur</dt><dd className="mt-1">{item.flavour || "Non renseignée"}</dd></div>
                 <div><dt className="text-xs text-muted-foreground">Année</dt><dd className="mt-1">{item.release_year ?? "Non renseignée"}</dd></div>
                 <div><dt className="text-xs text-muted-foreground">Catégorie</dt><dd className="mt-1">{item.category}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Modèle</dt><dd className="mt-1">{catalog?.models.find((model) => model.id === item.model_id)?.name ?? "Nouveau modèle / non renseigné"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Variante / design</dt><dd className="mt-1">{item.variant_name || "Standard / non renseigné"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Édition</dt><dd className="mt-1">{item.edition_type || "standard"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Région</dt><dd className="mt-1">{item.region || "Non renseignée"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Contenance</dt><dd className="mt-1">{item.volume_ml ? item.volume_ml + " ml" : "Non renseignée"}</dd></div>
                 <div className="col-span-2 sm:col-span-3"><dt className="text-xs text-muted-foreground">Description</dt><dd className="mt-1 whitespace-pre-wrap">{item.description || "Aucune description"}</dd></div>
                 {item.review_notes && <div className="col-span-2 sm:col-span-3"><dt className="text-xs text-muted-foreground">Motif du refus</dt><dd className="mt-1 whitespace-pre-wrap">{item.review_notes}</dd></div>}
               </dl>}

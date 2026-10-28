@@ -27,7 +27,7 @@ export function BottomNav() {
           to="/scan"
           aria-label="Ajouter une canette"
           title="Ajouter une canette"
-          className="fixed bottom-24 right-5 z-50 flex items-center gap-2.5 rounded-full bg-primary py-2 pl-2.5 pr-4 text-primary-foreground shadow-glow transition-transform hover:scale-105 active:scale-90"
+          className="can-add-glint fixed bottom-24 right-5 z-50 flex items-center gap-2.5 rounded-full py-2 pl-2.5 pr-4 text-primary-foreground shadow-glow transition-transform hover:scale-105 active:scale-90"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/15">
             <ScanLine className="h-6 w-6" />
