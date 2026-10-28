@@ -171,6 +171,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$id'
     | '/brands/'
   fileRoutesById: FileRoutesById
 }
