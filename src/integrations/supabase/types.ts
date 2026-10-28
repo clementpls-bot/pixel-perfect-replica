@@ -41,6 +41,62 @@ export type Database = {
         }
         Relationships: []
       }
+      can_reports: {
+        Row: {
+          can_id: string
+          category: string
+          created_at: string
+          details: string
+          id: string
+          image_urls: string[]
+          proposed_field: string | null
+          proposed_value: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          can_id: string
+          category?: string
+          created_at?: string
+          details: string
+          id?: string
+          image_urls?: string[]
+          proposed_field?: string | null
+          proposed_value?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          can_id?: string
+          category?: string
+          created_at?: string
+          details?: string
+          id?: string
+          image_urls?: string[]
+          proposed_field?: string | null
+          proposed_value?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "can_reports_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       can_submissions: {
         Row: {
           back_image_url: string | null
@@ -109,107 +165,69 @@ export type Database = {
           },
         ]
       }
-      can_reports: {
-        Row: {
-          can_id: string
-          category: string
-          created_at: string
-          details: string
-          id: string
-          image_urls: string[]
-          proposed_field: string | null
-          proposed_value: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          can_id: string
-          category: string
-          created_at?: string
-          details: string
-          id?: string
-          image_urls?: string[]
-          proposed_field?: string | null
-          proposed_value?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          can_id?: string
-          category?: string
-          created_at?: string
-          details?: string
-          id?: string
-          image_urls?: string[]
-          proposed_field?: string | null
-          proposed_value?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "can_reports_can_id_fkey"
-            columns: ["can_id"]
-            isOneToOne: false
-            referencedRelation: "cans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cans: {
         Row: {
           barcode: string
           brand_id: string
+          caffeine_mg_per_100ml: number | null
           category: Database["public"]["Enums"]["can_category"]
           color_primary: string
           color_secondary: string
           created_at: string
           description: string | null
+          energy_kcal_per_100ml: number | null
           flavour: string | null
           historical_context: string | null
+          history_verified: boolean
           id: string
           image_url: string | null
           name: string
           release_year: number | null
+          sugar_g_per_100ml: number | null
+          taurine_mg_per_100ml: number | null
+          volume_ml: number | null
         }
         Insert: {
           barcode: string
           brand_id: string
+          caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
           color_primary?: string
           color_secondary?: string
           created_at?: string
           description?: string | null
+          energy_kcal_per_100ml?: number | null
           flavour?: string | null
           historical_context?: string | null
+          history_verified?: boolean
           id?: string
           image_url?: string | null
           name: string
           release_year?: number | null
+          sugar_g_per_100ml?: number | null
+          taurine_mg_per_100ml?: number | null
+          volume_ml?: number | null
         }
         Update: {
           barcode?: string
           brand_id?: string
+          caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
           color_primary?: string
           color_secondary?: string
           created_at?: string
           description?: string | null
+          energy_kcal_per_100ml?: number | null
           flavour?: string | null
           historical_context?: string | null
+          history_verified?: boolean
           id?: string
           image_url?: string | null
           name?: string
           release_year?: number | null
+          sugar_g_per_100ml?: number | null
+          taurine_mg_per_100ml?: number | null
+          volume_ml?: number | null
         }
         Relationships: [
           {
@@ -413,7 +431,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      approve_can_submission: {
+        Args: { p_submission_id: string }
+        Returns: undefined
+      }
+      review_can_report: {
+        Args: {
+          p_approve: boolean
+          p_field?: string
+          p_report_id: string
+          p_review_notes?: string
+          p_value?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       can_category: "Energy Drink" | "Soda" | "Soft Drink" | "Limited Edition"
