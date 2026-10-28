@@ -350,14 +350,17 @@ export type Database = {
         Row: {
           comment_id: string
           user_id: string
+          vote: number
         }
         Insert: {
           comment_id: string
           user_id: string
+          vote?: number
         }
         Update: {
           comment_id?: string
           user_id?: string
+          vote?: number
         }
         Relationships: [
           {
@@ -371,26 +374,29 @@ export type Database = {
       }
       comments: {
         Row: {
-          body: string
+          body: string | null
           can_id: string
           created_at: string
           id: string
+          image_url: string | null
           parent_id: string | null
           user_id: string
         }
         Insert: {
-          body: string
+          body?: string | null
           can_id: string
           created_at?: string
           id?: string
+          image_url?: string | null
           parent_id?: string | null
           user_id: string
         }
         Update: {
-          body?: string
+          body?: string | null
           can_id?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           parent_id?: string | null
           user_id?: string
         }

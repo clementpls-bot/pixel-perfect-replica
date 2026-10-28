@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Droplets, FlaskConical, Heart, PenLine, Plus, Star, Zap, Wine } from "lucide-react";
+import { ArrowLeft, Droplets, FlaskConical, PenLine, Plus, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CanCommunity } from "@/components/CanCommunity";
 
 export const Route = createFileRoute("/cans/$id")({
   head: () => ({
@@ -50,10 +51,6 @@ function CanPage() {
   const ratings = useQuery({
     queryKey: ["ratings", id],
     queryFn: async () => (await supabase.from("ratings").select("user_id,design,taste").eq("can_id", id)).data ?? [],
-  });
-  const comments = useQuery({
-    queryKey: ["comments", id],
-    queryFn: async () => ((await supabase.from("comments").select("id,body,parent_id,user_id,created_at,profiles(username),comment_likes(user_id)").eq("can_id", id).order("created_at")).data ?? []) as Comment[],
   });
 
   if (!data) return null;
@@ -353,68 +350,8 @@ function CanPage() {
         </div>
       </section>
 
-      <Comments canId={id} comments={comments.data ?? []} />
+      <CanCommunity canId={id} canName={can.name} />
     </div>
   );
 }
 
-function Comments({ canId, comments }: { canId: string; comments: Comment[] }) {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  const [body, setBody] = useState("");
-  const [replyTo, setReplyTo] = useState<string | null>(null);
-  const refresh = () => qc.invalidateQueries({ queryKey: ["comments", canId] });
-
-  const post = async () => {
-    if (!user || !body.trim()) return;
-    const { error } = await supabase.from("comments").insert({ can_id: canId, user_id: user.id, body: body.trim(), parent_id: replyTo });
-    if (error) { toast.error(error.message); return; }
-    setBody(""); setReplyTo(null); refresh();
-  };
-  const like = async (c: Comment) => {
-    if (!user) { toast("Connecte-toi pour aimer ce commentaire."); return; }
-    const liked = c.comment_likes.some((l) => l.user_id === user.id);
-    if (liked) await supabase.from("comment_likes").delete().eq("comment_id", c.id).eq("user_id", user.id);
-    else await supabase.from("comment_likes").insert({ comment_id: c.id, user_id: user.id });
-    refresh();
-  };
-
-  const Item = ({ c, child }: { c: Comment; child?: boolean }) => (
-    <div className={child ? "ml-6 border-l pl-3" : ""}>
-      <div className="rounded-2xl bg-card p-3">
-        <p className="text-xs font-bold">{c.profiles?.username ?? "collectionneur"} <span className="font-normal text-muted-foreground">· {new Date(c.created_at).toLocaleDateString()}</span></p>
-        <p className="mt-1 text-sm">{c.body}</p>
-        <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-          <button onClick={() => like(c)} className="flex items-center gap-1">
-            <Heart className={`h-3.5 w-3.5 ${c.comment_likes.some((l) => l.user_id === user?.id) ? "fill-accent text-accent" : ""}`} />{c.comment_likes.length}
-          </button>
-          {!child && user && <button onClick={() => setReplyTo(c.id)}>Répondre</button>}
-        </div>
-      </div>
-    </div>
-  );
-
-  const top = comments.filter((c) => !c.parent_id);
-  return (
-    <section className="mt-8">
-      <h2 className="mb-3 font-bold">Communauté · {comments.length}</h2>
-      {user ? (
-        <div className="mb-4 space-y-2">
-          {replyTo && <p className="text-xs text-muted-foreground">Réponse en cours… <button className="text-primary" onClick={() => setReplyTo(null)}>Annuler</button></p>}
-          <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Partage ton avis sur cette canette…" maxLength={1000} className="rounded-xl" />
-          <Button onClick={post} disabled={!body.trim()} className="rounded-xl font-bold">Publier</Button>
-        </div>
-      ) : (
-        <Link to="/auth" className="mb-4 block text-sm text-primary">Connecte-toi pour participer à la conversation</Link>
-      )}
-      <div className="space-y-2">
-        {top.map((c) => (
-          <div key={c.id} className="space-y-2">
-            <Item c={c} />
-            {comments.filter((r) => r.parent_id === c.id).map((r) => <Item key={r.id} c={r} child />)}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
