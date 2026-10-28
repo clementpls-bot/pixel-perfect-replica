@@ -41,6 +41,47 @@ export type Database = {
         }
         Relationships: []
       }
+      can_models: {
+        Row: {
+          brand_id: string
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          flavour: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          brand_id: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          brand_id?: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          flavour?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "can_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       can_reports: {
         Row: {
           can_id: string
@@ -49,6 +90,7 @@ export type Database = {
           details: string
           id: string
           image_urls: string[]
+          model_id: string | null
           proposed_field: string | null
           proposed_value: string | null
           review_notes: string | null
@@ -64,6 +106,7 @@ export type Database = {
           details: string
           id?: string
           image_urls?: string[]
+          model_id?: string | null
           proposed_field?: string | null
           proposed_value?: string | null
           review_notes?: string | null
@@ -79,6 +122,7 @@ export type Database = {
           details?: string
           id?: string
           image_urls?: string[]
+          model_id?: string | null
           proposed_field?: string | null
           proposed_value?: string | null
           review_notes?: string | null
@@ -95,6 +139,13 @@ export type Database = {
             referencedRelation: "cans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "can_reports_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "can_models"
+            referencedColumns: ["id"]
+          },
         ]
       }
       can_submissions: {
@@ -106,16 +157,21 @@ export type Database = {
           category: Database["public"]["Enums"]["can_category"]
           created_at: string
           description: string | null
+          edition_type: string | null
           flavour: string | null
           id: string
           image_url: string
+          model_id: string | null
           name: string
+          region: string | null
           release_year: number | null
           review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
           submitted_by: string
+          variant_name: string | null
+          volume_ml: number | null
         }
         Insert: {
           back_image_url?: string | null
@@ -125,16 +181,21 @@ export type Database = {
           category?: Database["public"]["Enums"]["can_category"]
           created_at?: string
           description?: string | null
+          edition_type?: string | null
           flavour?: string | null
           id?: string
           image_url: string
+          model_id?: string | null
           name: string
+          region?: string | null
           release_year?: number | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
           submitted_by: string
+          variant_name?: string | null
+          volume_ml?: number | null
         }
         Update: {
           back_image_url?: string | null
@@ -144,16 +205,21 @@ export type Database = {
           category?: Database["public"]["Enums"]["can_category"]
           created_at?: string
           description?: string | null
+          edition_type?: string | null
           flavour?: string | null
           id?: string
           image_url?: string
+          model_id?: string | null
           name?: string
+          region?: string | null
           release_year?: number | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
           submitted_by?: string
+          variant_name?: string | null
+          volume_ml?: number | null
         }
         Relationships: [
           {
@@ -161,6 +227,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "can_submissions_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "can_models"
             referencedColumns: ["id"]
           },
         ]
@@ -175,16 +248,22 @@ export type Database = {
           color_secondary: string
           created_at: string
           description: string | null
+          edition_type: string
           energy_kcal_per_100ml: number | null
           flavour: string | null
           historical_context: string | null
           history_verified: boolean
           id: string
           image_url: string | null
+          model_id: string | null
           name: string
+          notes: string | null
+          region: string | null
           release_year: number | null
           sugar_g_per_100ml: number | null
+          tab_color: string | null
           taurine_mg_per_100ml: number | null
+          variant_name: string
           volume_ml: number | null
         }
         Insert: {
@@ -196,16 +275,22 @@ export type Database = {
           color_secondary?: string
           created_at?: string
           description?: string | null
+          edition_type?: string
           energy_kcal_per_100ml?: number | null
           flavour?: string | null
           historical_context?: string | null
           history_verified?: boolean
           id?: string
           image_url?: string | null
+          model_id?: string | null
           name: string
+          notes?: string | null
+          region?: string | null
           release_year?: number | null
           sugar_g_per_100ml?: number | null
+          tab_color?: string | null
           taurine_mg_per_100ml?: number | null
+          variant_name?: string
           volume_ml?: number | null
         }
         Update: {
@@ -217,16 +302,22 @@ export type Database = {
           color_secondary?: string
           created_at?: string
           description?: string | null
+          edition_type?: string
           energy_kcal_per_100ml?: number | null
           flavour?: string | null
           historical_context?: string | null
           history_verified?: boolean
           id?: string
           image_url?: string | null
+          model_id?: string | null
           name?: string
+          notes?: string | null
+          region?: string | null
           release_year?: number | null
           sugar_g_per_100ml?: number | null
+          tab_color?: string | null
           taurine_mg_per_100ml?: number | null
+          variant_name?: string
           volume_ml?: number | null
         }
         Relationships: [
@@ -235,6 +326,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cans_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "can_models"
             referencedColumns: ["id"]
           },
         ]
@@ -397,6 +495,7 @@ export type Database = {
       user_cans: {
         Row: {
           can_id: string
+          condition: string
           first_scanned_at: string
           id: string
           quantity: number
@@ -404,6 +503,7 @@ export type Database = {
         }
         Insert: {
           can_id: string
+          condition?: string
           first_scanned_at?: string
           id?: string
           quantity?: number
@@ -411,6 +511,7 @@ export type Database = {
         }
         Update: {
           can_id?: string
+          condition?: string
           first_scanned_at?: string
           id?: string
           quantity?: number
