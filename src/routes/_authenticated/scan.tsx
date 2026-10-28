@@ -362,21 +362,21 @@ function Scanner() {
           <h1 className="text-2xl font-black tracking-tight">{unknownVisual ? "Proposer cette canette" : "Canette introuvable"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{unknownVisual ? "L’IA n’a pas trouvé de variante correspondante. Vérifie les informations préremplies et ajoute le code-barres." : `Le code-barres ${unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.`}</p>
         </div>
-        <form onSubmit={submitProposal} className="space-y-5 rounded-2xl border bg-card p-4 sm:p-6">
+        <form onSubmit={submitProposal} className="space-y-6 rounded-2xl border bg-card p-4 sm:p-6">
           {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}
-          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
+          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-10 rounded-md" /></div>}
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
-            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-xl" />
+            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-10 rounded-md" />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
-            <select id="proposal-brand" required value={brandId || (newBrandSelected ? "__new__" : "")} onChange={(e) => { if (e.target.value === "__new__") { setBrandId(""); setNewBrandSelected(true); setModelId(""); } else { setBrandId(e.target.value); setNewBrandSelected(false); setProposedBrandName(""); setModelId(""); } }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+            <select id="proposal-brand" required value={brandId || (newBrandSelected ? "__new__" : "")} onChange={(e) => { if (e.target.value === "__new__") { setBrandId(""); setNewBrandSelected(true); setModelId(""); } else { setBrandId(e.target.value); setNewBrandSelected(false); setProposedBrandName(""); setModelId(""); } }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="">Choisir une marque</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
               <option value="__new__">＋ Proposer une nouvelle marque…</option>
             </select>
-            {newBrandSelected && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-12 rounded-xl" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
+            {newBrandSelected && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-10 rounded-md" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
           </div>
           {brandId && (
             <div className="space-y-1.5">
@@ -385,54 +385,54 @@ function Scanner() {
                 setModelId(e.target.value);
                 const m = data?.models.find((x) => x.id === e.target.value);
                 if (m) { setName(m.name); if (m.flavour) setFlavour(m.flavour); }
-              }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+              }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                 <option value="">Nouveau modèle (utilise le nom ci-dessus)</option>
                 {data?.models.filter((m) => m.brand_id === brandId).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
               <p className="text-xs text-muted-foreground">Si la saveur existe déjà, choisis-la : ta canette sera ajoutée comme nouveau design de ce modèle.</p>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label htmlFor="proposal-variant" className="text-sm font-semibold">Nom du design</label>
-              <Input id="proposal-variant" maxLength={120} value={variantName} onChange={(e) => setVariantName(e.target.value)} placeholder="ex. Collab Call of Duty" className="h-12 rounded-xl" />
+              <Input id="proposal-variant" maxLength={120} value={variantName} onChange={(e) => setVariantName(e.target.value)} placeholder="ex. Collab Call of Duty" className="h-10 rounded-md" />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-edition" className="text-sm font-semibold">Type d’édition</label>
-              <select id="proposal-edition" value={editionType} onChange={(e) => setEditionType(e.target.value)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+              <select id="proposal-edition" value={editionType} onChange={(e) => setEditionType(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                 <option value="standard">Standard</option><option value="limited">Édition limitée</option><option value="collab">Collab</option><option value="import">Import</option><option value="redesign">Redesign</option>
               </select>
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-region" className="text-sm font-semibold">Pays / région</label>
-              <Input id="proposal-region" maxLength={60} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="ex. Japon" className="h-12 rounded-xl" />
+              <Input id="proposal-region" maxLength={60} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="ex. Japon" className="h-10 rounded-md" />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-volume" className="text-sm font-semibold">Contenance (ml)</label>
-              <Input id="proposal-volume" type="number" min={50} max={2000} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="ex. 500" className="h-12 rounded-xl" />
+              <Input id="proposal-volume" type="number" min={50} max={2000} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="ex. 500" className="h-10 rounded-md" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label htmlFor="proposal-flavour" className="text-sm font-semibold">Saveur</label>
-              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setFlavour(e.target.value)} placeholder="ex. raisin" className="h-12 rounded-xl" />
+              <Input id="proposal-flavour" maxLength={100} value={flavour} onChange={(e) => setFlavour(e.target.value)} placeholder="ex. raisin" className="h-10 rounded-md" />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="proposal-year" className="text-sm font-semibold">Année de sortie</label>
-              <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Facultatif" className="h-12 rounded-xl" />
+              <Input id="proposal-year" type="number" min={1900} max={new Date().getFullYear() + 2} value={releaseYear} onChange={(e) => setReleaseYear(e.target.value)} placeholder="Facultatif" className="h-10 rounded-md" />
             </div>
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-category" className="text-sm font-semibold">Catégorie *</label>
-            <select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+            <select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option>
             </select>
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-description" className="text-sm font-semibold">Informations complémentaires</label>
-            <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Toute information permettant d’identifier cette canette…" rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+            <textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Toute information permettant d’identifier cette canette…" rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
-          <div className="space-y-3 rounded-2xl border bg-card p-4">
+          <div className="space-y-3 rounded-xl border p-4">
             <div>
               <h2 className="font-bold">Photos</h2>
               <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Prends une photo avec la caméra ou choisis une image dans ta galerie. Les photos du dos et du code-barres sont facultatives. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
@@ -449,7 +449,7 @@ function Scanner() {
               </div>
             ))}
           </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">Chaque proposition est vérifiée avant publication. Les codes-barres en double et les propositions incomplètes ou inappropriées peuvent être refusés.</div>
+          <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">Chaque proposition est vérifiée avant publication. Les codes-barres en double et les propositions incomplètes ou inappropriées peuvent être refusés.</div>
           <Button type="submit" disabled={isSubmitting || !user} className="h-12 w-full rounded-xl font-bold">
             {isSubmitting ? "Envoi de la proposition…" : "Envoyer pour vérification"}
           </Button>
@@ -491,7 +491,7 @@ function Scanner() {
             ) : <><div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" /><div className="absolute inset-x-[14%] h-0.5 bg-primary shadow-glow animate-scan-line" /></>}
           </div>
           <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
-            <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-12 rounded-xl" />
+            <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-10 rounded-md" />
             <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">Scanne un code-barres pour retrouver une canette déjà répertoriée. S’il est inconnu, tu pourras la proposer à la communauté.</p>
