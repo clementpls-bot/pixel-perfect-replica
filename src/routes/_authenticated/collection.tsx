@@ -69,7 +69,7 @@ function Collection() {
           </div>
         </div>
       ) : (
-        <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="mt-5 grid grid-cols-3 gap-3 collection-grid">
           {mine.map((c, i) => {
             const brand = data.brands.find((b) => b.id === c.brand_id);
             return (
