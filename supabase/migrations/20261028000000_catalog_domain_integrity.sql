@@ -20,7 +20,7 @@ create or replace function public.validate_can_model_brand()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   if new.model_id is not null and not exists (
     select 1
@@ -32,7 +32,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists validate_can_model_brand_on_cans on public.cans;
 create trigger validate_can_model_brand_on_cans
