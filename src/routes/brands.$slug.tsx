@@ -43,7 +43,7 @@ function BrandPage() {
       <div className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-4">
         {models.map(({ model, variants }) => {
           const ownedCount = variants.filter((c) => owned?.has(c.id)).length;
-          const cover = variants.find((c) => owned?.has(c.id)) ?? variants[0];
+          const cover = variants.find((c) => owned?.has(c.id)) ?? variants[0]!;
           return (
             <Link key={model.id} to="/models/$id" params={{ id: model.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-95">
               <CanArt can={cover} brandName={brand.name} missing={ownedCount === 0} className="max-w-[64px] group-hover:-translate-y-1" />

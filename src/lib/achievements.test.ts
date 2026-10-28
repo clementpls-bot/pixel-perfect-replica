@@ -12,10 +12,10 @@ const getAll = (owned: string[]) =>
 const get = (owned: string[], id: string) => getAll(owned).find((a) => a.id === id)!.earned;
 
 describe("achievements", () => {
-  it("defines 26 unique achievements", () => {
+  it("defines 28 unique achievements", () => {
     const achievements = getAll([]);
-    expect(achievements).toHaveLength(26);
-    expect(new Set(achievements.map((a) => a.id)).size).toBe(26);
+    expect(achievements).toHaveLength(28);
+    expect(new Set(achievements.map((a) => a.id)).size).toBe(28);
   });
 
   it("first scan unlocks after one can", () => {
