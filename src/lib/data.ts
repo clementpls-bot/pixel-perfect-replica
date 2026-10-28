@@ -192,6 +192,9 @@ export function useSetCanDrinks() {
       user_id: user.id, can_id: canId, drinks_count: safeCount, updated_at: new Date().toISOString(),
     });
     if (error) throw error;
-    await qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] });
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
+      qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
+    ]);
   };
 }
