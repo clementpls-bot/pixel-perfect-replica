@@ -82,7 +82,7 @@ function CanPage() {
     "--secondary-foreground": `color-mix(in srgb, ${can.color_secondary} 58%, #241b31)`,
     "--accent": `color-mix(in srgb, ${can.color_primary} 16%, white)`,
     "--accent-foreground": `color-mix(in srgb, ${can.color_primary} 62%, #241b31)`,
-  } as CSSProperties;
+  } as CSSProperties & Record<"--primary" | "--primary-foreground" | "--ring" | "--secondary" | "--secondary-foreground" | "--accent" | "--accent-foreground", string>;
   const mine = ratings.data?.find((r) => r.user_id === user?.id);
 
   const rate = async (k: "design" | "taste", v: number) => {
