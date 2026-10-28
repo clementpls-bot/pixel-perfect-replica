@@ -195,7 +195,11 @@ function Scanner() {
       toast.error("Vérifie le code-barres : saisis de 8 à 14 chiffres.");
       return;
     }
-    if (!brandId && (!newBrandSelected || proposedBrandName.trim().length < 2)) {\n      toast.error("Choisis une marque ou propose son nom.");\n      return;\n    }\n    if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
+    if (!brandId && (!newBrandSelected || proposedBrandName.trim().length < 2)) {
+      toast.error("Choisis une marque ou propose son nom.");
+      return;
+    }
+    if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
       toast.error("Ce code-barres figure déjà dans le catalogue. Scanne-le à nouveau.");
       setUnknownBarcode("");
       return;
@@ -244,7 +248,10 @@ function Scanner() {
     setSubmitted(false);
     setManual("");
     setName("");
-    setBrandId("");\n    setProposedBrandName("");\n    setNewBrandSelected(false);\n    setUnknownVisual(false);
+    setBrandId("");
+    setProposedBrandName("");
+    setNewBrandSelected(false);
+    setUnknownVisual(false);
     setFlavour("");
     setReleaseYear("");
     setDescription("");
@@ -325,7 +332,9 @@ function Scanner() {
           <h1 className="mt-1 text-2xl font-black">Canette introuvable</h1>
           <p className="mt-1 text-sm text-muted-foreground">Le code-barres {unknownBarcode} ne figure pas dans le catalogue. Propose cette canette pour vérification.</p>
         </div>
-        <form onSubmit={submitProposal} className="space-y-4">\n          {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}\n          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
+        <form onSubmit={submitProposal} className="space-y-4">
+          {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}
+          {unknownVisual && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-xl" /></div>}
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
             <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-xl" />
