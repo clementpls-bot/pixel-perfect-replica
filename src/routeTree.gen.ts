@@ -144,6 +144,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$id'
     | '/brands/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -156,6 +157,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$id'
     | '/brands'
   id:
     | '__root__'
