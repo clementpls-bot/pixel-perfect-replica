@@ -17,14 +17,26 @@ select c.id, c.name, b.name, to_jsonb(c),
   jsonb_build_object(
     'comments', coalesce((select jsonb_agg(to_jsonb(cm)) from public.comments cm where cm.can_id = c.id), '[]'::jsonb),
     'ratings', coalesce((select jsonb_agg(to_jsonb(r)) from public.ratings r where r.can_id = c.id), '[]'::jsonb),
-    'can_reports', coalesce((select jsonb_agg(to_jsonb(cr)) from public.can_reports cr where cr.can_id = c.id), '[]'::jsonb),
-    'user_can_drinks', case when to_regclass('public.user_can_drinks') is not null then
-      (select coalesce(jsonb_agg(to_jsonb(d)), '[]'::jsonb) from public.user_can_drinks d where d.can_id = c.id)
-      else '[]'::jsonb end
+    'can_reports', coalesce((select jsonb_agg(to_jsonb(cr)) from public.can_reports cr where cr.can_id = c.id), '[]'::jsonb)
   )
 from public.cans c left join public.brands b on b.id = c.brand_id
 where lower(trim(coalesce(b.name, ''))) not in ('monster', 'red bull')
   and not exists (select 1 from public.catalog_cleanup_archive archived where archived.can_id = c.id);
+
+-- Add optional Drinks rows to the archive without assuming every environment has that table.
+do $
+begin
+  if to_regclass('public.user_can_drinks') is not null then
+    execute $archive$
+      update public.catalog_cleanup_archive a
+      set related_records = a.related_records || jsonb_build_object(
+        'user_can_drinks',
+        coalesce((select jsonb_agg(to_jsonb(d)) from public.user_can_drinks d where d.can_id = a.can_id), '[]'::jsonb)
+      )
+      where exists (select 1 from public.user_can_drinks d where d.can_id = a.can_id)
+    $archive$;
+  end if;
+end $;
 
 -- Only Monster and Red Bull can designs remain in the active catalogue.
 delete from public.cans c using public.brands b
