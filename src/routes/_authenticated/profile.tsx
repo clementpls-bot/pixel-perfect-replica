@@ -58,7 +58,7 @@ function Profile() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase.from("comments")
-        .select("id,body,created_at,can_id")
+        .select("id,body,image_url,created_at,can_id")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -267,7 +267,8 @@ function Profile() {
               const can = data.cans.find((item) => item.id === comment.can_id);
               return (
                 <article key={comment.id} className="rounded-2xl border bg-card p-4">
-                  <p className="whitespace-pre-wrap text-sm">{comment.body}</p>
+                  {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>}
+                  {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{new Date(comment.created_at).toLocaleDateString()}</span>
                     {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">Sur {can.name} →</Link> : <span>Canette</span>}
