@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, ImagePlus, LogOut, Pencil, Trash2, X } from "lucide-react";
+import { Camera, Check, LogOut, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -36,7 +36,6 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -79,50 +78,6 @@ function Profile() {
       return data;
     },
   });
-
-  const { data: gallery = [], isLoading: galleryLoading } = useQuery({
-    queryKey: ["profile-gallery", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profile_gallery").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const uploadGalleryPhoto = async (file?: File) => {
-    if (!file || !user) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Choisissez une image JPG, PNG ou WebP."); return;
-    }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Chaque photo doit faire 5 Mo maximum."); return; }
-    if (gallery.length >= 12) { toast.error("Votre galerie peut contenir jusqu’à 12 photos."); return; }
-    setUploadingGallery(true);
-    try {
-      const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-      const path = `${user.id}/gallery-${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage.from("profile-gallery").upload(path, file, { cacheControl: "3600", contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-      const { data: publicUrl } = supabase.storage.from("profile-gallery").getPublicUrl(path);
-      const { error: insertError } = await supabase.from("profile_gallery").insert({ user_id: user.id, image_url: publicUrl.publicUrl, storage_path: path });
-      if (insertError) { await supabase.storage.from("profile-gallery").remove([path]); throw insertError; }
-      await qc.invalidateQueries({ queryKey: ["profile-gallery", user.id] });
-      toast.success("Photo ajoutée à votre galerie.");
-    } catch (error) {
-      toast.error((error as Error).message || "Impossible d’ajouter cette photo.");
-    } finally { setUploadingGallery(false); }
-  };
-
-  const deleteGalleryPhoto = async (photo: (typeof gallery)[number]) => {
-    try {
-      const { error: storageError } = await supabase.storage.from("profile-gallery").remove([photo.storage_path]);
-      if (storageError) throw storageError;
-      const { error } = await supabase.from("profile_gallery").delete().eq("id", photo.id).eq("user_id", user!.id);
-      if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["profile-gallery", user?.id] });
-      toast.success("Photo supprimée.");
-    } catch (error) { toast.error((error as Error).message || "Impossible de supprimer cette photo."); }
-  };
 
   const changedAt = (profile as { username_changed_at?: string | null } | null | undefined)?.username_changed_at;
   const canChangeUsernameAt = changedAt
@@ -283,14 +238,6 @@ function Profile() {
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{ownedSet.size}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canettes différentes</p></div>
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{totalExemplaires}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nombre de canettes</p></div>
       </div>
-
-      <section className="rounded-2xl border bg-card px-4">
-        <div className="flex items-center justify-between gap-3 py-4"><div><h2 className="font-bold">Galerie</h2><p className="text-xs text-muted-foreground">Vos photos de collection · {gallery.length}/12</p></div>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"><ImagePlus className="h-4 w-4" />{uploadingGallery ? "Envoi…" : "Ajouter"}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploadingGallery || gallery.length >= 12} onChange={(event) => { void uploadGalleryPhoto(event.target.files?.[0]); event.currentTarget.value = ""; }} /></label>
-        </div>
-        <p className="mb-3 text-[11px] text-muted-foreground">JPG, PNG ou WebP · 5 Mo maximum par photo.</p>
-        {galleryLoading ? <p className="pb-4 text-sm text-muted-foreground">Chargement de la galerie…</p> : gallery.length === 0 ? <div className="mb-4 rounded-xl border border-dashed p-6 text-center"><ImagePlus className="mx-auto mb-2 h-7 w-7 text-muted-foreground" /><p className="text-sm font-medium">Votre galerie est vide</p><p className="mt-1 text-xs text-muted-foreground">Ajoutez quelques photos pour montrer votre collection.</p></div> : <div className="mb-4 grid grid-cols-3 gap-2">{gallery.map((photo) => <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-muted"><img src={photo.image_url} alt="Photo de ma collection" loading="lazy" className="h-full w-full object-cover" /><button type="button" aria-label="Supprimer la photo" onClick={() => void deleteGalleryPhoto(photo)} className="absolute right-1 top-1 rounded-full bg-black/70 p-1.5 text-white opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100"><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div>}
-      </section>
 
       <Accordion type="multiple" className="space-y-2">
         <AccordionItem value="achievements" className="rounded-2xl border bg-card px-4">
