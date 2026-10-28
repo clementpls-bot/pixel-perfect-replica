@@ -117,19 +117,19 @@ function CanPage() {
   const model = data.models.find((m) => m.id === can.model_id);
   const siblings = data.cans.filter((c) => c.model_id && c.model_id === can.model_id && c.id !== can.id);
   const toggleOwnership = async () => {
-    if (!user) { toast("Connecte-toi pour gérer ton coffre."); return; }
+    if (!user) { toast("Connecte-toi pour gérer ton mur."); return; }
     setSavingCollection(true);
     try {
       await setCanOwned(can.id, qty === 0);
-      toast.success(qty === 0 ? "Canette ajoutée à ton coffre." : "Canette retirée de ton coffre.");
+      toast.success(qty === 0 ? "Canette ajoutée à ton mur." : "Canette retirée de ton mur.");
     } catch (error) {
-      toast.error((error as Error).message || "Impossible de mettre à jour ton coffre.");
+      toast.error((error as Error).message || "Impossible de mettre à jour ton mur.");
     } finally {
       setSavingCollection(false);
     }
   };
 
-  const saveDrinks = async () => {
+  const addDrink = async () => {\n    if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }\n    try {\n      if ("vibrate" in navigator) navigator.vibrate?.(35);\n      await setCanDrinks(can.id, (canDrinks.data ?? 0) + 1);\n      toast.success("Nouveau Drink ajouté !");\n    } catch (error) {\n      toast.error((error as Error).message || "Impossible d’ajouter ce Drink.");\n    }\n  };\n\n  const saveDrinks = async () => {
     if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
     const count = Number(drinksDraft);
     if (!Number.isInteger(count) || count < 0 || count > 100000) {
@@ -178,13 +178,13 @@ function CanPage() {
       <div className="mt-4 rounded-2xl border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold">Mon coffre</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{qty > 0 ? "Cette canette fait partie de ta collection." : "Tu possèdes cette canette ?"}</p>
+            <p className="text-sm font-bold">Mon mur</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{qty > 0 ? "Cette canette est sur ton mur." : "Tu possèdes cette canette ?"}</p>
           </div>
           <span className={qty > 0 ? "rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary" : "rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground"}>{qty > 0 ? "Possédée" : "Non possédée"}</span>
         </div>
-        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className="mt-3 h-11 w-full rounded-xl font-bold">
-          {qty > 0 ? "Retirer de mon coffre" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
+        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className={`mt-3 h-10 w-full rounded-xl text-sm font-semibold ${qty > 0 ? "border border-border/60 bg-transparent text-muted-foreground shadow-none hover:bg-muted/50" : ""}`}>
+          {qty > 0 ? "Retirer du mur" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
         </Button>
         <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -196,7 +196,7 @@ function CanPage() {
             Modifier
           </button>
         </div>
-        {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton coffre et tes Drinks.</p>}
+        {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton mur et tes Drinks.</p>}
       </div>
 
       <Dialog open={drinksOpen} onOpenChange={setDrinksOpen}>
