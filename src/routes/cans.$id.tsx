@@ -195,7 +195,7 @@ function CanPage() {
             <span className="text-sm">Drinks</span>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{canDrinks.data ?? 0}</span>
           </div>
-          <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground">
+          <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user} className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40">
             Modifier
           </button>
         </div>
