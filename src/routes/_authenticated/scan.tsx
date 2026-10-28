@@ -244,6 +244,9 @@ function Scanner() {
   const resetScanner = () => {
     busy.current = false;
     setFound(null);
+    setVisionResult(null);
+    setVisionError("");
+    setScanMode("vision");
     setUnknownBarcode("");
     setSubmitted(false);
     setManual("");
