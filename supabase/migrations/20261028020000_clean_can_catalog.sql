@@ -6,13 +6,22 @@ create table if not exists public.catalog_cleanup_archive (
   brand_name text,
   can_record jsonb not null,
   user_collection_records jsonb not null default '[]'::jsonb,
+  related_records jsonb not null default '{}'::jsonb,
   archived_at timestamptz not null default now()
 );
 revoke all on public.catalog_cleanup_archive from anon, authenticated, public;
 
 insert into public.catalog_cleanup_archive (can_id, can_name, brand_name, can_record, user_collection_records)
 select c.id, c.name, b.name, to_jsonb(c),
-  coalesce((select jsonb_agg(to_jsonb(uc)) from public.user_cans uc where uc.can_id = c.id), '[]'::jsonb)
+  coalesce((select jsonb_agg(to_jsonb(uc)) from public.user_cans uc where uc.can_id = c.id), '[]'::jsonb),
+  jsonb_build_object(
+    'comments', coalesce((select jsonb_agg(to_jsonb(cm)) from public.comments cm where cm.can_id = c.id), '[]'::jsonb),
+    'ratings', coalesce((select jsonb_agg(to_jsonb(r)) from public.ratings r where r.can_id = c.id), '[]'::jsonb),
+    'can_reports', coalesce((select jsonb_agg(to_jsonb(cr)) from public.can_reports cr where cr.can_id = c.id), '[]'::jsonb),
+    'user_can_drinks', case when to_regclass('public.user_can_drinks') is not null then
+      (select coalesce(jsonb_agg(to_jsonb(d)), '[]'::jsonb) from public.user_can_drinks d where d.can_id = c.id)
+      else '[]'::jsonb end
+  )
 from public.cans c left join public.brands b on b.id = c.brand_id
 where lower(trim(coalesce(b.name, ''))) not in ('monster', 'red bull')
   and not exists (select 1 from public.catalog_cleanup_archive archived where archived.can_id = c.id);
@@ -51,6 +60,7 @@ begin
   order by created_at asc nulls last, id limit 1;
 
   if ciao_brand is not null then
+    delete from public.can_models where brand_id = ciao_brand;
     if to_regclass('public.can_submissions') is not null then
       select is_nullable = 'YES' into brand_id_nullable
       from information_schema.columns where table_schema = 'public'
