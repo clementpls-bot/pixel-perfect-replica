@@ -126,7 +126,8 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
       brand_name: brandById.get(can.brand_id) ?? "Marque inconnue",
       model_name: can.model_id ? modelById.get(can.model_id) ?? null : null,
     }));
-    const confidence = Math.max(0, Math.min(1, Number(vision.confidence ?? 0)));
+    const rawConfidence = Number(vision.confidence ?? 0);
+    const confidence = Number.isFinite(rawConfidence) ? Math.max(0, Math.min(1, rawConfidence)) : 0;
     const best = ranked[0];
     const exactMatch = best && best.score >= 0.65 && confidence >= 0.78;
     return {
