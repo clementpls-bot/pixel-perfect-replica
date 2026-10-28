@@ -68,6 +68,18 @@ function Profile() {
     },
   });
 
+  const { data: drinkRows = [] } = useQuery({
+    queryKey: ["profile-drinks", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_can_drinks")
+        .select("can_id,drinks_count")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: gallery = [], isLoading: galleryLoading } = useQuery({
     queryKey: ["profile-gallery", user?.id],
     enabled: !!user,
@@ -133,6 +145,15 @@ function Profile() {
   });
   const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
   const sortedBrandStats = [...brandStats].sort((a, b) => (b.total ? b.have / b.total : 0) - (a.total ? a.have / a.total : 0) || b.have - a.have || a.name.localeCompare(b.name, "fr"));
+  const totalDrinks = drinkRows.reduce((sum, row) => sum + (row.drinks_count ?? 0), 0);
+  const drinksByBrand = new Map<string, number>();
+  for (const row of drinkRows) {
+    const can = data.cans.find((item) => item.id === row.can_id);
+    if (can) drinksByBrand.set(can.brand_id, (drinksByBrand.get(can.brand_id) ?? 0) + (row.drinks_count ?? 0));
+  }
+  const mostDrunkBrand = data.brands
+    .map((brand) => ({ ...brand, drinks: drinksByBrand.get(brand.id) ?? 0 }))
+    .sort((a, b) => b.drinks - a.drinks || a.name.localeCompare(b.name, "fr"))[0];
   const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
 
   const signOut = async () => {
@@ -237,6 +258,9 @@ function Profile() {
           ) : (
             <>
               <h1 className="break-words text-xl font-black">{profile?.username}</h1>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {totalDrinks} Drinks{totalDrinks > 0 && mostDrunkBrand?.drinks ? <> <span aria-hidden="true">·</span> Plus consommée : <span className="font-semibold" style={{ color: mostDrunkBrand.color }}>{mostDrunkBrand.name}</span></> : ""}
+              </p>
               <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 onClick={() => {
                   if (!canChangeUsername) {
@@ -252,8 +276,6 @@ function Profile() {
         </div>
         <Button size="icon" variant="ghost" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
       </header>
-      <p className="text-xs text-muted-foreground">Cliquez sur votre photo de profil pour la remplacer. JPG, PNG ou WebP · 5 Mo maximum.</p>
-
       {user?.app_metadata?.["role"] === "admin" && (
         <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
       )}
@@ -262,8 +284,6 @@ function Profile() {
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{ownedSet.size}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canettes différentes</p></div>
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{totalExemplaires}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nombre de canettes</p></div>
       </div>
-
-      {fav && fav.copies > 0 && <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4"><div><p className="text-xs text-muted-foreground">Boisson préférée</p><p className="font-bold" style={{ color: fav.color }}>{fav.name}</p></div><span className="text-xs text-muted-foreground">{fav.copies} exemplaire{fav.copies > 1 ? "s" : ""}</span></div>}
 
       <section className="rounded-2xl border bg-card px-4">
         <div className="flex items-center justify-between gap-3 py-4"><div><h2 className="font-bold">Galerie</h2><p className="text-xs text-muted-foreground">Vos photos de collection · {gallery.length}/12</p></div>
