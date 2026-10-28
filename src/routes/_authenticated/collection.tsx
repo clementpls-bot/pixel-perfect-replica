@@ -92,7 +92,6 @@ function Collection() {
                   style={{ background: `${brand?.color ?? "var(--color-muted)"}1f`, borderLeftColor: brand?.color ?? "var(--color-border)" }}
                 >
                   <p className="line-clamp-2 min-h-8 text-[11px] font-bold leading-tight">{c.name}</p>
-                  {c.variant_name !== "Standard" && <p className="truncate text-[10px] text-muted-foreground">{c.variant_name}</p>}
                 </div>
               </Link>
             );
