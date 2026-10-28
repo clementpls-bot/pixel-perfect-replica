@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Droplets, FlaskConical, PenLine, Plus, Star, Zap, Wine } from "lucide-react";
+import { ArrowLeft, Droplets, FlaskConical, PenLine, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -121,10 +121,14 @@ function CanPage() {
 
   const toggleOwnership = async () => {
     if (!user) { toast("Connecte-toi pour gérer ton mur."); return; }
+    if (qty === 0) {
+      toast("Pour ajouter cette canette, passe par le scanner.");
+      return;
+    }
     setSavingCollection(true);
     try {
-      await setCanOwned(can.id, qty === 0);
-      toast.success(qty === 0 ? "Canette ajoutée à ton mur." : "Canette retirée de ton mur.");
+      await setCanOwned(can.id, false);
+      toast.success("Canette retirée de ton mur.");
     } catch (error) {
       toast.error((error as Error).message || "Impossible de mettre à jour ton mur.");
     } finally {
@@ -193,9 +197,9 @@ function CanPage() {
           </div>
           <span className={qty > 0 ? "rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary" : "rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground"}>{qty > 0 ? "Possédée" : "Non possédée"}</span>
         </div>
-        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className={`mt-3 h-10 w-full rounded-xl text-sm font-semibold ${qty > 0 ? "border border-border/60 bg-transparent text-muted-foreground shadow-none hover:bg-muted/50" : ""}`}>
-          {qty > 0 ? "Retirer du mur" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
-        </Button>
+        {qty > 0
+          ? <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant="secondary" className="mt-3 h-10 w-full rounded-xl border border-border/60 bg-transparent text-sm font-semibold text-muted-foreground shadow-none hover:bg-muted/50">Retirer du mur</Button>
+          : <Link to="/scan" className="mt-3 flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Scanner pour ajouter au mur</Link>}
         <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Wine className="h-4 w-4" />
