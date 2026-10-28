@@ -192,9 +192,13 @@ function CanPage() {
             <span className="text-sm">Drinks</span>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{canDrinks.data ?? 0}</span>
           </div>
-          <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user} className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40">
-            Modifier
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user} className="rounded-full px-2 py-1 text-[11px] text-muted-foreground/75 transition hover:bg-muted hover:text-foreground disabled:opacity-40">Modifier</button>
+            <button type="button" onClick={() => void addDrink()} disabled={!user} aria-label="Dégoupiller une canette et ajouter un Drink" title="Dégoupiller une nouvelle canette" className="drink-tab-button inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-extrabold text-slate-800 shadow-sm transition active:scale-95 disabled:opacity-40">
+              <svg viewBox="0 0 32 32" aria-hidden="true" className="h-5 w-5 shrink-0"><circle cx="16" cy="16" r="14" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="1.8"/><path d="M12 8.5h8a3 3 0 0 1 3 3v2.2a3.3 3.3 0 0 1-3.3 3.3h-1.4l-2.8 6.1a1.8 1.8 0 0 1-3.3-1.4l2.1-4.7h-.8a3.5 3.5 0 0 1-3.5-3.5v-2a3 3 0 0 1 3-3Z" fill="currentColor" fillOpacity=".72"/><circle cx="12" cy="12" r="1.3" fill="white"/></svg>
+              +1 Drink
+            </button>
+          </div>
         </div>
         {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton mur et tes Drinks.</p>}
       </div>
