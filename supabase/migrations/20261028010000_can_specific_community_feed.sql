@@ -29,5 +29,27 @@ drop policy if exists "Users can delete their own community photos" on storage.o
 create policy "Users can delete their own community photos" on storage.objects for delete to authenticated
   using (bucket_id = 'community-posts' and (storage.foldername(name))[1] = (select auth.uid())::text);
 
+-- Replies must belong to the same can page as their parent comment.
+create or replace function public.validate_comment_parent_can()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if new.parent_id is not null and not exists (
+    select 1 from public.comments parent
+    where parent.id = new.parent_id and parent.can_id = new.can_id
+  ) then
+    raise exception 'A reply must belong to the same can as its parent comment';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists validate_comment_parent_can_on_comments on public.comments;
+create trigger validate_comment_parent_can_on_comments
+before insert or update of parent_id, can_id on public.comments
+for each row execute function public.validate_comment_parent_can();
+
 -- Existing comment_likes rows become upvotes; the can_id on every post remains mandatory.
 notify pgrst, 'reload schema';
