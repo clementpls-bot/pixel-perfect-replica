@@ -152,7 +152,7 @@ function AdminSubmissions() {
 
   const saveEdit = async (id: string) => {
     if (!draft || !user) return;
-    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && (!draft.new_brand_selected || draft.proposed_brand_name.trim().length < 2))) {
+    if (!draft.name.trim() || !/^\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && (!draft.new_brand_selected || draft.proposed_brand_name.trim().length < 2))) {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
       return;
     }
