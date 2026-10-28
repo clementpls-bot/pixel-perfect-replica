@@ -38,6 +38,7 @@ function Scanner() {
   const [visionError, setVisionError] = useState("");
   const [unknownVisual, setUnknownVisual] = useState(false);
   const [proposedBrandName, setProposedBrandName] = useState("");
+  const [newBrandSelected, setNewBrandSelected] = useState(false);
   const [selectedVisionCanId, setSelectedVisionCanId] = useState("");
   const [manual, setManual] = useState("");
   const [camError, setCamError] = useState(false);
@@ -146,7 +147,7 @@ function Scanner() {
     const vision = visionResult?.vision; if (!vision) return;
     const matchedBrand = data?.brands.find((brand) => brand.name.toLowerCase() === (vision.brand_name ?? "").toLowerCase());
     setName(vision.model_name || vision.brand_name || ""); setFlavour(vision.model_name || "");
-    setBrandId(matchedBrand?.id ?? ""); setProposedBrandName(matchedBrand ? "" : (vision.brand_name ?? ""));
+    setBrandId(matchedBrand?.id ?? ""); setProposedBrandName(matchedBrand ? "" : (vision.brand_name ?? "")); setNewBrandSelected(!matchedBrand);
     setVariantName(vision.variant_name ?? ""); setRegion(vision.region ?? "");
     setEditionType((vision.edition_type ?? "standard").toLowerCase().includes("limit") ? "limited" : (vision.edition_type ?? "standard").toLowerCase().includes("collab") ? "collab" : (vision.edition_type ?? "standard").toLowerCase().includes("import") ? "import" : "standard");
     setVolumeMl(vision.volume_ml ? String(vision.volume_ml) : ""); setReleaseYear(vision.release_year ? String(vision.release_year) : "");
@@ -194,7 +195,7 @@ function Scanner() {
       toast.error("Vérifie le code-barres : saisis de 8 à 14 chiffres.");
       return;
     }
-    if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
+    if (!brandId && (!newBrandSelected || proposedBrandName.trim().length < 2)) {\n      toast.error("Choisis une marque ou propose son nom.");\n      return;\n    }\n    if (catalogRef.current?.cans.some((can) => can.barcode === unknownBarcode)) {
       toast.error("Ce code-barres figure déjà dans le catalogue. Scanne-le à nouveau.");
       setUnknownBarcode("");
       return;
@@ -209,7 +210,7 @@ function Scanner() {
         barcode: unknownBarcode,
         name: name.trim(),
         brand_id: brandId || null,
-        proposed_brand_name: brandId ? null : proposedBrandName.trim(),
+        proposed_brand_name: brandId || !newBrandSelected ? null : proposedBrandName.trim(),
         flavour: flavour.trim() || null,
         release_year: releaseYear ? Number(releaseYear) : null,
         category,
@@ -243,7 +244,7 @@ function Scanner() {
     setSubmitted(false);
     setManual("");
     setName("");
-    setBrandId("");\n    setProposedBrandName("");\n    setUnknownVisual(false);
+    setBrandId("");\n    setProposedBrandName("");\n    setNewBrandSelected(false);\n    setUnknownVisual(false);
     setFlavour("");
     setReleaseYear("");
     setDescription("");
@@ -331,12 +332,12 @@ function Scanner() {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
-            <select id="proposal-brand" required value={brandId || (proposedBrandName ? "__new__" : "")} onChange={(e) => { if (e.target.value === "__new__") { setBrandId(""); setModelId(""); } else { setBrandId(e.target.value); setProposedBrandName(""); setModelId(""); } }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
+            <select id="proposal-brand" required value={brandId || (newBrandSelected ? "__new__" : "")} onChange={(e) => { if (e.target.value === "__new__") { setBrandId(""); setNewBrandSelected(true); setModelId(""); } else { setBrandId(e.target.value); setNewBrandSelected(false); setProposedBrandName(""); setModelId(""); } }} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm">
               <option value="">Choisir une marque</option>
               {data?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
               <option value="__new__">＋ Proposer une nouvelle marque…</option>
             </select>
-            {(!brandId || proposedBrandName) && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-12 rounded-xl" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
+            {newBrandSelected && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-12 rounded-xl" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
           </div>
           {brandId && (
             <div className="space-y-1.5">
