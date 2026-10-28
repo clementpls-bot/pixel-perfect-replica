@@ -39,7 +39,7 @@ function Brands() {
   if (error) return <div className="rounded-2xl border p-5 text-sm text-muted-foreground">Impossible de charger les marques pour le moment.</div>;
 
   return (
-    <div className="pb-8">
+    <div className="brands-page pb-8">
       <div className="mb-6">
         <p className="mb-1 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Ton univers de collection</p>
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Les marques</h1>
