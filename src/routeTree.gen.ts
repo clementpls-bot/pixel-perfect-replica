@@ -20,6 +20,7 @@ import { Route as BrandsIndexRouteImport } from './routes/brands.index'
 import { Route as BrandsSlugRouteImport } from './routes/brands.$slug'
 import { Route as CansIdRouteImport } from './routes/cans.$id'
 import { Route as ModelsIdRouteImport } from './routes/models.$id'
+import { Route as CommunityRouteImport } from './routes/community'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -71,6 +72,11 @@ const CansIdRoute = CansIdRouteImport.update({
   path: '/cans/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ModelsIdRoute = ModelsIdRouteImport.update({
   id: '/models/$id',
   path: '/models/$id',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
+  '/community': typeof CommunityRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
+  '/community': typeof CommunityRoute
   '/brands': typeof BrandsIndexRoute
 }
 export interface FileRoutesById {
@@ -162,6 +170,7 @@ export interface RootRouteChildren {
   BrandsSlugRoute: typeof BrandsSlugRoute
   CansIdRoute: typeof CansIdRoute
   ModelsIdRoute: typeof ModelsIdRoute
+  CommunityRoute: typeof CommunityRoute
   BrandsIndexRoute: typeof BrandsIndexRoute
 }
 
@@ -244,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -271,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrandsSlugRoute: BrandsSlugRoute,
   CansIdRoute: CansIdRoute,
   ModelsIdRoute: ModelsIdRoute,
+  CommunityRoute: CommunityRoute,
   BrandsIndexRoute: BrandsIndexRoute,
 }
 export const routeTree = rootRouteImport
