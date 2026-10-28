@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { MessageCircle, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useCatalog } from "@/lib/data";
+import { pastelCanColor } from "@/lib/can-colors";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +28,8 @@ function voteCounts(comment: CommunityComment) {
 
 export function CanCommunity({ canId, canName }: { canId: string; canName: string }) {
   const { user } = useAuth();
+  const { data: catalog } = useCatalog();
+  const canColor = pastelCanColor(catalog?.cans.find((can) => can.id === canId)?.color_primary);
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -89,7 +93,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     const counts = voteCounts(comment);
     const ownVote = comment.comment_likes.find((item) => item.user_id === user?.id)?.vote;
     return <article className={nested ? "ml-4 border-l-2 pl-3 sm:ml-7" : ""}>
-      <div className="rounded-2xl border bg-card p-3.5">
+      <div className="rounded-2xl border p-3.5" style={{ backgroundColor: canColor }}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link to="/users/$id" params={{ id: comment.user_id }} className="block truncate text-sm font-bold hover:text-primary hover:underline">{comment.profiles?.username ?? "Collectionneur"}</Link>
@@ -131,7 +135,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       <div><h2 className="font-display text-lg font-bold">Espace de la canette</h2><p className="mt-0.5 text-xs text-muted-foreground">Avis et échanges autour de ce design uniquement.</p></div>
       <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-bold tabular-nums">{comments.length}</span>
     </div>
-    {user ? <div className="mb-4 rounded-2xl border bg-card p-3">
+    {user ? <div className="mb-4 rounded-2xl border bg-card/80 p-3">
       {replyTo && <div className="mb-2 flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-xs"><span>Tu réponds à un commentaire</span><button type="button" onClick={() => setReplyTo(null)} aria-label="Annuler la réponse"><X className="h-4 w-4" /></button></div>}
       <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Un mot sur ${canName}…`} maxLength={1000} className="min-h-20 resize-y rounded-xl border-0 bg-muted/50 focus-visible:ring-1" />
       <div className="mt-3 flex items-center justify-between gap-2">
