@@ -23,38 +23,52 @@ function BrandPage() {
   const brand = data?.brands.find((b) => b.slug === slug);
   if (!data) return null;
   if (!brand) return <p>Marque introuvable.</p>;
-  const list = data.cans.filter((c) => c.brand_id === brand.id);
-  const n = list.filter((c) => owned?.has(c.id)).length;
-  const models = data.models.filter((m) => m.brand_id === brand.id)
-    .map((m) => ({ model: m, variants: list.filter((c) => c.model_id === m.id) }))
-    .filter((x) => x.variants.length > 0);
+
+  // Chaque canette est une pièce de collection indépendante, classée par son propre design.
+  const cans = data.cans
+    .filter((can) => can.brand_id === brand.id)
+    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const ownedCount = cans.filter((can) => owned?.has(can.id)).length;
 
   return (
     <div>
-      <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Marques</Link>
+      <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
+        <ArrowLeft className="h-4 w-4" />Marques
+      </Link>
       <div className="flex items-center gap-3">
         {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
         <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
       </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Variantes collectionnées" value={n} total={list.length} color={brand.color} />
+        <ProgressBar label="Canettes collectionnées" value={ownedCount} total={cans.length} color={brand.color} />
       </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-muted-foreground">{models.length} modèles</p>
-      <div className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-4">
-        {models.map(({ model, variants }) => {
-          const ownedCount = variants.filter((c) => owned?.has(c.id)).length;
-          const cover = variants.find((c) => owned?.has(c.id)) ?? variants[0]!;
-          return (
-            <Link key={model.id} to="/models/$id" params={{ id: model.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-95">
-              <CanArt can={cover} brandName={brand.name} missing={ownedCount === 0} className="max-w-[64px] group-hover:-translate-y-1" />
-              <p className={`mt-2 line-clamp-2 text-[11px] font-semibold leading-tight ${ownedCount ? "" : "text-muted-foreground"}`}>{model.name}</p>
-              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums ${ownedCount ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                {ownedCount}/{variants.length} {variants.length > 1 ? "variantes" : "variante"}
-              </span>
-            </Link>
-          );
-        })}
+      <div className="mt-5 flex items-end justify-between gap-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Les designs</p>
+        <p className="text-xs text-muted-foreground">{ownedCount}/{cans.length} canettes possédées</p>
       </div>
+      {cans.length === 0 ? (
+        <p className="mt-4 rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucune canette dans cette collection pour le moment.</p>
+      ) : (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {cans.map((can) => {
+            const has = owned?.has(can.id) ?? false;
+            const facts = [
+              can.volume_ml ? `${can.volume_ml} ml` : null,
+              can.region,
+              can.release_year,
+              can.flavour,
+            ].filter(Boolean);
+            return (
+              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-[0.98]">
+                <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[68px] group-hover:-translate-y-1" />
+                <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
+                {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
+                {has && <span className="mt-2 inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Possédée</span>}
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
