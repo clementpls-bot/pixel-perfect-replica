@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminSubmissionsRouteImport } from './routes/_authenticated/admin-submissions'
+import { Route as AuthenticatedAdminCansRouteImport } from './routes/_authenticated/admin-cans'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
@@ -36,6 +37,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminCansRoute = AuthenticatedAdminCansRouteImport.update({
+  id: '/admin-cans',
+  path: '/admin-cans',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminSubmissionsRoute =
   AuthenticatedAdminSubmissionsRouteImport.update({
@@ -92,6 +98,7 @@ const ModelsIdRoute = ModelsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin-cans': typeof AuthenticatedAdminCansRoute
   '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -122,6 +129,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin-cans': typeof AuthenticatedAdminCansRoute
   '/_authenticated/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -137,6 +145,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/admin-cans'
     | '/admin-submissions'
     | '/collection'
     | '/profile'
@@ -209,6 +218,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin-cans': {
+      id: '/_authenticated/admin-cans'
+      path: '/admin-cans'
+      fullPath: '/admin-cans'
+      preLoaderRoute: typeof AuthenticatedAdminCansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin-submissions': {
       id: '/_authenticated/admin-submissions'
@@ -284,6 +300,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminCansRoute: typeof AuthenticatedAdminCansRoute
   AuthenticatedAdminSubmissionsRoute: typeof AuthenticatedAdminSubmissionsRoute
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -291,6 +308,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminCansRoute: AuthenticatedAdminCansRoute,
   AuthenticatedAdminSubmissionsRoute: AuthenticatedAdminSubmissionsRoute,
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
