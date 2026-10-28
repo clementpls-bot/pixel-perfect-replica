@@ -15,6 +15,7 @@ type SubmissionDraft = {
   barcode: string;
   brand_id: string;
   proposed_brand_name: string;
+  new_brand_selected: boolean;
   model_id: string;
   variant_name: string;
   region: string;
@@ -121,6 +122,7 @@ function AdminSubmissions() {
       barcode: item.barcode,
       brand_id: item.brand_id ?? "",
       proposed_brand_name: item.proposed_brand_name ?? "",
+      new_brand_selected: !item.brand_id,
       model_id: item.model_id ?? "",
       variant_name: item.variant_name ?? "",
       region: item.region ?? "",
@@ -150,7 +152,7 @@ function AdminSubmissions() {
 
   const saveEdit = async (id: string) => {
     if (!draft || !user) return;
-    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && draft.proposed_brand_name.trim().length < 2)) {
+    if (!draft.name.trim() || !/^\\d{8,14}$/.test(draft.barcode) || (!draft.brand_id && (!draft.new_brand_selected || draft.proposed_brand_name.trim().length < 2))) {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
       return;
     }
@@ -326,8 +328,8 @@ function AdminSubmissions() {
               {editing && draft ? <div className="grid gap-3 border-t p-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium">Nom<input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Code-barres<input value={draft.barcode} onChange={(e) => setDraft({ ...draft, barcode: e.target.value })} inputMode="numeric" className="h-10 w-full rounded-lg border bg-background px-3 font-mono" /></label>
-                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id || (draft.proposed_brand_name ? "__new__" : "")} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value === "__new__" ? "" : e.target.value, proposed_brand_name: e.target.value === "__new__" ? draft.proposed_brand_name : "", model_id: "" })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Choisir une marque</option>{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}<option value="__new__">＋ Nouvelle marque proposée</option></select></label>
-                {!draft.brand_id && <label className="space-y-1 text-sm font-medium">Nom de la nouvelle marque<input value={draft.proposed_brand_name} onChange={(e) => setDraft({ ...draft, proposed_brand_name: e.target.value })} maxLength={100} className="h-10 w-full rounded-lg border bg-background px-3" /></label>}
+                <label className="space-y-1 text-sm font-medium">Marque<select value={draft.brand_id || (draft.new_brand_selected ? "__new__" : "")} onChange={(e) => setDraft({ ...draft, brand_id: e.target.value === "__new__" ? "" : e.target.value, new_brand_selected: e.target.value === "__new__", proposed_brand_name: e.target.value === "__new__" ? draft.proposed_brand_name : "", model_id: "" })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Choisir une marque</option>{catalog?.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}<option value="__new__">＋ Nouvelle marque proposée</option></select></label>
+                {draft.new_brand_selected && <label className="space-y-1 text-sm font-medium">Nom de la nouvelle marque<input value={draft.proposed_brand_name} onChange={(e) => setDraft({ ...draft, proposed_brand_name: e.target.value })} maxLength={100} className="h-10 w-full rounded-lg border bg-background px-3" /></label>}
                 {draft.brand_id && <label className="space-y-1 text-sm font-medium">Modèle<select value={draft.model_id} onChange={(e) => setDraft({ ...draft, model_id: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="">Nouveau modèle / sans modèle</option>{catalog?.models.filter((model) => model.brand_id === draft.brand_id).map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}</select></label>}
                 <label className="space-y-1 text-sm font-medium">Nom de la variante / design<input value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} maxLength={120} className="h-10 w-full rounded-lg border bg-background px-3" /></label>
                 <label className="space-y-1 text-sm font-medium">Type d’édition<select value={draft.edition_type} onChange={(e) => setDraft({ ...draft, edition_type: e.target.value })} className="h-10 w-full rounded-lg border bg-background px-3"><option value="standard">Standard</option><option value="limited">Édition limitée</option><option value="collab">Collab</option><option value="import">Import</option><option value="redesign">Redesign</option></select></label>
