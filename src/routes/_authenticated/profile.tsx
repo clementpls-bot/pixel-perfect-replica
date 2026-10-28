@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, LogOut, Pencil, X } from "lucide-react";
+import { Camera, Check, LogOut, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -10,6 +10,7 @@ import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -36,6 +37,8 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
+  const [deletingComment, setDeletingComment] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -141,6 +144,28 @@ function Profile() {
       toast.error((error as Error).message || "Impossible de mettre à jour le nom d’utilisateur.");
     } finally {
       setSavingUsername(false);
+    }
+  };
+
+  const deleteComment = async () => {
+    if (!user || !commentToDelete) return;
+    setDeletingComment(true);
+    try {
+      const { error } = await supabase.from("comments")
+        .delete().eq("id", commentToDelete.id).eq("user_id", user.id);
+      if (error) throw error;
+      const deletedCanId = commentToDelete.can_id;
+      setCommentToDelete(null);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["my-comments", user.id] }),
+        qc.invalidateQueries({ queryKey: ["comments", deletedCanId] }),
+        qc.invalidateQueries({ queryKey: ["community-feed"] }),
+      ]);
+      toast.success("Commentaire supprimé.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de supprimer ce commentaire.");
+    } finally {
+      setDeletingComment(false);
     }
   };
 
@@ -272,6 +297,10 @@ function Profile() {
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{new Date(comment.created_at).toLocaleDateString()}</span>
                     {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">Sur {can.name} →</Link> : <span>Canette</span>}
+                    <Button type="button" variant="ghost" size="sm" className="h-8 rounded-lg px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setCommentToDelete({ id: comment.id, can_id: comment.can_id, body: comment.body })}>
+                      <Trash2 className="mr-1 h-3.5 w-3.5" /> Supprimer
+                    </Button>
                   </div>
                 </article>
               );
@@ -279,6 +308,21 @@ function Profile() {
           </div>
         )}
       </section>
+      <Dialog open={!!commentToDelete} onOpenChange={(open) => { if (!open && !deletingComment) setCommentToDelete(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer ce commentaire ?</DialogTitle>
+            <DialogDescription>Cette action est définitive. Le commentaire sera retiré de l’espace communautaire.</DialogDescription>
+          </DialogHeader>
+          {commentToDelete?.body?.trim() && <p className="max-h-32 overflow-y-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-3 text-sm">{commentToDelete.body}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setCommentToDelete(null)} disabled={deletingComment}>Annuler</Button>
+            <Button type="button" variant="destructive" onClick={() => void deleteComment()} disabled={deletingComment}>
+              {deletingComment ? "Suppression…" : "Supprimer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
