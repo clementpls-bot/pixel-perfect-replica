@@ -20,7 +20,7 @@ select c.id, c.name, b.name, to_jsonb(c),
     'can_reports', coalesce((select jsonb_agg(to_jsonb(cr)) from public.can_reports cr where cr.can_id = c.id), '[]'::jsonb)
   )
 from public.cans c left join public.brands b on b.id = c.brand_id
-where lower(trim(coalesce(b.name, ''))) not in ('monster', 'red bull')
+where lower(trim(coalesce(b.name, ''))) not in ('monster', 'monster energy', 'red bull', 'redbull')
   and not exists (select 1 from public.catalog_cleanup_archive archived where archived.can_id = c.id);
 
 -- Add optional Drinks rows to the archive without assuming every environment has that table.
@@ -40,7 +40,7 @@ end $;
 
 -- Only Monster and Red Bull can designs remain in the active catalogue.
 delete from public.cans c using public.brands b
-where b.id = c.brand_id and lower(trim(b.name)) not in ('monster', 'red bull');
+where b.id = c.brand_id and lower(trim(b.name)) not in ('monster', 'monster energy', 'red bull', 'redbull');
 
 -- Keep the oldest Burn brand row and move known foreign keys before deleting duplicates.
 do $$
@@ -59,6 +59,11 @@ begin
       where lower(trim(name)) = 'burn' and id <> keep_burn
     loop
       update public.cans set brand_id = keep_burn where brand_id = duplicate_burn.id;
+      delete from public.can_models duplicate_model
+      using public.can_models kept_model
+      where duplicate_model.brand_id = duplicate_burn.id
+        and kept_model.brand_id = keep_burn
+        and kept_model.slug = duplicate_model.slug;
       update public.can_models set brand_id = keep_burn where brand_id = duplicate_burn.id;
       if to_regclass('public.can_submissions') is not null then
         update public.can_submissions set brand_id = keep_burn where brand_id = duplicate_burn.id;
