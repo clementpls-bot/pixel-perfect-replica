@@ -34,7 +34,7 @@ create or replace function public.validate_comment_parent_can()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $validate_comment_parent_can$
 begin
   if new.parent_id is not null and not exists (
     select 1 from public.comments parent
@@ -43,8 +43,8 @@ begin
     raise exception 'A reply must belong to the same can as its parent comment';
   end if;
   return new;
-end;
-$;
+end
+$validate_comment_parent_can$;
 
 drop trigger if exists validate_comment_parent_can_on_comments on public.comments;
 create trigger validate_comment_parent_can_on_comments
