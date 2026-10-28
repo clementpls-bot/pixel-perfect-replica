@@ -31,7 +31,7 @@ function BrandPage() {
   const ownedCount = cans.filter((can) => owned?.has(can.id)).length;
 
   return (
-    <div>
+    <div className="brand-detail-page">
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" />Marques
       </Link>
