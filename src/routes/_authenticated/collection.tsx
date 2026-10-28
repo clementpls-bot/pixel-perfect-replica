@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Store } from "lucide-react";
-import { CONDITIONS, useCatalog, useOwned, useOwnedByCondition } from "@/lib/data";
+import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 
@@ -19,14 +19,11 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  const { data: byCondition } = useOwnedByCondition();
   if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ta collection…</p>;
 
   const mine = data.cans
     .filter((can) => owned.has(can.id))
     .sort((a, b) => {
-      const q = (owned.get(b.id) ?? 0) - (owned.get(a.id) ?? 0);
-      if (q !== 0) return q;
       const bd = (data.brands.find((x) => x.id === a.brand_id)?.name ?? "")
         .localeCompare(data.brands.find((x) => x.id === b.brand_id)?.name ?? "");
       return bd || a.name.localeCompare(b.name);
@@ -74,7 +71,6 @@ function Collection() {
       ) : (
         <div className="mt-5 grid grid-cols-3 gap-3">
           {mine.map((c, i) => {
-            const quantity = owned.get(c.id) ?? 0;
             const brand = data.brands.find((b) => b.id === c.brand_id);
             return (
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
@@ -86,7 +82,6 @@ function Collection() {
                       ? <img src={brand.logo_url} alt={`Logo ${brand.name}`} className="h-6 w-6 object-contain" />
                       : <span className="text-xs font-black" style={{ color: brand?.color }}>{brand?.name.slice(0, 2).toUpperCase()}</span>}
                   </div>
-                  <span className="rounded-full bg-success px-1.5 py-1 text-[10px] font-black tabular-nums text-success-foreground shadow-sm">×{quantity}</span>
                 </div>
                 <div className="py-2">
                   <CanArt can={c} brandName={brand?.name} className="max-w-[64px] transition-transform duration-500 group-hover:scale-105" />
@@ -98,7 +93,6 @@ function Collection() {
                 >
                   <p className="line-clamp-2 min-h-8 text-[11px] font-bold leading-tight">{c.name}</p>
                   {c.variant_name !== "Standard" && <p className="truncate text-[10px] text-muted-foreground">{c.variant_name}</p>}
-                  <p className="truncate text-[9px] text-muted-foreground">{CONDITIONS.filter((x) => byCondition?.get(c.id)?.[x.value]).map((x) => x.label.split(",")[0]).join(" · ")}</p>
                 </div>
               </Link>
             );
