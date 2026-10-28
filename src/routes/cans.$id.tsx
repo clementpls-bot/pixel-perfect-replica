@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, Droplets, FlaskConical, Heart, Minus, Plus, Star, Zap } from "lucide-react";
+import { ArrowLeft, Droplets, FlaskConical, Heart, PenLine, Plus, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { CONDITIONS, EDITION_LABELS, useAdjustCanQuantity, useCatalog, useOwned, useOwnedByCondition, type CanCondition } from "@/lib/data";
+import { EDITION_LABELS, useCanDrinks, useCatalog, useOwned, useSetCanDrinks, useSetCanOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,9 +31,13 @@ function CanPage() {
   const { user } = useAuth();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  const { data: byCondition } = useOwnedByCondition();
-  const adjustCanQuantity = useAdjustCanQuantity();
+  const canDrinks = useCanDrinks(id);
+  const setCanDrinks = useSetCanDrinks();
+  const setCanOwned = useSetCanOwned();
   const [reportOpen, setReportOpen] = useState(false);
+  const [drinksOpen, setDrinksOpen] = useState(false);
+  const [drinksDraft, setDrinksDraft] = useState("0");
+  const [savingCollection, setSavingCollection] = useState(false);
   const [reportCategory, setReportCategory] = useState("name");
   const [reportValue, setReportValue] = useState("");
   const [reportDetails, setReportDetails] = useState("");
@@ -115,18 +119,32 @@ function CanPage() {
 
   const model = data.models.find((m) => m.id === can.model_id);
   const siblings = data.cans.filter((c) => c.model_id && c.model_id === can.model_id && c.id !== can.id);
-  const conditionQty = byCondition?.get(can.id) ?? {};
+  const toggleOwnership = async () => {
+    if (!user) { toast("Connecte-toi pour gérer ton coffre."); return; }
+    setSavingCollection(true);
+    try {
+      await setCanOwned(can.id, qty === 0);
+      toast.success(qty === 0 ? "Canette ajoutée à ton coffre." : "Canette retirée de ton coffre.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de mettre à jour ton coffre.");
+    } finally {
+      setSavingCollection(false);
+    }
+  };
 
-  const changeQty = async (d: 1 | -1, condition: CanCondition = "full") => {
-    if (!user) { toast("Connecte-toi pour collectionner."); return; }
-    if (qty === 0) {
-      toast("Scanne d’abord cette canette avec la caméra pour la débloquer.");
+  const saveDrinks = async () => {
+    if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
+    const count = Number(drinksDraft);
+    if (!Number.isInteger(count) || count < 0 || count > 100000) {
+      toast.error("Saisis un nombre entier positif.");
       return;
     }
     try {
-      await adjustCanQuantity(can.id, d, condition);
+      await setCanDrinks(can.id, count);
+      setDrinksOpen(false);
+      toast.success("Drinks mis à jour.");
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error((error as Error).message || "Impossible d’enregistrer les Drinks.");
     }
   };
 
@@ -160,31 +178,44 @@ function CanPage() {
         {can.release_year && <span>{can.release_year}</span>}
       </div>
 
-      <div className="mt-4 rounded-2xl border bg-card p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold">Dans ton coffre</span>
-          <span className="font-display text-lg font-black tabular-nums">×{qty}</span>
-        </div>
-        {qty === 0 ? (
-          <Link to="/scan" className="mt-3 block"><Button className="w-full rounded-xl font-bold"><Plus />Scanner pour débloquer ce design</Button></Link>
-        ) : (
-          <div className="mt-2 space-y-2">
-            {CONDITIONS.map(({ value, label }) => {
-              const n = conditionQty[value] ?? 0;
-              return (
-                <div key={value} className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-1.5">
-                  <span className="text-xs font-medium">{label}</span>
-                  <div className="flex items-center gap-2">
-                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" disabled={n === 0} aria-label={`Retirer une canette ${label}`} onClick={() => void changeQty(-1, value)}><Minus /></Button>
-                    <span className="w-5 text-center text-sm font-black tabular-nums">{n}</span>
-                    <Button size="icon" className="h-8 w-8 rounded-full" aria-label={`Ajouter une canette ${label}`} onClick={() => void changeQty(1, value)}><Plus /></Button>
-                  </div>
-                </div>
-              );
-            })}
+      <div className="mt-4 rounded-2xl border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold">Mon coffre</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{qty > 0 ? "Cette canette fait partie de ta collection." : "Tu possèdes cette canette ?"}</p>
           </div>
-        )}
+          <span className={qty > 0 ? "rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary" : "rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground"}>{qty > 0 ? "Possédée" : "Non possédée"}</span>
+        </div>
+        <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant={qty > 0 ? "secondary" : "default"} className="mt-3 h-11 w-full rounded-xl font-bold">
+          {qty > 0 ? "Retirer de mon coffre" : <><Plus className="mr-2 h-4 w-4" />Je possède cette canette</>}
+        </Button>
+        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Wine className="h-4 w-4" />
+            <span className="text-sm">Drinks</span>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{canDrinks.data ?? 0}</span>
+          </div>
+          <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            Modifier
+          </button>
+        </div>
+        {!user && <p className="mt-2 text-xs text-muted-foreground">Connecte-toi pour gérer ton coffre et tes Drinks.</p>}
       </div>
+
+      <Dialog open={drinksOpen} onOpenChange={setDrinksOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mes Drinks</DialogTitle>
+            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ta collection.</DialogDescription>
+          </DialogHeader>
+          <label htmlFor="can-drinks-count" className="text-sm font-medium">Nombre de Drinks</label>
+          <Input id="can-drinks-count" type="number" min={0} max={100000} step={1} value={drinksDraft} onChange={(e) => setDrinksDraft(e.target.value)} className="h-12 rounded-xl" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDrinksOpen(false)}>Annuler</Button>
+            <Button onClick={() => void saveDrinks()}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {siblings.length > 0 && (
         <section className="mt-5">
@@ -244,7 +275,7 @@ function CanPage() {
 
       <div className="mt-5 flex justify-end">
         <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <AlertTriangle className="h-3.5 w-3.5" /> Contribuez à enrichir les informations
+          <PenLine className="h-3.5 w-3.5" /> Contribuer aux informations
         </button>
       </div>
 
