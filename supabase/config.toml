@@ -1,7 +1,4 @@
 project_id = "illepqwnragqmgkwehdp"
 
-[functions.moderate-community-post]
-verify_jwt = true
-
 [functions.publish-community-post]
 verify_jwt = true
