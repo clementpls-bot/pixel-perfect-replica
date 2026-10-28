@@ -15,6 +15,13 @@
       "when": 1793090200647,
       "tag": "0001_restore_brand_logos_and_profile_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793175420900,
+      "tag": "0002_can_models_and_variants",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Store } from "lucide-react";
-import { useCatalog, useOwned } from "@/lib/data";
+import { CONDITIONS, useCatalog, useOwned, useOwnedByCondition } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +19,8 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
-  if (!data || !owned) return null;
+  const { data: byCondition } = useOwnedByCondition();
+  if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ta collection…</p>;
 
   const mine = data.cans
     .filter((can) => owned.has(can.id))
@@ -38,7 +39,7 @@ function Collection() {
         <div>
           <h1 className="text-2xl font-black">Ma collection</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mine.length} {mine.length === 1 ? "canette" : "canettes"} dans la collection
+            {mine.length} {mine.length === 1 ? "design" : "designs"} dans ton coffre
           </p>
         </div>
         <Link
@@ -96,6 +97,8 @@ function Collection() {
                   style={{ background: `${brand?.color ?? "var(--color-muted)"}1f`, borderLeftColor: brand?.color ?? "var(--color-border)" }}
                 >
                   <p className="line-clamp-2 min-h-8 text-[11px] font-bold leading-tight">{c.name}</p>
+                  {c.variant_name !== "Standard" && <p className="truncate text-[10px] text-muted-foreground">{c.variant_name}</p>}
+                  <p className="truncate text-[9px] text-muted-foreground">{CONDITIONS.filter((x) => byCondition?.get(c.id)?.[x.value]).map((x) => x.label.split(",")[0]).join(" · ")}</p>
                 </div>
               </Link>
             );

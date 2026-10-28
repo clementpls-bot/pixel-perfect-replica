@@ -5,7 +5,7 @@ import { AlertTriangle, ArrowLeft, Droplets, FlaskConical, Heart, Minus, Plus, S
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useAdjustCanQuantity, useCatalog, useOwned } from "@/lib/data";
+import { CONDITIONS, EDITION_LABELS, useAdjustCanQuantity, useCatalog, useOwned, useOwnedByCondition, type CanCondition } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ function CanPage() {
   const { user } = useAuth();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  const { data: byCondition } = useOwnedByCondition();
   const adjustCanQuantity = useAdjustCanQuantity();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportCategory, setReportCategory] = useState("name");
@@ -112,14 +113,18 @@ function CanPage() {
     }
   };
 
-  const changeQty = async (d: 1 | -1) => {
+  const model = data.models.find((m) => m.id === can.model_id);
+  const siblings = data.cans.filter((c) => c.model_id && c.model_id === can.model_id && c.id !== can.id);
+  const conditionQty = byCondition?.get(can.id) ?? {};
+
+  const changeQty = async (d: 1 | -1, condition: CanCondition = "full") => {
     if (!user) { toast("Connecte-toi pour collectionner."); return; }
     if (qty === 0) {
       toast("Scanne d’abord cette canette avec la caméra pour la débloquer.");
       return;
     }
     try {
-      await adjustCanQuantity(can.id, d);
+      await adjustCanQuantity(can.id, d, condition);
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -127,13 +132,22 @@ function CanPage() {
 
   return (
     <div>
-      <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
+      {model
+        ? <Link to="/models/$id" params={{ id: model.id }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name} · {model.name}</Link>
+        : <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>}
       <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
         <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
         {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore collectionnée</p>}
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
       <h1 className="text-2xl font-black">{can.name}</h1>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-bold text-primary">{can.variant_name}</span>
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{EDITION_LABELS[can.edition_type] ?? can.edition_type}</span>
+        {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
+        {can.region && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.region}</span>}
+        {can.tab_color && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">Languette {can.tab_color}</span>}
+      </div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
         <span>Design : <strong className="text-foreground">{designSummary.average}/5</strong>{designSummary.count > 0 ? ` · ${designSummary.count} avis` : " · aucun avis"}</span>
         <span>Goût : <strong className="text-foreground">{tasteSummary.average}/5</strong>{tasteSummary.count > 0 ? ` · ${tasteSummary.count} avis` : " · aucun avis"}</span>
@@ -146,14 +160,45 @@ function CanPage() {
         {can.release_year && <span>{can.release_year}</span>}
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-2xl border bg-card p-3">
-        <span className="text-sm font-semibold">Dans ta collection</span>
-        <div className="flex items-center gap-3">
-          <Button size="icon" variant="secondary" className="rounded-full" disabled={qty === 0} aria-label="Diminuer la quantité" onClick={() => void changeQty(-1)}><Minus /></Button>
-          <span className="w-6 text-center font-display text-lg font-black tabular-nums">{qty}</span>
-          {qty === 0 ? <Link to="/scan"><Button size="icon" className="rounded-full" aria-label="Scanner pour débloquer cette canette"><Plus /></Button></Link> : <Button size="icon" className="rounded-full" aria-label="Augmenter la quantité" onClick={() => void changeQty(1)}><Plus /></Button>}
+      <div className="mt-4 rounded-2xl border bg-card p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold">Dans ton coffre</span>
+          <span className="font-display text-lg font-black tabular-nums">×{qty}</span>
         </div>
+        {qty === 0 ? (
+          <Link to="/scan" className="mt-3 block"><Button className="w-full rounded-xl font-bold"><Plus />Scanner pour débloquer ce design</Button></Link>
+        ) : (
+          <div className="mt-2 space-y-2">
+            {CONDITIONS.map(({ value, label }) => {
+              const n = conditionQty[value] ?? 0;
+              return (
+                <div key={value} className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-1.5">
+                  <span className="text-xs font-medium">{label}</span>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" disabled={n === 0} aria-label={`Retirer une canette ${label}`} onClick={() => void changeQty(-1, value)}><Minus /></Button>
+                    <span className="w-5 text-center text-sm font-black tabular-nums">{n}</span>
+                    <Button size="icon" className="h-8 w-8 rounded-full" aria-label={`Ajouter une canette ${label}`} onClick={() => void changeQty(1, value)}><Plus /></Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {siblings.length > 0 && (
+        <section className="mt-5">
+          <h2 className="mb-2 text-sm font-bold">Autres designs de ce modèle</h2>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {siblings.map((c) => (
+              <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="w-24 shrink-0 rounded-2xl border bg-card p-2 text-center">
+                <CanArt can={c} brandName={brand?.name} missing={!owned?.has(c.id)} className="max-w-[48px]" />
+                <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-tight">{c.variant_name}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {can.description?.trim() && <p className="mt-5 leading-relaxed">{can.description}</p>}
 

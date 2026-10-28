@@ -9,6 +9,21 @@ export type Can = {
   image_url: string | null; color_primary: string; color_secondary: string; category: string;
   caffeine_mg_per_100ml: number | null; sugar_g_per_100ml: number | null; taurine_mg_per_100ml: number | null;
   energy_kcal_per_100ml: number | null; volume_ml: number | null; history_verified: boolean;
+  model_id: string | null; variant_name: string; region: string | null; edition_type: string;
+  tab_color: string | null; notes: string | null;
+};
+export type CanModel = {
+  id: string; brand_id: string; slug: string; name: string; flavour: string | null;
+  description: string | null; cover_image_url: string | null;
+};
+export type CanCondition = "full" | "empty" | "empty_bottom_opened";
+export const CONDITIONS: { value: CanCondition; label: string }[] = [
+  { value: "full", label: "Pleine" },
+  { value: "empty", label: "Vide" },
+  { value: "empty_bottom_opened", label: "Vide, percée par le bas" },
+];
+export const EDITION_LABELS: Record<string, string> = {
+  standard: "Standard", limited: "Édition limitée", collab: "Collab", import: "Import", redesign: "Redesign",
 };
 
 export function useCatalog() {
@@ -16,13 +31,15 @@ export function useCatalog() {
     queryKey: ["catalog"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const [b, c] = await Promise.all([
+      const [b, c, m] = await Promise.all([
         supabase.from("brands").select("id,slug,name,color,logo_url").order("name"),
         supabase.from("cans").select("*").order("release_year"),
+        supabase.from("can_models").select("id,brand_id,slug,name,flavour,description,cover_image_url").order("name"),
       ]);
       if (b.error) throw b.error;
       if (c.error) throw c.error;
-      return { brands: b.data as unknown as Brand[], cans: c.data as Can[] };
+      if (m.error) throw m.error;
+      return { brands: b.data as unknown as Brand[], cans: c.data as unknown as Can[], models: m.data as CanModel[] };
     },
   });
 }
@@ -33,11 +50,40 @@ export function useOwned() {
     queryKey: ["owned", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("user_cans").select("can_id,quantity,first_scanned_at");
+      const { data, error } = await supabase.from("user_cans").select("can_id,quantity,condition");
       if (error) throw error;
-      return new Map(data.map((r) => [r.can_id, r.quantity]));
+      const totals = new Map<string, number>();
+      for (const r of data) totals.set(r.can_id, (totals.get(r.can_id) ?? 0) + r.quantity);
+      return totals;
     },
   });
+}
+
+/** Quantity owned per design variant and per condition. */
+export function useOwnedByCondition() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["owned-conditions", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_cans").select("can_id,quantity,condition");
+      if (error) throw error;
+      const map = new Map<string, Partial<Record<CanCondition, number>>>();
+      for (const r of data) {
+        const entry = map.get(r.can_id) ?? {};
+        entry[r.condition as CanCondition] = r.quantity;
+        map.set(r.can_id, entry);
+      }
+      return map;
+    },
+  });
+}
+
+function invalidateOwned(qc: ReturnType<typeof useQueryClient>, userId: string) {
+  return Promise.all([
+    qc.invalidateQueries({ queryKey: ["owned", userId] }),
+    qc.invalidateQueries({ queryKey: ["owned-conditions", userId] }),
+  ]);
 }
 
 /** Scanning unlocks a can once; scanning it again never increases its quantity. */
@@ -47,49 +93,52 @@ export function useAddCan() {
   return async (canId: string) => {
     if (!user) throw new Error("Connecte-toi d’abord.");
     const { data: existing, error: lookupError } = await supabase
-      .from("user_cans").select("id").eq("can_id", canId).maybeSingle();
+      .from("user_cans").select("id").eq("can_id", canId).limit(1).maybeSingle();
     if (lookupError) throw lookupError;
     if (existing) return false;
 
     const { error } = await supabase.from("user_cans").insert({
-      can_id: canId, user_id: user.id, quantity: 1,
+      can_id: canId, user_id: user.id, quantity: 1, condition: "full",
     });
     // A concurrent scan may have inserted the same can. Don't turn it into a quantity increment.
     if (error) {
       if (error.code === "23505") {
-        await qc.invalidateQueries({ queryKey: ["owned", user.id] });
+        await invalidateOwned(qc, user.id);
         return false;
       }
       throw error;
     }
-    await qc.invalidateQueries({ queryKey: ["owned", user.id] });
+    await invalidateOwned(qc, user.id);
     return true;
   };
 }
 
-/** Quantity changes are available only after a can has been unlocked by scanning. */
+/** Quantity changes per condition are available only after a variant has been unlocked by scanning. */
 export function useAdjustCanQuantity() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  return async (canId: string, delta: 1 | -1) => {
-    if (!user) throw new Error("Sign in first");
-    const { data: existing, error: lookupError } = await supabase
-      .from("user_cans").select("id,quantity").eq("can_id", canId).maybeSingle();
+  return async (canId: string, delta: 1 | -1, condition: CanCondition = "full") => {
+    if (!user) throw new Error("Connecte-toi d’abord.");
+    const { data: rows, error: lookupError } = await supabase
+      .from("user_cans").select("id,quantity,condition").eq("can_id", canId);
     if (lookupError) throw lookupError;
-    if (!existing) throw new Error("Scanne d’abord cette canette pour l’ajouter à ta collection.");
+    if (!rows || rows.length === 0) throw new Error("Scanne d’abord cette canette pour l’ajouter à ta collection.");
+    const row = rows.find((r) => r.condition === condition);
 
     if (delta === 1) {
-      const { error } = await supabase.from("user_cans")
-        .update({ quantity: existing.quantity + 1 }).eq("id", existing.id);
+      const { error } = row
+        ? await supabase.from("user_cans").update({ quantity: row.quantity + 1 }).eq("id", row.id)
+        : await supabase.from("user_cans").insert({ can_id: canId, user_id: user.id, quantity: 1, condition });
       if (error) throw error;
-    } else if (existing.quantity <= 1) {
-      const { error } = await supabase.from("user_cans").delete().eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("user_cans")
-        .update({ quantity: existing.quantity - 1 }).eq("id", existing.id);
-      if (error) throw error;
+    } else if (row) {
+      if (row.quantity <= 1) {
+        const { error } = await supabase.from("user_cans").delete().eq("id", row.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("user_cans").update({ quantity: row.quantity - 1 }).eq("id", row.id);
+        if (error) throw error;
+      }
     }
-    await qc.invalidateQueries({ queryKey: ["owned", user.id] });
+    await invalidateOwned(qc, user.id);
   };
 }

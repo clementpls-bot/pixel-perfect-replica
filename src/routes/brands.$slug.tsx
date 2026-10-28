@@ -25,6 +25,9 @@ function BrandPage() {
   if (!brand) return <p>Marque introuvable.</p>;
   const list = data.cans.filter((c) => c.brand_id === brand.id);
   const n = list.filter((c) => owned?.has(c.id)).length;
+  const models = data.models.filter((m) => m.brand_id === brand.id)
+    .map((m) => ({ model: m, variants: list.filter((c) => c.model_id === m.id) }))
+    .filter((x) => x.variants.length > 0);
 
   return (
     <div>
@@ -34,15 +37,20 @@ function BrandPage() {
         <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
       </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Canettes collectionnées" value={n} total={list.length} color={brand.color} />
+        <ProgressBar label="Variantes collectionnées" value={n} total={list.length} color={brand.color} />
       </div>
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {list.map((c) => {
-          const has = owned?.has(c.id);
+      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-muted-foreground">{models.length} modèles</p>
+      <div className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-4">
+        {models.map(({ model, variants }) => {
+          const ownedCount = variants.filter((c) => owned?.has(c.id)).length;
+          const cover = variants.find((c) => owned?.has(c.id)) ?? variants[0];
           return (
-            <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-95">
-              <CanArt can={c} brandName={brand.name} missing={!has} className="max-w-[64px] group-hover:-translate-y-1" />
-              <p className={`mt-2 line-clamp-2 text-[11px] font-semibold leading-tight ${has ? "" : "text-muted-foreground"}`}>{c.name}</p>
+            <Link key={model.id} to="/models/$id" params={{ id: model.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-95">
+              <CanArt can={cover} brandName={brand.name} missing={ownedCount === 0} className="max-w-[64px] group-hover:-translate-y-1" />
+              <p className={`mt-2 line-clamp-2 text-[11px] font-semibold leading-tight ${ownedCount ? "" : "text-muted-foreground"}`}>{model.name}</p>
+              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums ${ownedCount ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
+                {ownedCount}/{variants.length} {variants.length > 1 ? "variantes" : "variante"}
+              </span>
             </Link>
           );
         })}
