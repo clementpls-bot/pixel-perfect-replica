@@ -40,7 +40,7 @@ function CommunityFeedPage() {
   const canMap = new Map((rows?.cans ?? []).map((can) => [can.id, can]));
   const brandMap = new Map((rows?.brands ?? []).map((brand) => [brand.id, brand]));
 
-  return <div className="space-y-5">
+  return <div className="community-page space-y-5">
     <header className="pt-1">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Cansdex · Communauté</p>
       <h1 className="mt-1 text-2xl font-black">Les dernières publications</h1>
@@ -49,7 +49,7 @@ function CommunityFeedPage() {
     {posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
       : posts.error ? <p className="rounded-2xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les publications pour le moment.</p>
       : !rows?.posts.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><MessageCircle className="mx-auto h-8 w-8 text-muted-foreground" /><h2 className="mt-3 font-bold">Le fil est encore vide</h2><p className="mt-1 text-sm text-muted-foreground">Les publications apparaîtront ici quand les collectionneurs partageront quelque chose depuis une fiche de canette.</p><Link to="/brands" className="mt-4 inline-flex text-sm font-semibold text-primary">Explorer les marques</Link></div>
-      : <div className="space-y-3">{rows.posts.map((post) => {
+      : <div className="community-posts grid grid-cols-1 gap-3">{rows.posts.map((post) => {
         const can = canMap.get(post.can_id); if (!can) return null;
         const brand = brandMap.get(can.brand_id);
         const ups = post.comment_likes.filter((vote) => vote.vote !== -1).length;
