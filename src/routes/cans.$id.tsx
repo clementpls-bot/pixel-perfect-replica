@@ -104,7 +104,7 @@ function CanPage() {
         can_id: can.id,
         user_id: user.id,
         category: "Contribution libre",
-        details: reportDetails.trim() || null,
+        details: reportDetails.trim() || "Contribution avec images.",
         proposed_field: "general",
         proposed_value: null,
         image_urls: imageUrls,
@@ -148,8 +148,8 @@ function CanPage() {
   const saveDrinks = async () => {
     if (!user) { toast("Connecte-toi pour enregistrer tes Drinks."); return; }
     const count = Number(drinksDraft);
-    if (!Number.isInteger(count) || count < 0 || count > 100000) {
-      toast.error("Saisis un nombre entier positif.");
+    if (!Number.isInteger(count) || count < (qty > 0 ? 1 : 0) || count > 100000) {
+      toast.error(qty > 0 ? "Une canette possédée doit conserver au moins 1 Drink." : "Saisis un nombre entier positif.");
       return;
     }
     try {
@@ -223,10 +223,10 @@ function CanPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mes Drinks</DialogTitle>
-            <DialogDescription>Combien de fois as-tu bu cette boisson ? Ce compteur est indépendant de ton mur.</DialogDescription>
+            <DialogDescription>Posséder cette canette initialise le compteur à 1 Drink minimum. Tu peux ensuite ajuster le total selon tes consommations.</DialogDescription>
           </DialogHeader>
           <label htmlFor="can-drinks-count" className="text-sm font-medium">Nombre de Drinks</label>
-          <Input id="can-drinks-count" type="number" min={0} max={100000} step={1} value={drinksDraft} onChange={(e) => setDrinksDraft(e.target.value)} className="h-12 rounded-xl" />
+          <Input id="can-drinks-count" type="number" min={qty > 0 ? 1 : 0} max={100000} step={1} value={drinksDraft} onChange={(e) => setDrinksDraft(e.target.value)} className="h-12 rounded-xl" />
           <DialogFooter>
             <Button variant="outline" onClick={() => setDrinksOpen(false)}>Annuler</Button>
             <Button onClick={() => void saveDrinks()}>Enregistrer</Button>
