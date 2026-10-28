@@ -21,6 +21,7 @@ import { Route as BrandsSlugRouteImport } from './routes/brands.$slug'
 import { Route as CansIdRouteImport } from './routes/cans.$id'
 import { Route as ModelsIdRouteImport } from './routes/models.$id'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as UsersIdRouteImport } from './routes/users.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,6 +78,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersIdRoute = UsersIdRouteImport.update({
+  id: '/users/$id',
+  path: '/users/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ModelsIdRoute = ModelsIdRouteImport.update({
   id: '/models/$id',
   path: '/models/$id',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
   '/community': typeof CommunityRoute
+  '/users/$id': typeof UsersIdRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
   '/community': typeof CommunityRoute
+  '/users/$id': typeof UsersIdRoute
   '/brands': typeof BrandsIndexRoute
 }
 export interface FileRoutesById {
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
+  '/users/$id': typeof UsersIdRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRouteTypes {
@@ -171,6 +180,7 @@ export interface RootRouteChildren {
   CansIdRoute: typeof CansIdRoute
   ModelsIdRoute: typeof ModelsIdRoute
   CommunityRoute: typeof CommunityRoute
+  UsersIdRoute: typeof UsersIdRoute
   BrandsIndexRoute: typeof BrandsIndexRoute
 }
 
@@ -260,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users/$id': {
+      id: '/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof UsersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,6 +305,7 @@ const rootRouteChildren: RootRouteChildren = {
   CansIdRoute: CansIdRoute,
   ModelsIdRoute: ModelsIdRoute,
   CommunityRoute: CommunityRoute,
+  UsersIdRoute: UsersIdRoute,
   BrandsIndexRoute: BrandsIndexRoute,
 }
 export const routeTree = rootRouteImport
