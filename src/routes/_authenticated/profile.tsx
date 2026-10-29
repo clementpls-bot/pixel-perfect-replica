@@ -9,6 +9,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
+import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +39,7 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
   const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);

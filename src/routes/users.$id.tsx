@@ -11,6 +11,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { pastelCanColor } from "@/lib/can-colors";
+import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 
 export const Route = createFileRoute("/users/$id")({
   head: () => ({ meta: [
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/users/$id")({
   component: PublicUserProfile,
 });
 
-type PublicProfile = { id: string; username: string; avatar_url: string | null; created_at: string };
+type PublicProfile = { id: string; username: string; avatar_url: string | null; banner_url: string | null; created_at: string };
 type UserComment = { id: string; can_id: string; body: string | null; image_url: string | null; parent_id: string | null; created_at: string };
 type CanSummary = { id: string; name: string; image_url: string | null; color_primary: string };
 
@@ -37,7 +38,7 @@ function PublicUserProfile() {
   const profile = useQuery({
     queryKey: ["public-profile", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url,created_at").eq("id", id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url,banner_url,created_at").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as PublicProfile | null;
     },
