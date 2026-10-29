@@ -260,6 +260,7 @@ function Profile() {
         <div className="grid gap-2 sm:grid-cols-2">
           <Link to="/admin-cans" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Gérer le catalogue des canettes →</Link>
           <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
+          <Link to="/admin-reports" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Consulter les signalements de comptes →</Link>
         </div>
       )}
 
