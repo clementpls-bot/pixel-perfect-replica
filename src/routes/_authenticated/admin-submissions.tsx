@@ -105,7 +105,7 @@ function AdminSubmissions() {
         .eq("status", "pending")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
+      return data as unknown as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
     },
   });
   const submissions = submissionsQuery.data ?? [];
@@ -137,7 +137,7 @@ function AdminSubmissions() {
       name: item.name,
       barcode: item.barcode,
       brand_id: item.brand_id ?? "",
-      proposed_brand_name: item.proposed_brand_name ?? "",
+      proposed_brand_name: (item as any).proposed_brand_name ?? "",
       new_brand_selected: !item.brand_id,
       model_id: item.model_id ?? "",
       variant_name: item.variant_name ?? "",
@@ -373,7 +373,7 @@ function AdminSubmissions() {
 
         <div className="space-y-5">
           {visibleSubmissions.map((item) => {
-            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? item.proposed_brand_name ?? "Marque inconnue";
+            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? (item as any).proposed_brand_name ?? "Marque inconnue";
             const pending = item.status === "pending";
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;

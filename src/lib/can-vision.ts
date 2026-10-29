@@ -29,7 +29,7 @@ function normalize(value: string | null | undefined) {
 export const recognizeCanImage = createServerFn({ method: "POST" })
   .inputValidator(inputSchema)
   .handler(async ({ data }) => {
-    const apiKey = typeof process !== "undefined" ? process.env.OPENAI_API_KEY : undefined;
+    const apiKey = typeof process !== "undefined" ? process.env["OPENAI_API_KEY"] : undefined;
     if (!apiKey) {
       throw new Error("La reconnaissance IA n’est pas encore configurée : ajoute OPENAI_API_KEY dans les secrets du serveur Lovable.");
     }
@@ -71,7 +71,7 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       signal: AbortSignal.timeout(20_000),
       body: JSON.stringify({
-        model: process.env.OPENAI_VISION_MODEL || "gpt-4o-mini",
+        model: process.env["OPENAI_VISION_MODEL"] || "gpt-4o-mini",
         temperature: 0.1,
         response_format: { type: "json_object" },
         messages: [

@@ -85,7 +85,7 @@ function AdminCans() {
         description: nullableText(draft.description), historical_context: nullableText(draft.historical_context),
         image_url: nullableText(draft.image_url), back_image_url: nullableText(draft.back_image_url),
         barcode_image_url: nullableText(draft.barcode_image_url), color_primary: draft.color_primary.trim(),
-        color_secondary: draft.color_secondary.trim(), category: draft.category,
+        color_secondary: draft.color_secondary.trim(), category: draft.category as any,
         caffeine_mg_per_100ml: nullableNumber(draft.caffeine_mg_per_100ml),
         sugar_g_per_100ml: nullableNumber(draft.sugar_g_per_100ml),
         taurine_mg_per_100ml: nullableNumber(draft.taurine_mg_per_100ml),
