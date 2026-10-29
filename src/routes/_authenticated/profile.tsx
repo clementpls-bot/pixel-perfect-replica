@@ -40,6 +40,7 @@ function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
+  const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -239,7 +240,15 @@ function Profile() {
             <>
               <h1 className="break-words text-xl font-black">{profile?.username}</h1>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                {totalDrinks} Drinks{totalDrinks > 0 && mostDrunkBrand?.drinks ? <> <span aria-hidden="true">·</span> Plus consommée : <span className="font-semibold" style={{ color: mostDrunkBrand.color }}>{mostDrunkBrand.name}</span></> : ""}
+                <button
+                  type="button"
+                  onClick={() => setDrinksDialogOpen(true)}
+                  disabled={totalDrinks === 0}
+                  className="inline-flex items-center gap-1 font-semibold text-foreground underline-offset-4 transition hover:text-primary hover:underline disabled:cursor-default disabled:no-underline disabled:hover:text-foreground"
+                  aria-label="Voir les canettes correspondant à mes Drinks"
+                >
+                  {totalDrinks} Drinks
+                </button>{totalDrinks > 0 && mostDrunkBrand?.drinks ? <> <span aria-hidden="true">·</span> Plus consommée : <span className="font-semibold" style={{ color: mostDrunkBrand.color }}>{mostDrunkBrand.name}</span></> : ""}
               </p>
               <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 onClick={() => {
@@ -313,6 +322,40 @@ function Profile() {
           </div>
         )}
       </section>
+      <Dialog open={drinksDialogOpen} onOpenChange={setDrinksDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mes Drinks par canette</DialogTitle>
+            <DialogDescription>Appuie sur une canette pour ouvrir sa fiche et consulter son compteur.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[55vh] space-y-2 overflow-y-auto">
+            {drinkRows
+              .map((row) => {
+                const can = data.cans.find((item) => item.id === row.can_id);
+                const brand = data.brands.find((item) => item.id === can?.brand_id);
+                return { can, brand, count: row.drinks_count ?? 0 };
+              })
+              .filter((item) => item.can && item.count > 0)
+              .sort((a, b) => b.count - a.count || a.can!.name.localeCompare(b.can!.name, "fr"))
+              .map((item) => (
+                <Link
+                  key={item.can!.id}
+                  to="/cans/$id"
+                  params={{ id: item.can!.id }}
+                  className="flex items-center justify-between gap-3 rounded-xl border p-3 transition hover:border-primary hover:bg-muted/50"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-bold">{item.can!.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{item.brand?.name ?? "Marque inconnue"}</span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-sm font-black tabular-nums">{item.count} Drinks</span>
+                </Link>
+              ))}
+            {totalDrinks === 0 && <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">Tu n’as pas encore enregistré de Drinks.</p>}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!commentToDelete} onOpenChange={(open) => { if (!open && !deletingComment) setCommentToDelete(null); }}>
         <DialogContent>
           <DialogHeader>
