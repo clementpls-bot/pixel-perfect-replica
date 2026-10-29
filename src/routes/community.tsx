@@ -54,7 +54,7 @@ function CommunityFeedPage() {
         const brand = brandMap.get(can.brand_id);
         const ups = post.comment_likes.filter((vote) => vote.vote !== -1).length;
         const downs = post.comment_likes.filter((vote) => vote.vote === -1).length;
-        return <Link key={post.id} to="/cans/$id" params={{ id: post.can_id }} className="block overflow-hidden rounded-2xl border bg-card transition hover:border-primary/40 hover:shadow-sm">
+        return <article key={post.id} className="block overflow-hidden rounded-2xl border bg-card transition hover:border-primary/40 hover:shadow-sm">
           <div className="flex items-center gap-3 border-b bg-muted/30 p-3">
             {can.image_url ? <img src={can.image_url} alt="" className="h-11 w-8 rounded-md object-contain" /> : <div className="flex h-11 w-8 items-center justify-center rounded-md bg-muted"><MessageCircle className="h-4 w-4 text-muted-foreground" /></div>}
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{can.name}</p><p className="truncate text-xs text-muted-foreground">{brand?.name ?? "Marque"} · espace de discussion</p></div>
@@ -62,8 +62,8 @@ function CommunityFeedPage() {
           </div>
           {post.body?.trim() && <p className="whitespace-pre-wrap break-words px-4 pt-3 text-sm leading-relaxed">{post.body}</p>}
           {post.image_url && <div className="px-3 pt-3"><img src={post.image_url} alt={`Photo partagée sur ${can.name}`} loading="lazy" className="max-h-80 w-full rounded-xl bg-muted object-contain" /></div>}
-          <div className="flex items-center justify-between gap-3 px-4 py-3"><span className="truncate text-xs text-muted-foreground">Par {post.profiles?.username ?? "Collectionneur"} · ouvrir la fiche</span><span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" />{ups}</span><span className="inline-flex items-center gap-1"><ThumbsDown className="h-3.5 w-3.5" />{downs}</span></span></div>
-        </Link>;
+          <div className="flex items-center justify-between gap-3 px-4 py-3"><span className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground">Par {post.profiles?.username ? <Link to={`/users/${post.profiles.username}` as any} className="font-semibold text-primary hover:underline">{post.profiles.username}</Link> : "Collectionneur"} · <Link to="/cans/$id" params={{ id: post.can_id }} className="font-semibold text-primary hover:underline">ouvrir la fiche</Link></span><span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" />{ups}</span><span className="inline-flex items-center gap-1"><ThumbsDown className="h-3.5 w-3.5" />{downs}</span></span></div>
+        </article>;
       })}</div>}
     <p className="pb-2 text-center text-[11px] text-muted-foreground">Les publications se créent uniquement depuis la page d’une canette, jamais depuis ce fil général.</p>
   </div>;
