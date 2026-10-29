@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
       { title: "Reconnaissance de canettes — Cansdex" },
-      { name: "description", content: "Identifie une canette par reconnaissance visuelle IA ou par code-barres." },
+      { name: "description", content: "Identifie une canette par code-barres." },
       { property: "og:title", content: "Reconnaissance de canettes — Cansdex" },
       { property: "og:description", content: "Identifie une canette par reconnaissance visuelle IA ou par code-barres." },
     ],
@@ -33,7 +33,7 @@ function Scanner() {
   const { user } = useAuth();
   const addCan = useAddCan();
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
-  const [scanMode, setScanMode] = useState<"vision" | "barcode">("vision");
+  const [scanMode, setScanMode] = useState<"vision" | "barcode">("barcode");
   const [visionBusy, setVisionBusy] = useState(false);
   const [visionResult, setVisionResult] = useState<VisionResult | null>(null);
   const [visionError, setVisionError] = useState("");
@@ -510,29 +510,10 @@ function Scanner() {
     <div>
       <Button type="button" variant="ghost" className="-ml-3 mb-2 rounded-xl" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}>← Retour</Button>
       <h1 className="text-2xl font-black">Scanner une canette</h1>
-      <p className="text-sm text-muted-foreground">Identifie une canette par son design ou passe au code-barres pour une recherche rapide.</p>
+      <p className="text-sm text-muted-foreground">Scanne le code-barres pour retrouver une canette dans le catalogue.</p>
       <Button type="button" variant="outline" className="mt-4 h-11 w-full rounded-xl font-semibold" onClick={() => { setDirectProposal(true); setUnknownVisual(false); setUnknownBarcode(""); setManual(""); setVisionResult(null); setVisionError(""); setName(""); setBrandId(""); setProposedBrandName(""); setNewBrandSelected(false); setModelId(""); setFlavour(""); setReleaseYear(""); setDescription(""); setHistoricalContext(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl(""); setNotes(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
-      <div className="mt-4 grid grid-cols-2 rounded-2xl bg-muted p-1">
-        <button type="button" onClick={() => setScanMode("vision")} className={scanMode === "vision" ? "flex items-center justify-center gap-2 rounded-xl bg-background px-2 py-3 text-sm font-bold shadow-sm" : "flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-semibold text-muted-foreground"}><Sparkles className="h-4 w-4" />Reconnaissance IA</button>
-        <button type="button" onClick={() => setScanMode("barcode")} className={scanMode === "barcode" ? "flex items-center justify-center gap-2 rounded-xl bg-background px-2 py-3 text-sm font-bold shadow-sm" : "flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-sm font-semibold text-muted-foreground"}><ScanBarcode className="h-4 w-4" />Code-barres</button>
-      </div>
-      {scanMode === "vision" ? (
-        <div className="mt-4 space-y-4">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
-            <video ref={visionVideoRef} className="h-full w-full object-cover" muted playsInline />
-            <div className="pointer-events-none absolute inset-x-[24%] inset-y-[8%] rounded-[42%/12%] border-2 border-white/90 shadow-[0_0_0_999px_rgba(0,0,0,0.12)]" />
-            <div className="pointer-events-none absolute inset-x-[24%] top-1/2 h-0.5 -translate-y-1/2 bg-primary shadow-[0_0_18px_rgba(100,220,180,0.9)]" />
-            {visionCameraError && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90 p-6 text-center"><Sparkles className="h-8 w-8 text-primary" /><p className="font-bold">Caméra indisponible</p><p className="text-sm text-muted-foreground">Tu peux importer une photo depuis ta galerie.</p><Button variant="outline" onClick={() => setCameraAttempt((n) => n + 1)}>Réessayer</Button></div>}
-            {visionBusy && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/85 p-6 text-center backdrop-blur-sm"><div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" /><p className="font-bold">Analyse du design et de l’édition en cours…</p><p className="text-xs text-muted-foreground">On compare la photo au catalogue Cansdex.</p></div>}
-          </div>
-          <Button disabled={visionBusy || visionCameraError} onClick={() => void captureVisionPhoto()} className="h-12 w-full rounded-xl font-bold"><Sparkles className="mr-2 h-4 w-4" />Prendre une photo</Button>
-          <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border bg-card text-sm font-semibold"><ImagePlus className="h-4 w-4" />Choisir dans la galerie<input className="sr-only" type="file" accept="image/*" disabled={visionBusy} onChange={(e) => { const file = e.target.files?.[0]; if (file) void analyzeVisionImage(file); e.currentTarget.value = ""; }} /></label>
-          {visionError && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{visionError}</p>}
-          <p className="text-xs text-muted-foreground">L’IA peut se tromper : vérifie toujours la variante proposée. Les photos sont réduites avant envoi pour accélérer l’analyse.</p>
-        </div>
-      ) : (
-        <>
-          <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
+      <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
+
             <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
             {camError ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCamError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div>
@@ -543,8 +524,7 @@ function Scanner() {
             <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">Scanne un code-barres pour retrouver une canette déjà répertoriée. S’il est inconnu, tu pourras la proposer à la communauté.</p>
-        </>
-      )}
+
     </div>
   );
 }
