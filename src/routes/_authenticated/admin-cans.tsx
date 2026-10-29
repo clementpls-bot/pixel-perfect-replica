@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Search, Save, X } from "lucide-react";
+import { ArrowLeft, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { useCatalog, type Can } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CanSearch, matchesSearch } from "@/components/CanSearch";
 
 export const Route = createFileRoute("/_authenticated/admin-cans")({
   head: () => ({ meta: [{ title: "Gestion des canettes — Cansdex" }] }),
@@ -55,10 +56,9 @@ function AdminCans() {
   const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("fr");
     return (catalog?.cans ?? []).filter((can) => {
       const brand = catalog?.brands.find((item) => item.id === can.brand_id)?.name ?? "";
-      return !query || [can.name, can.barcode, brand, can.flavour ?? ""].some((v) => v.toLocaleLowerCase("fr").includes(query));
+      return matchesSearch(search, [can.name, can.barcode, brand, can.flavour, can.variant_name, can.region, can.release_year, can.volume_ml]);
     }).sort((a, b) => a.name.localeCompare(b.name, "fr"));
   }, [catalog, search]);
   const selected = catalog?.cans.find((can) => can.id === selectedId) ?? null;
@@ -130,7 +130,7 @@ function AdminCans() {
     {error ? <p className="rounded-xl border border-destructive/40 p-4 text-sm text-destructive">Erreur de chargement : {(error as Error).message}</p> : null}
     <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.8fr)_minmax(0,1.5fr)]">
       <section className="space-y-3">
-        <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" placeholder="Nom, marque, saveur, code-barres…" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+        <CanSearch value={search} onChange={setSearch} placeholder="Nom, marque, saveur, code-barres…" ariaLabel="Rechercher une canette à gérer" />
         <p className="text-xs text-muted-foreground">{filtered.length} canette(s)</p>
         <div className="max-h-[70vh] space-y-1 overflow-y-auto rounded-2xl border p-2">
           {filtered.map((can) => <button key={can.id} type="button" onClick={() => beginEdit(can)} className={`w-full rounded-xl border p-3 text-left transition hover:border-primary ${selectedId === can.id ? "border-primary bg-primary/5" : "border-transparent"}`}>
