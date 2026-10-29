@@ -41,6 +41,41 @@ export type Database = {
         }
         Relationships: []
       }
+      can_barcodes: {
+        Row: {
+          barcode: string
+          can_id: string
+          created_at: string
+          id: string
+          status: string
+          submitted_by: string | null
+        }
+        Insert: {
+          barcode: string
+          can_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          submitted_by?: string | null
+        }
+        Update: {
+          barcode?: string
+          can_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "can_barcodes_can_id_fkey"
+            columns: ["can_id"]
+            isOneToOne: false
+            referencedRelation: "cans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       can_models: {
         Row: {
           brand_id: string
@@ -150,31 +185,26 @@ export type Database = {
       }
       can_submissions: {
         Row: {
-          caffeine_mg_per_100ml: number | null
-          color_primary: string
-          color_secondary: string
-          energy_kcal_per_100ml: number | null
-          historical_context: string | null
-          history_verified: boolean
-          notes: string | null
-          sugar_g_per_100ml: number | null
-          tab_color: string | null
-          taurine_mg_per_100ml: number | null
-
           back_image_url: string | null
           barcode: string
           barcode_image_url: string | null
-          brand_id: string | null
+          brand_id: string
+          caffeine_mg_per_100ml: number | null
           category: Database["public"]["Enums"]["can_category"]
+          color_primary: string | null
+          color_secondary: string | null
           created_at: string
           description: string | null
           edition_type: string | null
+          energy_kcal_per_100ml: number | null
           flavour: string | null
+          historical_context: string | null
+          history_verified: boolean
           id: string
           image_url: string
           model_id: string | null
           name: string
-          proposed_brand_name: string | null
+          notes: string | null
           region: string | null
           release_year: number | null
           review_notes: string | null
@@ -182,35 +212,33 @@ export type Database = {
           reviewed_by: string | null
           status: string
           submitted_by: string
+          sugar_g_per_100ml: number | null
+          tab_color: string | null
+          taurine_mg_per_100ml: number | null
           variant_name: string | null
           volume_ml: number | null
         }
         Insert: {
-          caffeine_mg_per_100ml?: number | null
-          color_primary?: string
-          color_secondary?: string
-          energy_kcal_per_100ml?: number | null
-          historical_context?: string | null
-          history_verified?: boolean
-          notes?: string | null
-          sugar_g_per_100ml?: number | null
-          tab_color?: string | null
-          taurine_mg_per_100ml?: number | null
-
           back_image_url?: string | null
           barcode: string
           barcode_image_url?: string | null
-          brand_id?: string | null
+          brand_id: string
+          caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string | null
+          color_secondary?: string | null
           created_at?: string
           description?: string | null
           edition_type?: string | null
+          energy_kcal_per_100ml?: number | null
           flavour?: string | null
+          historical_context?: string | null
+          history_verified?: boolean
           id?: string
           image_url: string
           model_id?: string | null
           name: string
-          proposed_brand_name?: string | null
+          notes?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -218,35 +246,33 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           submitted_by: string
+          sugar_g_per_100ml?: number | null
+          tab_color?: string | null
+          taurine_mg_per_100ml?: number | null
           variant_name?: string | null
           volume_ml?: number | null
         }
         Update: {
-          caffeine_mg_per_100ml?: number | null
-          color_primary?: string
-          color_secondary?: string
-          energy_kcal_per_100ml?: number | null
-          historical_context?: string | null
-          history_verified?: boolean
-          notes?: string | null
-          sugar_g_per_100ml?: number | null
-          tab_color?: string | null
-          taurine_mg_per_100ml?: number | null
-
           back_image_url?: string | null
           barcode?: string
           barcode_image_url?: string | null
-          brand_id?: string | null
+          brand_id?: string
+          caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
+          color_primary?: string | null
+          color_secondary?: string | null
           created_at?: string
           description?: string | null
           edition_type?: string | null
+          energy_kcal_per_100ml?: number | null
           flavour?: string | null
+          historical_context?: string | null
+          history_verified?: boolean
           id?: string
           image_url?: string
           model_id?: string | null
           name?: string
-          proposed_brand_name?: string | null
+          notes?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -254,6 +280,9 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           submitted_by?: string
+          sugar_g_per_100ml?: number | null
+          tab_color?: string | null
+          taurine_mg_per_100ml?: number | null
           variant_name?: string | null
           volume_ml?: number | null
         }
@@ -277,8 +306,8 @@ export type Database = {
       cans: {
         Row: {
           back_image_url: string | null
-          barcode_image_url: string | null
           barcode: string
+          barcode_image_url: string | null
           brand_id: string
           caffeine_mg_per_100ml: number | null
           category: Database["public"]["Enums"]["can_category"]
@@ -306,8 +335,8 @@ export type Database = {
         }
         Insert: {
           back_image_url?: string | null
-          barcode_image_url?: string | null
           barcode: string
+          barcode_image_url?: string | null
           brand_id: string
           caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
@@ -335,8 +364,8 @@ export type Database = {
         }
         Update: {
           back_image_url?: string | null
-          barcode_image_url?: string | null
           barcode?: string
+          barcode_image_url?: string | null
           brand_id?: string
           caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
@@ -378,6 +407,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      catalog_cleanup_archive: {
+        Row: {
+          archived_at: string
+          brand_name: string | null
+          can_id: string
+          can_name: string
+          can_record: Json
+          id: string
+          related_records: Json
+          user_collection_records: Json
+        }
+        Insert: {
+          archived_at?: string
+          brand_name?: string | null
+          can_id: string
+          can_name: string
+          can_record: Json
+          id?: string
+          related_records?: Json
+          user_collection_records?: Json
+        }
+        Update: {
+          archived_at?: string
+          brand_name?: string | null
+          can_id?: string
+          can_name?: string
+          can_record?: Json
+          id?: string
+          related_records?: Json
+          user_collection_records?: Json
+        }
+        Relationships: []
       }
       comment_likes: {
         Row: {
@@ -478,6 +540,36 @@ export type Database = {
           image_url?: string
           storage_path?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profile_reports: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          photo_paths: string[]
+          reported_user_id: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          photo_paths?: string[]
+          reported_user_id: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          photo_paths?: string[]
+          reported_user_id?: string
+          reporter_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -609,14 +701,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_total_can_drinks: {
-        Args: { p_can_id: string }
-        Returns: number
-      }
       approve_can_submission: {
         Args: { p_submission_id: string }
         Returns: undefined
       }
+      get_total_can_drinks: { Args: { p_can_id: string }; Returns: number }
       review_can_report: {
         Args: {
           p_approve: boolean
