@@ -294,7 +294,7 @@ function Scanner() {
     setFound(null);
     setVisionResult(null);
     setVisionError("");
-    setScanMode("vision");
+    setScanMode("barcode");
     setUnknownBarcode("");
     setSubmitted(false);
     setManual("");
