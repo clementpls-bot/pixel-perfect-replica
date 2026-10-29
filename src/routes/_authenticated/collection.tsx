@@ -22,22 +22,22 @@ function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const [search, setSearch] = useState("");
-  if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ton mur…</p>;
-
-  const allMine = useMemo(() => data.cans
-    .filter((can) => owned.has(can.id))
+  const allMine = useMemo(() => (data?.cans ?? [])
+    .filter((can) => owned?.has(can.id))
     .sort((a, b) => {
-      const brandA = data.brands.find((x) => x.id === a.brand_id)?.name ?? "";
-      const brandB = data.brands.find((x) => x.id === b.brand_id)?.name ?? "";
+      const brandA = data?.brands.find((x) => x.id === a.brand_id)?.name ?? "";
+      const brandB = data?.brands.find((x) => x.id === b.brand_id)?.name ?? "";
       return brandA.localeCompare(brandB, "fr") || a.name.localeCompare(b.name, "fr");
-    }), [data.cans, data.brands, owned]);
+    }), [data?.cans, data?.brands, owned]);
   const mine = useMemo(() => allMine.filter((can) => {
-    const brand = data.brands.find((item) => item.id === can.brand_id);
+    const brand = data?.brands.find((item) => item.id === can.brand_id);
     return matchesSearch(search, [
       can.name, brand?.name, can.barcode, can.flavour, can.variant_name, can.region,
       can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null,
     ]);
-  }), [allMine, data.brands, search]);
+  }), [allMine, data?.brands, search]);
+
+  if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ton mur…</p>;
 
   return (
     <div>
