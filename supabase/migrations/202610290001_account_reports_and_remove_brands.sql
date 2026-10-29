@@ -74,6 +74,14 @@ create policy "Admins can read account report images"
     and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
   );
 
+drop policy if exists "Users can delete their own account report images" on storage.objects;
+create policy "Users can delete their own account report images"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'account-report-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 -- Remove the two brands when they have no catalogue entries attached.
 -- Intentionally do not delete cans or users' collections as a side effect.
 delete from public.brands b
