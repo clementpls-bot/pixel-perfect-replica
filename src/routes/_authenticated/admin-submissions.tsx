@@ -74,6 +74,7 @@ function AdminSubmissions() {
   const [draft, setDraft] = useState<SubmissionDraft | null>(null);
   const [replacementFiles, setReplacementFiles] = useState<Partial<Record<"front" | "back" | "barcode", File>>>({});
   const [reportEdits, setReportEdits] = useState<Record<string, ReportEdit>>({});
+  const [barcodeBusyId, setBarcodeBusyId] = useState<string | null>(null);
   const isAdmin = user?.app_metadata?.["role"] === "admin";
 
   const submissionsQuery = useQuery({
@@ -94,8 +95,21 @@ function AdminSubmissions() {
       return data as Report[];
     },
   });
+  const barcodesQuery = useQuery({
+    queryKey: ["can-barcodes-review"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("can_barcodes" as any)
+        .select("id,can_id,barcode,submitted_by,status,created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
+    },
+  });
   const submissions = submissionsQuery.data ?? [];
   const reports = reportsQuery.data ?? [];
+  const pendingBarcodes = barcodesQuery.data ?? [];
   const counts = useMemo(() => ({
     pending: submissions.filter((item) => item.status === "pending").length,
     approved: submissions.filter((item) => item.status === "approved").length,
@@ -111,6 +125,7 @@ function AdminSubmissions() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["can-submissions-review"] }),
       queryClient.invalidateQueries({ queryKey: ["can-reports-review"] }),
+      queryClient.invalidateQueries({ queryKey: ["can-barcodes-review"] }),
       queryClient.invalidateQueries({ queryKey: ["catalog"] }),
     ]);
   };
@@ -236,6 +251,24 @@ function AdminSubmissions() {
     } finally { setBusyId(null); }
   };
 
+  const reviewBarcodeProposal = async (item: { id: string; barcode: string; can_id: string }, approveIt: boolean) => {
+    const label = approveIt ? "valider ce code-barres et l’associer à cette canette" : "refuser cette proposition de code-barres";
+    if (!window.confirm(`Confirmer : ${label} ?`)) return;
+    setBarcodeBusyId(item.id);
+    try {
+      const { error } = await supabase.from("can_barcodes" as any)
+        .update({ status: approveIt ? "approved" : "rejected" })
+        .eq("id", item.id);
+      if (error) throw error;
+      await refresh();
+      toast.success(approveIt ? "Code-barres validé et ajouté au catalogue." : "Proposition de code-barres refusée.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de traiter ce code-barres.");
+    } finally {
+      setBarcodeBusyId(null);
+    }
+  };
+
   const editFor = (report: Report): ReportEdit => reportEdits[report.id] ?? {
     field: report.proposed_field ?? "name",
     value: report.proposed_value ?? "",
@@ -291,6 +324,36 @@ function AdminSubmissions() {
         <h1 className="text-3xl font-black tracking-tight">Modération des contributions</h1>
         <p className="text-sm text-muted-foreground">Corrige les propositions avant publication et traite les améliorations proposées par la communauté.</p>
       </header>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl font-black">Nouveaux codes-barres</h2>
+          <p className="text-sm text-muted-foreground">Les codes proposés pour une canette déjà présente dans le catalogue apparaissent ici. Valide-les pour les rendre utilisables au scan.</p>
+        </div>
+        {barcodesQuery.isLoading && <div className="rounded-2xl border p-5 text-sm text-muted-foreground">Chargement des codes-barres proposés…</div>}
+        {barcodesQuery.error && <div className="rounded-2xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les propositions de codes-barres : {barcodesQuery.error.message}</div>}
+        {!barcodesQuery.isLoading && !barcodesQuery.error && pendingBarcodes.length === 0 && <div className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">Aucun nouveau code-barres en attente.</div>}
+        <div className="space-y-3">
+          {pendingBarcodes.map((item) => {
+            const can = catalog?.cans.find((entry) => entry.id === item.can_id);
+            const brandName = catalog?.brands.find((brand) => brand.id === can?.brand_id)?.name ?? "Marque inconnue";
+            const working = barcodeBusyId === item.id;
+            return <article key={item.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-4 sm:flex-row sm:items-center">
+              <div className="w-16 shrink-0">{can ? <div className="w-full"><img src={can.image_url ?? ""} alt="" className="h-24 w-full rounded-lg object-contain" onError={(event) => { event.currentTarget.style.display = "none"; }} /></div> : <div className="flex h-24 items-center justify-center rounded-lg bg-muted text-xs">Canette introuvable</div>}</div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold">{can?.name ?? "Canette du catalogue introuvable"}</p>
+                <p className="text-sm text-muted-foreground">{brandName}</p>
+                <p className="mt-1 font-mono text-sm">{item.barcode}</p>
+                <p className="text-xs text-muted-foreground">Proposé le {new Date(item.created_at).toLocaleDateString("fr-FR")}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Button type="button" disabled={working || !can} onClick={() => void reviewBarcodeProposal(item, true)}><Check className="mr-2 h-4 w-4" />Valider</Button>
+                <Button type="button" variant="outline" disabled={working} onClick={() => void reviewBarcodeProposal(item, false)}><X className="mr-2 h-4 w-4" />Refuser</Button>
+              </div>
+            </article>;
+          })}
+        </div>
+      </section>
 
       <section className="space-y-4">
         <div><h2 className="text-xl font-black">Propositions de nouvelles canettes</h2><p className="text-sm text-muted-foreground">Vérifie, modifie et publie les nouvelles références.</p></div>
