@@ -210,6 +210,18 @@ export function useSetCanDrinks() {
   const qc = useQueryClient();
   return async (canId: string, drinksCount: number) => {
     if (!user) throw new Error("Connecte-toi pour enregistrer tes Drinks.");
+
+    // The UI guard is not enough: verify ownership before writing the counter.
+    const { data: ownedCan, error: ownershipError } = await supabase
+      .from("user_cans")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("can_id", canId)
+      .limit(1)
+      .maybeSingle();
+    if (ownershipError) throw ownershipError;
+    if (!ownedCan) throw new Error("Tu dois posséder cette canette sur ton mur avant d’enregistrer des Drinks.");
+
     const safeCount = Math.max(0, Math.min(100000, Math.floor(drinksCount)));
     const { error } = await supabase.from("user_can_drinks").upsert({
       user_id: user.id, can_id: canId, drinks_count: safeCount, updated_at: new Date().toISOString(),
