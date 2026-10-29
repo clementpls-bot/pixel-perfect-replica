@@ -306,7 +306,7 @@ function Scanner() {
         region: region.trim() || null,
         edition_type: editionType,
         volume_ml: volumeMl ? Number(volumeMl) : null,
-      });
+      } as any));
       if (error) {
         if (error.code === "23505") throw new Error("Une proposition pour ce code-barres est déjà en attente de vérification.");
         throw error;

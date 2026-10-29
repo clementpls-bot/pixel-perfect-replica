@@ -198,7 +198,7 @@ function AdminSubmissions() {
         image_url,
         back_image_url,
         barcode_image_url,
-      }).eq("id", id).eq("status", "pending").select("id");
+      } as any)).eq("id", id).eq("status", "pending").select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("La proposition n’est plus en attente ou les droits sont insuffisants.");
       setEditingId(null);
