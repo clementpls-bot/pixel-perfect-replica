@@ -87,4 +87,5 @@ create policy "Users can delete their own account report images"
 delete from public.brands b
 where lower(trim(b.name)) in ('bang', 'ciao energy')
   and not exists (select 1 from public.cans c where c.brand_id = b.id)
-  and not exists (select 1 from public.can_models m where m.brand_id = b.id);
+  and not exists (select 1 from public.can_models m where m.brand_id = b.id)
+  and not exists (select 1 from public.can_submissions s where s.brand_id = b.id);
