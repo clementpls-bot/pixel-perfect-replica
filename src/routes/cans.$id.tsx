@@ -49,6 +49,7 @@ function CanPage() {
   const [drinksDraft, setDrinksDraft] = useState("0");
   const [savingCollection, setSavingCollection] = useState(false);
   const [reportDetails, setReportDetails] = useState("");
+  const [reportBarcode, setReportBarcode] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [reporting, setReporting] = useState(false);
   const qc = useQueryClient();
@@ -87,7 +88,10 @@ function CanPage() {
 
   const submitReport = async () => {
     if (!user) { toast("Connecte-toi pour contribuer."); return; }
-    if (!reportDetails.trim() && reportImages.length === 0) { toast.error("Écris un message ou ajoute au moins une image."); return; }
+    if (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0) { toast.error("Ajoute un message, un code-barres ou une image."); return; }
+    const proposedBarcode = reportBarcode.trim();
+    if (proposedBarcode && !/^\\d{8,14}$/.test(proposedBarcode)) { toast.error("Le code-barres doit contenir de 8 à 14 chiffres."); return; }
+    if (proposedBarcode && data?.cans.some((item) => item.barcode === proposedBarcode)) { toast.error("Ce code-barres est déjà associé à une canette du catalogue."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
@@ -104,14 +108,14 @@ function CanPage() {
         can_id: can.id,
         user_id: user.id,
         category: "Contribution libre",
-        details: reportDetails.trim() || "Contribution avec images.",
+        details: [reportDetails.trim(), proposedBarcode ? `Code-barres supplémentaire proposé : ${proposedBarcode}` : ""].filter(Boolean).join("\n\n") || "Contribution avec images.",
         proposed_field: "general",
         proposed_value: null,
         image_urls: imageUrls,
       });
       if (error) throw error;
       toast.success("Merci ! Ta proposition a été envoyée pour vérification.");
-      setReportDetails(""); setReportImages([]); setReportOpen(false);
+      setReportDetails(""); setReportBarcode(""); setReportImages([]); setReportOpen(false);
     } catch (error) {
       toast.error((error as Error).message || "Impossible d’envoyer la proposition. Réessaie plus tard.");
     } finally {
@@ -293,6 +297,11 @@ function CanPage() {
           <div className="space-y-3">
             <label className="block text-sm font-medium" htmlFor="report-details">Ton message</label>
             <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Une précision sur la canette, son histoire, sa saveur, une erreur à corriger…" maxLength={3000} rows={5} className="rounded-xl" />
+            <div className="space-y-1.5 rounded-xl border p-3">
+              <label className="block text-sm font-medium" htmlFor="report-barcode">Proposer un code-barres supplémentaire (facultatif)</label>
+              <Input id="report-barcode" inputMode="numeric" maxLength={14} value={reportBarcode} onChange={(e) => setReportBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="rounded-lg" />
+              <p className="text-xs text-muted-foreground">Une même canette peut avoir plusieurs codes-barres selon le format ou le pays. Le code proposé sera vérifié avant ajout.</p>
+            </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium" htmlFor="report-images">Ajouter des images (jusqu’à 5)</label>
               <input id="report-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => {
@@ -317,7 +326,7 @@ function CanPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
-            <Button onClick={() => void submitReport()} disabled={reporting || (!reportDetails.trim() && reportImages.length === 0)}>{reporting ? "Envoi…" : "Envoyer la contribution"}</Button>
+            <Button onClick={() => void submitReport()} disabled={reporting || (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0)}>{reporting ? "Envoi…" : "Envoyer la contribution"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
