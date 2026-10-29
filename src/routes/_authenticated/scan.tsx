@@ -6,8 +6,9 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
 import { recognizeCanImage } from "@/lib/can-vision";
-import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2, Search } from "lucide-react";
+import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CanSearch, matchesSearch } from "@/components/CanSearch";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/scan")({
@@ -435,12 +436,9 @@ function Scanner() {
   }
 
   if (showCatalogPicker && unknownBarcode) {
-    const query = catalogSearch.trim().toLocaleLowerCase("fr");
     const filteredCans = (data?.cans ?? []).filter((can) => {
       const brandName = data?.brands.find((brand) => brand.id === can.brand_id)?.name ?? "";
-      const haystack = [can.name, brandName, can.flavour, can.variant_name, can.region, can.barcode, can.release_year?.toString(), can.volume_ml ? `${can.volume_ml} ml` : ""]
-        .filter(Boolean).join(" ").toLocaleLowerCase("fr");
-      return !query || haystack.includes(query);
+      return matchesSearch(catalogSearch, [can.name, brandName, can.flavour, can.variant_name, can.region, can.barcode, can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null]);
     });
     return (
       <div className="space-y-5 py-5">
@@ -450,10 +448,12 @@ function Scanner() {
           <h1 className="mt-2 text-2xl font-black tracking-tight">Retrouve cette canette</h1>
           <p className="mt-1 text-sm text-muted-foreground">Recherche dans tout le catalogue, puis sélectionne le design qui correspond à ta canette. Le code {unknownBarcode} sera proposé comme code supplémentaire pour vérification.</p>
         </div>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={catalogSearch} onChange={(event) => setCatalogSearch(event.target.value)} placeholder="Rechercher une marque, un nom, une saveur…" className="h-12 rounded-xl pl-10" aria-label="Rechercher dans le catalogue de canettes" />
-        </div>
+        <CanSearch
+          value={catalogSearch}
+          onChange={setCatalogSearch}
+          placeholder="Rechercher une marque, un nom, une saveur…"
+          ariaLabel="Rechercher dans le catalogue de canettes"
+        />
         <p className="text-xs text-muted-foreground">{filteredCans.length} canette{filteredCans.length > 1 ? "s" : ""} trouvée{filteredCans.length > 1 ? "s" : ""}</p>
         <div className="space-y-3">
           {filteredCans.map((can) => {
