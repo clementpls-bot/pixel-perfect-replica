@@ -181,7 +181,7 @@ function AdminSubmissions() {
       const image_url = replacementFiles.front ? await uploadReplacement(replacementFiles.front, "front") : draft.image_url;
       const back_image_url = replacementFiles.back ? await uploadReplacement(replacementFiles.back, "back") : draft.back_image_url || null;
       const barcode_image_url = replacementFiles.barcode ? await uploadReplacement(replacementFiles.barcode, "barcode") : draft.barcode_image_url || null;
-      const { data, error } = await supabase.from("can_submissions").update({
+      const { data, error } = await supabase.from("can_submissions").update(({
         name: draft.name.trim(),
         barcode: draft.barcode.trim(),
         brand_id: draft.brand_id || null,
