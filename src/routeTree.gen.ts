@@ -21,6 +21,7 @@ import { Route as BrandsSlugRouteImport } from './routes/brands.$slug'
 import { Route as CansIdRouteImport } from './routes/cans.$id'
 import { Route as ModelsIdRouteImport } from './routes/models.$id'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as UsersUsernameRouteImport } from './routes/users.$username'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,6 +78,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersUsernameRoute = UsersUsernameRouteImport.update({
+  id: '/users/$username',
+  path: '/users/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ModelsIdRoute = ModelsIdRouteImport.update({
   id: '/models/$id',
   path: '/models/$id',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
   '/community': typeof CommunityRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
   '/community': typeof CommunityRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands': typeof BrandsIndexRoute
 }
 export interface FileRoutesById {
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRouteTypes {
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$username'
     | '/brands/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$username'
     | '/brands'
   id:
     | '__root__'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
+    | '/users/$username'
     | '/brands/'
   fileRoutesById: FileRoutesById
 }
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   CansIdRoute: typeof CansIdRoute
   ModelsIdRoute: typeof ModelsIdRoute
   CommunityRoute: typeof CommunityRoute
+  UsersUsernameRoute: typeof UsersUsernameRoute
   BrandsIndexRoute: typeof BrandsIndexRoute
 }
 
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/community'
       fullPath: '/community'
       preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/$username': {
+      id: '/users/$username'
+      path: '/users/$username'
+      fullPath: '/users/$username'
+      preLoaderRoute: typeof UsersUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
