@@ -358,7 +358,6 @@ function Scanner() {
             );
           })}
         </div>
-        <Button type="button" variant="outline" className="w-full rounded-xl" onClick={() => { setBarcodeMatches([]); setCameraAttempt((n) => n + 1); }}>Ce n’est aucune de ces canettes</Button>
       </div>
     );
   }
