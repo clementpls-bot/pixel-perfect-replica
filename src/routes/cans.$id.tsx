@@ -63,7 +63,7 @@ function CanPage() {
     refetchInterval: 15_000,
   });
   useEffect(() => {
-    const channel = supabase.channel(`can-barcodes-${id}`).on("postgres_changes", { event: "*", schema: "public", table: "can_barcodes", filter: `can_id=eq.${id}` }, () => {
+    const channel = (supabase as any).channel(`can-barcodes-${id}`).on("postgres_changes", { event: "*", schema: "public", table: "can_barcodes", filter: `can_id=eq.${id}` }, () => {
       void qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
     }).subscribe();
     return () => { void supabase.removeChannel(channel); };
