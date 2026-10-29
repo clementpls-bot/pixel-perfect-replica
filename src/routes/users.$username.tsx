@@ -35,7 +35,7 @@ function PublicProfile() {
   const profileQuery = useQuery({
     queryKey: ["public-profile", username],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url,created_at").ilike("username", username).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url,created_at").eq("username", username).maybeSingle();
       if (error) throw error;
       return data as PublicProfileRow | null;
     },
