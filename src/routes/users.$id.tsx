@@ -122,10 +122,11 @@ function PublicUserProfile() {
   const person = profile.data;
   return <div className="space-y-5">
     <Link to="/community" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Retour à la communauté</Link>
-    <header className="flex items-center gap-4 rounded-2xl border bg-card p-4">
-      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-2xl font-black text-primary-foreground">
+    <ProfileBanner src={person.banner_url} />
+    <header className="relative -mt-20 flex items-center gap-4 rounded-2xl border bg-card/90 p-4 backdrop-blur">
+      <AvatarZoom src={person.avatar_url} alt={`Photo de ${person.username}`} className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-2xl font-black text-primary-foreground">
         {person.avatar_url ? <img src={person.avatar_url} alt={`Photo de ${person.username}`} className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? "?"}
-      </div>
+      </AvatarZoom>
       <div className="min-w-0 flex-1">
         <h1 className="break-words text-xl font-black">{person.username}</h1>
         <p className="mt-1 text-xs text-muted-foreground">Membre depuis le {new Date(person.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
