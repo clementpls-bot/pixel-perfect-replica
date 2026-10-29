@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, ImageOff, LoaderCircle, Pencil, Save, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, ImageOff, LoaderCircle, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -320,10 +320,15 @@ function AdminSubmissions() {
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-8 pb-8">
-      <header className="space-y-1">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Administration · Cansdex</p>
-        <h1 className="text-3xl font-black tracking-tight">Modération des contributions</h1>
-        <p className="text-sm text-muted-foreground">Corrige les propositions avant publication et traite les améliorations proposées par la communauté.</p>
+      <header className="space-y-3">
+        <Link to="/profile" className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> Retour au profil
+        </Link>
+        <div className="space-y-1">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Administration · Cansdex</p>
+          <h1 className="text-3xl font-black tracking-tight">Modération des contributions</h1>
+          <p className="text-sm text-muted-foreground">Corrige les propositions avant publication et traite les améliorations proposées par la communauté.</p>
+        </div>
       </header>
 
       <section className="space-y-4">
