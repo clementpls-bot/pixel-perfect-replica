@@ -33,6 +33,7 @@ function Scanner() {
   const { user } = useAuth();
   const addCan = useAddCan();
   const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
+  const [barcodeMatches, setBarcodeMatches] = useState<Can[]>([]);
   const [scanMode, setScanMode] = useState<"vision" | "barcode">("barcode");
   const [visionBusy, setVisionBusy] = useState(false);
   const [visionResult, setVisionResult] = useState<VisionResult | null>(null);
@@ -79,14 +80,21 @@ function Scanner() {
     const code = rawCode.trim();
     if (busy.current || !catalogRef.current || !code) return;
     busy.current = true;
-    const can = catalogRef.current.cans.find((c) => c.barcode === code);
-    if (!can) {
+    const matches = catalogRef.current.cans.filter((c) => c.barcode === code);
+    if (matches.length === 0) {
       setUnknownBarcode(code);
       setManual(code);
       busy.current = false;
       return;
     }
+    if (matches.length > 1) {
+      setManual(code);
+      setBarcodeMatches(matches);
+      busy.current = false;
+      return;
+    }
     try {
+      const can = matches[0];
       const isNew = await addCan(can.id);
       navigator.vibrate?.(80);
       setFound({ can, isNew });
@@ -97,7 +105,7 @@ function Scanner() {
   };
 
   useEffect(() => {
-    if (scanMode !== "barcode" || found || unknownBarcode || submitted || visionResult) return;
+    if (scanMode !== "barcode" || found || barcodeMatches.length > 1 || unknownBarcode || submitted || visionResult) return;
     let controls: { stop: () => void } | undefined;
     let cancelled = false;
     setCamError(false);
@@ -132,7 +140,7 @@ function Scanner() {
       if (videoRef.current) videoRef.current.srcObject = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [found, unknownBarcode, submitted, cameraAttempt, scanMode, visionResult]);
+  }, [found, barcodeMatches, unknownBarcode, submitted, cameraAttempt, scanMode, visionResult]);
 
   useEffect(() => {
     if (scanMode !== "vision" || found || submitted || unknownVisual || visionResult || visionBusy) return;
@@ -289,9 +297,21 @@ function Scanner() {
     }
   };
 
+  const chooseBarcodeCan = async (can: Can) => {
+    try {
+      const isNew = await addCan(can.id);
+      navigator.vibrate?.(80);
+      setBarcodeMatches([]);
+      setFound({ can, isNew });
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
   const resetScanner = () => {
     busy.current = false;
     setFound(null);
+    setBarcodeMatches([]);
     setVisionResult(null);
     setVisionError("");
     setScanMode("barcode");
@@ -312,6 +332,36 @@ function Scanner() {
     setModelId(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl("");
     setImages({ front: null, back: null, barcode: null });
   };
+
+  if (barcodeMatches.length > 1) {
+    return (
+      <div className="space-y-5 pt-6">
+        <button type="button" onClick={() => { setBarcodeMatches([]); setCameraAttempt((n) => n + 1); }} className="text-sm font-semibold text-muted-foreground">← Reprendre le scan</button>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">Code-barres partagé</p>
+          <h1 className="mt-2 text-2xl font-black">Quelle canette est la bonne ?</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Plusieurs canettes correspondent à ce code-barres. Choisis celle qui correspond exactement à ta canette avant de l’ajouter à ton coffre.</p>
+        </div>
+        <div className="space-y-3">
+          {barcodeMatches.map((can) => {
+            const brand = data?.brands.find((item) => item.id === can.brand_id);
+            return (
+              <button key={can.id} type="button" onClick={() => void chooseBarcodeCan(can)} className="flex w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition-colors hover:border-primary hover:bg-primary/5">
+                <div className="w-16 shrink-0"><CanArt can={can} brandName={brand?.name} /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">{can.name}</p>
+                  <p className="text-sm text-muted-foreground">{brand?.name ?? "Marque inconnue"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{[can.variant_name, can.region, can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null].filter(Boolean).join(" · ") || "Détails supplémentaires indisponibles"}</p>
+                </div>
+                <span className="text-sm font-bold text-primary">Choisir</span>
+              </button>
+            );
+          })}
+        </div>
+        <Button type="button" variant="outline" className="w-full rounded-xl" onClick={() => { setBarcodeMatches([]); setCameraAttempt((n) => n + 1); }}>Ce n’est aucune de ces canettes</Button>
+      </div>
+    );
+  }
 
   if (found) {
     const brand = data?.brands.find((b) => b.id === found.can.brand_id);
