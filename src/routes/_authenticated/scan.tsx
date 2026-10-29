@@ -94,7 +94,7 @@ function Scanner() {
           .eq("barcode", code)
           .eq("status", "approved");
         if (!error && extraMatches?.length) {
-          const matchedIds = new Set(extraMatches.map((entry: { can_id: string }) => entry.can_id));
+          const matchedIds = new Set((extraMatches as any[]).map((entry: { can_id: string }) => entry.can_id));
           matches = catalogRef.current.cans.filter((can) => matchedIds.has(can.id));
         }
       } catch {
@@ -117,7 +117,7 @@ function Scanner() {
       return;
     }
     try {
-      const can = matches[0];
+      const can = matches[0]!;
       const isNew = await addCan(can.id);
       navigator.vibrate?.(80);
       setFound({ can, isNew });
@@ -278,7 +278,7 @@ function Scanner() {
       const frontUrl = await uploadImage(images.front, "front");
       const backUrl = images.back ? await uploadImage(images.back, "back") : null;
       const barcodeUrl = images.barcode ? await uploadImage(images.barcode, "barcode") : null;
-      const { error } = await supabase.from("can_submissions").insert({
+      const { error } = await supabase.from("can_submissions").insert(({
         submitted_by: user.id,
         barcode: unknownBarcode,
         name: name.trim(),
@@ -306,7 +306,7 @@ function Scanner() {
         region: region.trim() || null,
         edition_type: editionType,
         volume_ml: volumeMl ? Number(volumeMl) : null,
-      });
+      } as any));
       if (error) {
         if (error.code === "23505") throw new Error("Une proposition pour ce code-barres est déjà en attente de vérification.");
         throw error;
@@ -343,7 +343,7 @@ function Scanner() {
         .maybeSingle();
       if (lookupError) throw lookupError;
       if (existing) {
-        throw new Error(existing.status === "approved"
+        throw new Error((existing as any).status === "approved"
           ? "Ce code-barres est déjà enregistré dans le catalogue."
           : "Ce code-barres a déjà été proposé et attend une vérification.");
       }

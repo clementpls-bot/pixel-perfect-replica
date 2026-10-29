@@ -105,7 +105,7 @@ function AdminSubmissions() {
         .eq("status", "pending")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
+      return data as unknown as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
     },
   });
   const submissions = submissionsQuery.data ?? [];
@@ -137,7 +137,7 @@ function AdminSubmissions() {
       name: item.name,
       barcode: item.barcode,
       brand_id: item.brand_id ?? "",
-      proposed_brand_name: item.proposed_brand_name ?? "",
+      proposed_brand_name: (item as any).proposed_brand_name ?? "",
       new_brand_selected: !item.brand_id,
       model_id: item.model_id ?? "",
       variant_name: item.variant_name ?? "",
@@ -181,7 +181,7 @@ function AdminSubmissions() {
       const image_url = replacementFiles.front ? await uploadReplacement(replacementFiles.front, "front") : draft.image_url;
       const back_image_url = replacementFiles.back ? await uploadReplacement(replacementFiles.back, "back") : draft.back_image_url || null;
       const barcode_image_url = replacementFiles.barcode ? await uploadReplacement(replacementFiles.barcode, "barcode") : draft.barcode_image_url || null;
-      const { data, error } = await supabase.from("can_submissions").update({
+      const { data, error } = await supabase.from("can_submissions").update(({
         name: draft.name.trim(),
         barcode: draft.barcode.trim(),
         brand_id: draft.brand_id || null,
@@ -198,7 +198,7 @@ function AdminSubmissions() {
         image_url,
         back_image_url,
         barcode_image_url,
-      }).eq("id", id).eq("status", "pending").select("id");
+      } as any)).eq("id", id).eq("status", "pending").select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("La proposition n’est plus en attente ou les droits sont insuffisants.");
       setEditingId(null);
@@ -373,7 +373,7 @@ function AdminSubmissions() {
 
         <div className="space-y-5">
           {visibleSubmissions.map((item) => {
-            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? item.proposed_brand_name ?? "Marque inconnue";
+            const brandName = catalog?.brands.find((brand) => brand.id === item.brand_id)?.name ?? (item as any).proposed_brand_name ?? "Marque inconnue";
             const pending = item.status === "pending";
             const working = busyId === item.id;
             const editing = editingId === item.id && draft !== null;

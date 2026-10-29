@@ -106,7 +106,7 @@ function CanPage() {
     if (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0) { toast.error("Ajoute un message, un code-barres ou une image."); return; }
     const proposedBarcode = reportBarcode.trim();
     if (proposedBarcode && !/^\\d{8,14}$/.test(proposedBarcode)) { toast.error("Le code-barres doit contenir de 8 à 14 chiffres."); return; }
-    if (proposedBarcode && (data?.cans.some((item) => item.barcode === proposedBarcode) || knownBarcodes.data?.some((item) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé dans le catalogue."); return; }
+    if (proposedBarcode && (data?.cans.some((item: any) => item.barcode === proposedBarcode) || knownBarcodes.data?.some((item: any) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé dans le catalogue."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
@@ -338,7 +338,7 @@ function CanPage() {
                     <code className="text-sm font-semibold">{can.barcode}</code>
                     <span className="text-[10px] text-muted-foreground">Principal</span>
                   </div>
-                  {(knownBarcodes.data ?? []).map((entry) => <div key={entry.id} className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
+                  {(knownBarcodes.data ?? []).map((entry: any) => <div key={entry.id} className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
                     <code className="text-sm font-semibold">{entry.barcode}</code>
                     <span className={entry.status === "approved" ? "text-[10px] text-muted-foreground" : "text-[10px] font-medium text-amber-600"}>{entry.status === "approved" ? "Vérifié" : "En vérification"}</span>
                   </div>)}
