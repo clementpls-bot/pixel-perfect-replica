@@ -308,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   CansIdRoute: CansIdRoute,
   ModelsIdRoute: ModelsIdRoute,
   CommunityRoute: CommunityRoute,
+  UsersUsernameRoute: UsersUsernameRoute,
   BrandsIndexRoute: BrandsIndexRoute,
 }
 export const routeTree = rootRouteImport
