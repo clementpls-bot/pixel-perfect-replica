@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminSubmissionsRouteImport } from './routes/_authenticated/admin-submissions'
 import { Route as AuthenticatedAdminCansRouteImport } from './routes/_authenticated/admin-cans'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin-reports'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
@@ -49,6 +50,11 @@ const AuthenticatedAdminSubmissionsRoute =
     path: '/admin-submissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminReportsRoute = AuthenticatedAdminReportsRouteImport.update({
+  id: '/admin-reports',
+  path: '/admin-reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin-cans': typeof AuthenticatedAdminCansRoute
   '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
+  '/admin-reports': typeof AuthenticatedAdminReportsRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
+  '/admin-reports': typeof AuthenticatedAdminReportsRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin-cans': typeof AuthenticatedAdminCansRoute
   '/_authenticated/admin-submissions': typeof AuthenticatedAdminSubmissionsRoute
+  '/_authenticated/admin-reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin-cans'
     | '/admin-submissions'
+    | '/admin-reports'
     | '/collection'
     | '/profile'
     | '/scan'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin-submissions'
+    | '/admin-reports'
     | '/collection'
     | '/profile'
     | '/scan'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin-submissions'
+    | '/_authenticated/admin-reports'
     | '/_authenticated/collection'
     | '/_authenticated/profile'
     | '/_authenticated/scan'
@@ -302,6 +314,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminCansRoute: typeof AuthenticatedAdminCansRoute
   AuthenticatedAdminSubmissionsRoute: typeof AuthenticatedAdminSubmissionsRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
@@ -310,6 +323,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminCansRoute: AuthenticatedAdminCansRoute,
   AuthenticatedAdminSubmissionsRoute: AuthenticatedAdminSubmissionsRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,
