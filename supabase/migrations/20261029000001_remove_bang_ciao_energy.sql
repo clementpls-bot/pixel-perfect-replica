@@ -10,6 +10,14 @@ create policy "Public can view Drinks totals"
 
 -- Remove the two brands and their catalog entries. User collection rows referencing
 -- these cans are expected to follow the foreign-key deletion rules configured by the app.
+update public.can_submissions s
+set proposed_brand_name = coalesce(nullif(trim(s.proposed_brand_name), ''), b.name),
+    brand_id = null
+from public.brands b
+where s.brand_id = b.id
+  and (lower(trim(b.name)) in ('bang', 'bang energy', 'ciao energy', 'ciao')
+       or lower(trim(b.slug)) in ('bang', 'bang-energy', 'ciao-energy', 'ciao'));
+
 delete from public.user_can_drinks
 where can_id in (
   select c.id from public.cans c join public.brands b on b.id = c.brand_id
