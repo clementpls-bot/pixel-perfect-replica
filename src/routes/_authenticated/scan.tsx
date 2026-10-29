@@ -310,7 +310,7 @@ function Scanner() {
       return;
     }
     const code = unknownBarcode.trim();
-    if (!/^\\d{8,14}$/.test(code)) {
+    if (!/^\d{8,14}$/.test(code)) {
       toast.error("Le code-barres doit contenir de 8 à 14 chiffres.");
       return;
     }
