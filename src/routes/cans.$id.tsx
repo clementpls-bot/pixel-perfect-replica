@@ -30,6 +30,7 @@ type Comment = { id: string; body: string; parent_id: string | null; user_id: st
 function CanPage() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const qc = useQueryClient();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const canDrinks = useCanDrinks(id);
@@ -55,7 +56,7 @@ function CanPage() {
   const knownBarcodes = useQuery({
     queryKey: ["can-barcodes", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("can_barcodes").select("id,barcode,status,created_at").eq("can_id", id).order("created_at", { ascending: true });
+      const { data, error } = await (supabase as any).from("can_barcodes").select("id,barcode,status,created_at").eq("can_id", id).order("created_at", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
@@ -67,7 +68,6 @@ function CanPage() {
     }).subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [id, qc]);
-  const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
 
@@ -130,7 +130,7 @@ function CanPage() {
       });
       if (error) throw error;
       if (proposedBarcode) {
-        const { error: barcodeError } = await supabase.from("can_barcodes").insert({ can_id: can.id, barcode: proposedBarcode, submitted_by: user.id, status: "pending" });
+        const { error: barcodeError } = await (supabase as any).from("can_barcodes").insert({ can_id: can.id, barcode: proposedBarcode, submitted_by: user.id, status: "pending" });
         if (barcodeError && barcodeError.code !== "23505") throw barcodeError;
       }
       await qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
