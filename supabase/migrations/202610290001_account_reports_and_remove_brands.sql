@@ -46,6 +46,10 @@ drop policy if exists "Authenticated users can view public drink totals" on publ
 create policy "Authenticated users can view public drink totals"
   on public.user_can_drinks for select to authenticated using (true);
 
+drop policy if exists "Authenticated users can view public profile galleries" on public.profile_gallery;
+create policy "Authenticated users can view public profile galleries"
+  on public.profile_gallery for select to authenticated using (true);
+
 -- Store report attachments in a private bucket; only their owner may upload and admins may read them.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('account-report-images', 'account-report-images', false, 5242880, array['image/jpeg','image/png','image/webp'])
