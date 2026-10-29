@@ -9,6 +9,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
+import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +39,7 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
   const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
@@ -171,20 +173,21 @@ function Profile() {
     }
   };
 
-  const uploadAvatar = async (file?: File) => {
+  const uploadImage = async (file: File | undefined, kind: "avatar" | "banner") => {
     if (!file || !user) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast.error("Choisissez une image JPG, PNG ou WebP.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Votre photo de profil doit faire 5 Mo maximum.");
+      toast.error("L’image doit faire 5 Mo maximum.");
       return;
     }
-    setUploadingAvatar(true);
+    const setBusy = kind === "avatar" ? setUploadingAvatar : setUploadingBanner;
+    setBusy(true);
     try {
       const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-      const path = `${user.id}/avatar-${Date.now()}.${extension}`;
+      const path = `${user.id}/${kind}-${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("profile-avatars").upload(path, file, {
         cacheControl: "3600",
         contentType: file.type,
@@ -192,34 +195,46 @@ function Profile() {
       });
       if (uploadError) throw uploadError;
       const { data: publicUrl } = supabase.storage.from("profile-avatars").getPublicUrl(path);
-      const { error: updateError } = await supabase.from("profiles")
-        .update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
+      const update = kind === "avatar" ? { avatar_url: publicUrl.publicUrl } : { banner_url: publicUrl.publicUrl };
+      const { error: updateError } = await supabase.from("profiles").update(update).eq("id", user.id);
       if (updateError) throw updateError;
       await qc.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast.success("Photo de profil mise à jour.");
+      toast.success(kind === "avatar" ? "Photo de profil mise à jour." : "Bannière mise à jour.");
     } catch (error) {
-      toast.error((error as Error).message || "Impossible d’envoyer la photo de profil.");
+      toast.error((error as Error).message || "Impossible d’envoyer l’image.");
     } finally {
-      setUploadingAvatar(false);
+      setBusy(false);
     }
   };
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center gap-4">
-        <label className="group relative flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground">
-          {profile?.avatar_url
-            ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
-            : profile?.username?.[0]?.toUpperCase()}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition group-hover:opacity-100">
-            {uploadingAvatar ? <span className="text-xs">Envoi en cours…</span> : <Camera className="h-5 w-5" />}
-          </span>
+      <ProfileBanner src={profile?.banner_url}>
+        <label className="absolute right-3 top-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-bold shadow backdrop-blur">
+          <Camera className="h-3.5 w-3.5" />{uploadingBanner ? "Envoi…" : "Bannière"}
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
-            disabled={uploadingAvatar} onChange={(event) => {
-              void uploadAvatar(event.target.files?.[0]);
+            disabled={uploadingBanner} onChange={(event) => {
+              void uploadImage(event.target.files?.[0], "banner");
               event.currentTarget.value = "";
             }} />
         </label>
+      </ProfileBanner>
+      <header className="relative -mt-20 flex items-center gap-4">
+        <div className="relative shrink-0">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground ring-4 ring-background">
+            {profile?.avatar_url
+              ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
+              : profile?.username?.[0]?.toUpperCase()}
+          </AvatarZoom>
+          <label className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-background shadow" aria-label="Changer la photo de profil">
+            {uploadingAvatar ? <span className="text-[9px]">…</span> : <Camera className="h-4 w-4" />}
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
+              disabled={uploadingAvatar} onChange={(event) => {
+                void uploadImage(event.target.files?.[0], "avatar");
+                event.currentTarget.value = "";
+              }} />
+          </label>
+        </div>
         <div className="min-w-0 flex-1">
           {editing ? (
             <div className="space-y-2">

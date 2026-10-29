@@ -29,6 +29,13 @@
       "when": 1793312427028,
       "tag": "0003_community_reads_signed_in_only",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793313177348,
+      "tag": "0004_profile_banner",
+      "breakpoints": true
     }
   ]
 }
