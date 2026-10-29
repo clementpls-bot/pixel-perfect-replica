@@ -106,7 +106,7 @@ function CanPage() {
     if (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0) { toast.error("Ajoute un message, un code-barres ou une image."); return; }
     const proposedBarcode = reportBarcode.trim();
     if (proposedBarcode && !/^\\d{8,14}$/.test(proposedBarcode)) { toast.error("Le code-barres doit contenir de 8 à 14 chiffres."); return; }
-    if (proposedBarcode && (data?.cans.some((item: any) => item.barcode === proposedBarcode) || knownBarcodes.data?.some((item) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé dans le catalogue."); return; }
+    if (proposedBarcode && (data?.cans.some((item: any) => item.barcode === proposedBarcode) || knownBarcodes.data?.some((item: any) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé dans le catalogue."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
