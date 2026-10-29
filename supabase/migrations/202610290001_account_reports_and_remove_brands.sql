@@ -16,6 +16,9 @@ create table if not exists public.account_reports (
 
 alter table public.account_reports enable row level security;
 
+grant select, insert, update on public.account_reports to authenticated;
+grant select on public.user_cans, public.user_can_drinks, public.profile_gallery to authenticated;
+
 drop policy if exists "Users can submit account reports" on public.account_reports;
 create policy "Users can submit account reports"
   on public.account_reports for insert to authenticated
