@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useCatalog } from "@/lib/data";
+import { CanArt } from "@/components/CanArt";
 import type { Database } from "@/integrations/supabase/types";
 
 type ReviewFilter = "pending" | "approved" | "rejected" | "all";
@@ -339,7 +340,7 @@ function AdminSubmissions() {
             const brandName = catalog?.brands.find((brand) => brand.id === can?.brand_id)?.name ?? "Marque inconnue";
             const working = barcodeBusyId === item.id;
             return <article key={item.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-4 sm:flex-row sm:items-center">
-              <div className="w-16 shrink-0">{can ? <div className="w-full"><img src={can.image_url ?? ""} alt="" className="h-24 w-full rounded-lg object-contain" onError={(event) => { event.currentTarget.style.display = "none"; }} /></div> : <div className="flex h-24 items-center justify-center rounded-lg bg-muted text-xs">Canette introuvable</div>}</div>
+              <div className="w-16 shrink-0">{can ? <CanArt can={can} brandName={brandName} /> : <div className="flex h-24 items-center justify-center rounded-lg bg-muted text-xs">Canette introuvable</div>}</div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{can?.name ?? "Canette du catalogue introuvable"}</p>
                 <p className="text-sm text-muted-foreground">{brandName}</p>
