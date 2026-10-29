@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Droplets, FlaskConical, PenLine, Sparkles, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,21 @@ function CanPage() {
   const [reportBarcode, setReportBarcode] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [reporting, setReporting] = useState(false);
+  const knownBarcodes = useQuery({
+    queryKey: ["can-barcodes", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("can_barcodes").select("id,barcode,status,created_at").eq("can_id", id).order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    refetchInterval: 15_000,
+  });
+  useEffect(() => {
+    const channel = supabase.channel(`can-barcodes-${id}`).on("postgres_changes", { event: "*", schema: "public", table: "can_barcodes", filter: `can_id=eq.${id}` }, () => {
+      void qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
+    }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [id, qc]);
   const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
@@ -91,7 +106,7 @@ function CanPage() {
     if (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0) { toast.error("Ajoute un message, un code-barres ou une image."); return; }
     const proposedBarcode = reportBarcode.trim();
     if (proposedBarcode && !/^\\d{8,14}$/.test(proposedBarcode)) { toast.error("Le code-barres doit contenir de 8 à 14 chiffres."); return; }
-    if (proposedBarcode && data?.cans.some((item) => item.barcode === proposedBarcode)) { toast.error("Ce code-barres est déjà associé à une canette du catalogue."); return; }
+    if (proposedBarcode && (data?.cans.some((item) => item.barcode === proposedBarcode) || knownBarcodes.data?.some((item) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé dans le catalogue."); return; }
     setReporting(true);
     try {
       const imageUrls: string[] = [];
@@ -114,6 +129,11 @@ function CanPage() {
         image_urls: imageUrls,
       });
       if (error) throw error;
+      if (proposedBarcode) {
+        const { error: barcodeError } = await supabase.from("can_barcodes").insert({ can_id: can.id, barcode: proposedBarcode, submitted_by: user.id, status: "pending" });
+        if (barcodeError && barcodeError.code !== "23505") throw barcodeError;
+      }
+      await qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
       toast.success("Merci ! Ta proposition a été envoyée pour vérification.");
       setReportDetails(""); setReportBarcode(""); setReportImages([]); setReportOpen(false);
     } catch (error) {
@@ -300,7 +320,22 @@ function CanPage() {
             <div className="space-y-1.5 rounded-xl border p-3">
               <label className="block text-sm font-medium" htmlFor="report-barcode">Proposer un code-barres supplémentaire (facultatif)</label>
               <Input id="report-barcode" inputMode="numeric" maxLength={14} value={reportBarcode} onChange={(e) => setReportBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="rounded-lg" />
-              <p className="text-xs text-muted-foreground">Une même canette peut avoir plusieurs codes-barres selon le format ou le pays. Le code proposé sera vérifié avant ajout.</p>
+              <p className="text-xs text-muted-foreground">Une même canette peut avoir plusieurs codes-barres selon le format ou le pays.</p>
+              <div className="mt-3 rounded-lg bg-muted/40 p-3">
+                <p className="text-xs font-semibold">Codes-barres connus</p>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
+                    <code className="text-sm font-semibold">{can.barcode}</code>
+                    <span className="text-[10px] text-muted-foreground">Principal</span>
+                  </div>
+                  {(knownBarcodes.data ?? []).map((entry) => <div key={entry.id} className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
+                    <code className="text-sm font-semibold">{entry.barcode}</code>
+                    <span className={entry.status === "approved" ? "text-[10px] text-muted-foreground" : "text-[10px] font-medium text-amber-600"}>{entry.status === "approved" ? "Vérifié" : "En vérification"}</span>
+                  </div>)}
+                  {knownBarcodes.isLoading && <p className="text-xs text-muted-foreground">Chargement des autres codes-barres…</p>}
+                  {!knownBarcodes.isLoading && !knownBarcodes.data?.length && <p className="text-xs text-muted-foreground">Aucun autre code-barres enregistré pour le moment.</p>}
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium" htmlFor="report-images">Ajouter des images (jusqu’à 5)</label>
