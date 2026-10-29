@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { ProgressBar } from "@/components/ProgressBar";
+import { CanSearch, matchesSearch } from "@/components/CanSearch";
 
 export const Route = createFileRoute("/brands/$slug")({
   head: ({ params }) => ({
@@ -20,34 +22,49 @@ function BrandPage() {
   const { slug } = Route.useParams();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  const [search, setSearch] = useState("");
   const brand = data?.brands.find((b) => b.slug === slug);
+
+  const allCans = useMemo(() => (data?.cans ?? [])
+    .filter((can) => can.brand_id === brand?.id)
+    .sort((a, b) => a.name.localeCompare(b.name, "fr")), [data?.cans, brand?.id]);
+  const cans = useMemo(() => allCans.filter((can) => matchesSearch(search, [
+    can.name, brand?.name, can.barcode, can.flavour, can.variant_name, can.region,
+    can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null,
+  ])), [allCans, search, brand?.name]);
+  const ownedCount = allCans.filter((can) => owned?.has(can.id)).length;
+
   if (!data) return null;
   if (!brand) return <p>Marque introuvable.</p>;
-
-  // Chaque canette est une pièce de collection indépendante, classée par son propre design.
-  const cans = data.cans
-    .filter((can) => can.brand_id === brand.id)
-    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const ownedCount = cans.filter((can) => owned?.has(can.id)).length;
 
   return (
     <div>
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" />Marques
+        <ArrowLeft className="h-4 w-4" />Catalogue
       </Link>
       <div className="flex items-center gap-3">
         {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
         <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
       </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Canettes collectionnées" value={ownedCount} total={cans.length} color={brand.color} />
+        <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brand.color} />
       </div>
       <div className="mt-5 flex items-end justify-between gap-3">
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Les designs</p>
-        <p className="text-xs text-muted-foreground">{ownedCount}/{cans.length} canettes possédées</p>
+        <p className="text-xs text-muted-foreground">{ownedCount}/{allCans.length} canettes possédées</p>
       </div>
-      {cans.length === 0 ? (
+      <CanSearch
+        value={search}
+        onChange={setSearch}
+        placeholder={`Rechercher une canette ${brand.name}…`}
+        ariaLabel={`Rechercher une canette de ${brand.name}`}
+        className="mt-3"
+      />
+      <p className="mt-2 text-xs text-muted-foreground">{cans.length} canette{cans.length > 1 ? "s" : ""} affichée{cans.length > 1 ? "s" : ""}</p>
+      {allCans.length === 0 ? (
         <p className="mt-4 rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucune canette dans cette collection pour le moment.</p>
+      ) : cans.length === 0 ? (
+        <p className="mt-4 rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucune canette ne correspond à « {search} ».</p>
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {cans.map((can) => {
