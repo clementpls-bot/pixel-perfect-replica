@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
 import { recognizeCanImage } from "@/lib/can-vision";
-import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2 } from "lucide-react";
+import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -48,6 +48,10 @@ function Scanner() {
   const [camError, setCamError] = useState(false);
   const [cameraAttempt, setCameraAttempt] = useState(0);
   const [unknownBarcode, setUnknownBarcode] = useState("");
+  const [unknownBarcodeLanding, setUnknownBarcodeLanding] = useState(false);
+  const [showCatalogPicker, setShowCatalogPicker] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [barcodeProposalBusy, setBarcodeProposalBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
@@ -84,6 +88,9 @@ function Scanner() {
     if (matches.length === 0) {
       setUnknownBarcode(code);
       setManual(code);
+      setUnknownBarcodeLanding(true);
+      setShowCatalogPicker(false);
+      setCatalogSearch("");
       busy.current = false;
       return;
     }
@@ -297,6 +304,54 @@ function Scanner() {
     }
   };
 
+  const proposeBarcodeForExistingCan = async (can: Can) => {
+    if (!user) {
+      toast.error("Connecte-toi pour proposer un code-barres.");
+      return;
+    }
+    const code = unknownBarcode.trim();
+    if (!/^\\d{8,14}$/.test(code)) {
+      toast.error("Le code-barres doit contenir de 8 à 14 chiffres.");
+      return;
+    }
+    if (can.barcode === code) {
+      toast.error("Ce code-barres est déjà le code principal de cette canette.");
+      return;
+    }
+    setBarcodeProposalBusy(true);
+    try {
+      const { data: existing, error: lookupError } = await supabase
+        .from("can_barcodes" as any)
+        .select("id,status")
+        .eq("barcode", code)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existing) {
+        throw new Error(existing.status === "approved"
+          ? "Ce code-barres est déjà enregistré dans le catalogue."
+          : "Ce code-barres a déjà été proposé et attend une vérification.");
+      }
+      const { error } = await supabase.from("can_barcodes" as any).insert({
+        can_id: can.id,
+        barcode: code,
+        submitted_by: user.id,
+        status: "pending",
+      });
+      if (error) {
+        if (error.code === "23505") throw new Error("Ce code-barres a déjà été proposé.");
+        throw error;
+      }
+      setShowCatalogPicker(false);
+      setUnknownBarcodeLanding(false);
+      setSubmitted(true);
+      toast.success("Code-barres proposé pour vérification.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible d’envoyer cette proposition.");
+    } finally {
+      setBarcodeProposalBusy(false);
+    }
+  };
+
   const chooseBarcodeCan = async (can: Can) => {
     try {
       const isNew = await addCan(can.id);
@@ -316,6 +371,10 @@ function Scanner() {
     setVisionError("");
     setScanMode("barcode");
     setUnknownBarcode("");
+    setUnknownBarcodeLanding(false);
+    setShowCatalogPicker(false);
+    setCatalogSearch("");
+    setBarcodeProposalBusy(false);
     setSubmitted(false);
     setManual("");
     setName("");
@@ -332,6 +391,75 @@ function Scanner() {
     setModelId(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl("");
     setImages({ front: null, back: null, barcode: null });
   };
+
+  if (unknownBarcodeLanding && unknownBarcode) {
+    return (
+      <div className="flex min-h-[calc(100dvh-7rem)] flex-col justify-between py-6">
+        <button type="button" onClick={() => { setUnknownBarcode(""); setManual(""); setUnknownBarcodeLanding(false); setCameraAttempt((n) => n + 1); }} className="self-start text-sm font-semibold text-muted-foreground">← Retour au scanner</button>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-3 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <ScanBarcode className="h-10 w-10" />
+          </div>
+          <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-primary">Nouveau code détecté</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight">Canette inconnue</h1>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Le code-barres <span className="font-semibold text-foreground">{unknownBarcode}</span> n’est pas encore associé au catalogue Cansdex.
+          </p>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">Tu peux ajouter une nouvelle canette ou nous indiquer à quel design déjà présent dans le catalogue ce code correspond.</p>
+        </div>
+        <div className="mx-auto flex w-full max-w-md flex-col gap-3 pt-6">
+          <Button className="h-12 w-full rounded-xl font-bold" onClick={() => { setUnknownBarcodeLanding(false); setShowCatalogPicker(false); }}>
+            Ajouter une nouvelle canette
+          </Button>
+          <Button variant="outline" className="h-12 w-full rounded-xl font-semibold" onClick={() => { setUnknownBarcodeLanding(false); setShowCatalogPicker(true); setCatalogSearch(""); }}>
+            Cette canette existe bien
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCatalogPicker && unknownBarcode) {
+    const query = catalogSearch.trim().toLocaleLowerCase("fr");
+    const filteredCans = (data?.cans ?? []).filter((can) => {
+      const brandName = data?.brands.find((brand) => brand.id === can.brand_id)?.name ?? "";
+      const haystack = [can.name, brandName, can.flavour, can.variant_name, can.region, can.barcode, can.release_year?.toString(), can.volume_ml ? `${can.volume_ml} ml` : ""]
+        .filter(Boolean).join(" ").toLocaleLowerCase("fr");
+      return !query || haystack.includes(query);
+    });
+    return (
+      <div className="space-y-5 py-5">
+        <button type="button" onClick={() => { setShowCatalogPicker(false); setUnknownBarcodeLanding(true); }} className="text-sm font-semibold text-muted-foreground">← Retour</button>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Associer un code-barres</p>
+          <h1 className="mt-2 text-2xl font-black tracking-tight">Retrouve cette canette</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Recherche dans tout le catalogue, puis sélectionne le design qui correspond à ta canette. Le code {unknownBarcode} sera proposé comme code supplémentaire pour vérification.</p>
+        </div>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={catalogSearch} onChange={(event) => setCatalogSearch(event.target.value)} placeholder="Rechercher une marque, un nom, une saveur…" className="h-12 rounded-xl pl-10" aria-label="Rechercher dans le catalogue de canettes" />
+        </div>
+        <p className="text-xs text-muted-foreground">{filteredCans.length} canette{filteredCans.length > 1 ? "s" : ""} trouvée{filteredCans.length > 1 ? "s" : ""}</p>
+        <div className="space-y-3">
+          {filteredCans.map((can) => {
+            const brand = data?.brands.find((item) => item.id === can.brand_id);
+            return (
+              <button key={can.id} type="button" disabled={barcodeProposalBusy} onClick={() => void proposeBarcodeForExistingCan(can)} className="flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-60">
+                <div className="w-16 shrink-0"><CanArt can={can} brandName={brand?.name} /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">{can.name}</p>
+                  <p className="text-sm text-muted-foreground">{brand?.name ?? "Marque inconnue"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{[can.variant_name, can.region, can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null].filter(Boolean).join(" · ") || "Détails supplémentaires indisponibles"}</p>
+                </div>
+                <span className="shrink-0 text-xs font-bold text-primary">{barcodeProposalBusy ? "Envoi…" : "Choisir"}</span>
+              </button>
+            );
+          })}
+          {filteredCans.length === 0 && <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Aucune canette ne correspond à cette recherche. Essaie un autre nom ou retourne proposer une nouvelle canette.</div>}
+        </div>
+      </div>
+    );
+  }
 
   if (barcodeMatches.length > 1) {
     return (
