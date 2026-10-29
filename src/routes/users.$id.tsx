@@ -103,7 +103,7 @@ function PublicUserProfile() {
         if (error) throw error;
         paths.push(path);
       }
-      const { error } = await supabase.from("profile_reports").insert({
+      const { error } = await (supabase as any).from("profile_reports").insert({
         reporter_id: user.id, reported_user_id: id, comment: reportText.trim(), photo_paths: paths,
       });
       if (error) throw error;
