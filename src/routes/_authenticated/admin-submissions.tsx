@@ -69,6 +69,7 @@ function AdminSubmissions() {
   const { data: catalog } = useCatalog();
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [accountReportBusyId, setAccountReportBusyId] = useState<string | null>(null);
   const [filter, setFilter] = useState<ReviewFilter>("pending");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<SubmissionDraft | null>(null);
@@ -94,6 +95,40 @@ function AdminSubmissions() {
       return data as Report[];
     },
   });
+  const accountReportsQuery = useQuery({
+    queryKey: ["account-reports-review"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("account_reports" as any).select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{ id: string; reporter_user_id: string; reported_user_id: string; details: string; image_urls: string[]; status: string; review_notes: string | null; created_at: string }>;
+      const userIds = [...new Set(rows.flatMap((row) => [row.reporter_user_id, row.reported_user_id]))];
+      const { data: profiles, error: profilesError } = userIds.length
+        ? await supabase.from("profiles").select("id,username").in("id", userIds)
+        : { data: [], error: null };
+      if (profilesError) throw profilesError;
+      const usernames = new Map((profiles ?? []).map((profile) => [profile.id, profile.username]));
+      return Promise.all(rows.map(async (row) => {
+        const signedImages = await Promise.all((row.image_urls ?? []).map(async (path) => {
+          if (/^https?:\\/\\//i.test(path)) return path;
+          const { data: signed, error: signedError } = await supabase.storage.from("account-report-images").createSignedUrl(path, 3600);
+          return signedError ? null : signed?.signedUrl ?? null;
+        }));
+        return { ...row, reporter_username: usernames.get(row.reporter_user_id) ?? row.reporter_user_id, reported_username: usernames.get(row.reported_user_id) ?? row.reported_user_id, signedImages: signedImages.filter(Boolean) as string[] };
+      }));
+    },
+  });
+  const reviewAccountReport = async (id: string, status: "reviewed" | "dismissed") => {
+    setAccountReportBusyId(id);
+    try {
+      const { error } = await supabase.from("account_reports" as any).update({ status, reviewed_at: new Date().toISOString(), reviewed_by: user?.id ?? null }).eq("id", id);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["account-reports-review"] });
+      toast.success(status === "reviewed" ? "Signalement marqué comme traité." : "Signalement classé sans suite.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de mettre à jour le signalement.");
+    } finally { setAccountReportBusyId(null); }
+  };
   const submissions = submissionsQuery.data ?? [];
   const reports = reportsQuery.data ?? [];
   const counts = useMemo(() => ({
@@ -111,6 +146,7 @@ function AdminSubmissions() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["can-submissions-review"] }),
       queryClient.invalidateQueries({ queryKey: ["can-reports-review"] }),
+      queryClient.invalidateQueries({ queryKey: ["account-reports-review"] }),
       queryClient.invalidateQueries({ queryKey: ["catalog"] }),
     ]);
   };
@@ -281,8 +317,8 @@ function AdminSubmissions() {
     { value: "pending", label: "En attente" }, { value: "approved", label: "Acceptées" },
     { value: "rejected", label: "Refusées" }, { value: "all", label: "Toutes" },
   ];
-  const loading = submissionsQuery.isLoading || reportsQuery.isLoading;
-  const combinedError = submissionsQuery.error ?? reportsQuery.error;
+  const loading = submissionsQuery.isLoading || reportsQuery.isLoading || accountReportsQuery.isLoading;
+  const combinedError = submissionsQuery.error ?? reportsQuery.error ?? accountReportsQuery.error;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-8 pb-8">
@@ -381,6 +417,25 @@ function AdminSubmissions() {
                 <div className="flex flex-wrap gap-2 sm:col-span-2"><Button type="button" disabled={working} onClick={() => void reviewReport(report, true)}><Check className="mr-2 h-4 w-4" />Appliquer et accepter</Button><Button type="button" variant="outline" disabled={working} onClick={() => void reviewReport(report, false)}><X className="mr-2 h-4 w-4" />Refuser</Button></div>
               </div>}
               {report.review_notes && <p className="text-xs text-muted-foreground">Note de modération : {report.review_notes}</p>}
+            </article>;
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-4 border-t pt-8">
+        <div><h2 className="text-xl font-black">Signalements de comptes</h2><p className="text-sm text-muted-foreground">Les commentaires et les pièces jointes restent réservés à la modération.</p></div>
+        {accountReportsQuery.error && <div className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les signalements de comptes : {accountReportsQuery.error.message}</div>}
+        {!accountReportsQuery.isLoading && !accountReportsQuery.error && (accountReportsQuery.data ?? []).length === 0 && <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Aucun signalement de compte pour le moment.</div>}
+        <div className="space-y-3">
+          {(accountReportsQuery.data ?? []).map((report) => {
+            const pending = report.status === "pending";
+            const working = accountReportBusyId === report.id;
+            return <article key={report.id} className="space-y-3 rounded-2xl border bg-card p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">@{report.reported_username}</h3><p className="text-xs text-muted-foreground">Signalé par @{report.reporter_username} · {new Date(report.created_at).toLocaleString("fr-FR")}</p></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${pending ? "bg-amber-500/10 text-amber-700" : report.status === "reviewed" ? "bg-emerald-500/10 text-emerald-700" : "bg-muted text-muted-foreground"}`}>{pending ? "En attente" : report.status === "reviewed" ? "Traité" : "Classé sans suite"}</span></div>
+              <div className="whitespace-pre-wrap rounded-xl bg-muted/50 p-3 text-sm">{report.details}</div>
+              {report.signedImages?.length > 0 && <div className="grid grid-cols-2 gap-3">{report.signedImages.map((url: string, index: number) => <a key={url} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border"><img src={url} alt={`Pièce jointe du signalement ${index + 1}`} className="h-40 w-full object-contain" /><p className="p-2 text-xs text-primary">Ouvrir la photo</p></a>)}</div>}
+              {report.review_notes && <p className="text-xs text-muted-foreground">Note : {report.review_notes}</p>}
+              {pending && <div className="flex flex-wrap gap-2"><Button type="button" disabled={working} onClick={() => void reviewAccountReport(report.id, "reviewed")}>{working ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}Marquer comme traité</Button><Button type="button" variant="outline" disabled={working} onClick={() => void reviewAccountReport(report.id, "dismissed")}><X className="mr-2 h-4 w-4" />Classer sans suite</Button></div>}
             </article>;
           })}
         </div>
