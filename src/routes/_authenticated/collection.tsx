@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
+import { CanSearch, matchesSearch } from "@/components/CanSearch";
 
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
@@ -19,16 +21,23 @@ export const Route = createFileRoute("/_authenticated/collection")({
 function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  const [search, setSearch] = useState("");
   if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ton mur…</p>;
 
-  const mine = data.cans
+  const allMine = useMemo(() => data.cans
     .filter((can) => owned.has(can.id))
     .sort((a, b) => {
-      const bd = (data.brands.find((x) => x.id === a.brand_id)?.name ?? "")
-        .localeCompare(data.brands.find((x) => x.id === b.brand_id)?.name ?? "");
-      return bd || a.name.localeCompare(b.name);
-    });
-
+      const brandA = data.brands.find((x) => x.id === a.brand_id)?.name ?? "";
+      const brandB = data.brands.find((x) => x.id === b.brand_id)?.name ?? "";
+      return brandA.localeCompare(brandB, "fr") || a.name.localeCompare(b.name, "fr");
+    }), [data.cans, data.brands, owned]);
+  const mine = useMemo(() => allMine.filter((can) => {
+    const brand = data.brands.find((item) => item.id === can.brand_id);
+    return matchesSearch(search, [
+      can.name, brand?.name, can.barcode, can.flavour, can.variant_name, can.region,
+      can.release_year, can.volume_ml ? `${can.volume_ml} ml` : null,
+    ]);
+  }), [allMine, data.brands, search]);
 
   return (
     <div>
@@ -36,21 +45,30 @@ function Collection() {
         <div>
           <h1 className="text-2xl font-black">Mon mur</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mine.length} {mine.length === 1 ? "design" : "designs"} sur ton mur
+            {allMine.length} {allMine.length === 1 ? "design" : "designs"} sur ton mur
           </p>
         </div>
         <Link
           to="/brands"
-          aria-label="Magasin"
-          title="Magasin"
+          aria-label="Catalogue"
+          title="Catalogue"
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent active:scale-95"
         >
           <Store className="h-5 w-5" />
-          <span>Magasin</span>
+          <span>Catalogue</span>
         </Link>
       </header>
 
-      {mine.length === 0 ? (
+      <CanSearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Rechercher sur ton mur…"
+        ariaLabel="Rechercher une canette sur mon mur"
+        className="mt-5"
+      />
+      {search.trim() && <p className="mt-2 text-xs text-muted-foreground">{mine.length} résultat{mine.length > 1 ? "s" : ""}</p>}
+
+      {allMine.length === 0 ? (
         <div className="mt-12 rounded-3xl border border-dashed bg-card/50 px-6 py-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Store className="h-6 w-6" />
@@ -67,6 +85,10 @@ function Collection() {
               <Button variant="secondary" className="h-11 w-full rounded-xl font-semibold">Scanner une canette</Button>
             </Link>
           </div>
+        </div>
+      ) : mine.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          Aucune canette de ton mur ne correspond à « {search} ».
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-3 gap-3">
