@@ -117,7 +117,7 @@ function PublicProfile() {
   const ownedRows = ownedQuery.data ?? [];
   const ownedIds = new Set(ownedRows.map((row) => row.can_id));
   const totalCans = ownedRows.reduce((sum, row) => sum + Math.max(1, row.quantity ?? 1), 0);
-  const drinksByCan = new Map((drinksQuery.data ?? []).map((row) => [row.can_id, row.drinks_count]));
+  const drinksByCan = new Map((drinksQuery.data ?? []).map((row) => [row.can_id, row.drinks_count] as const));
   const drinks = [...ownedIds].reduce((sum, canId) => sum + Math.max(1, drinksByCan.get(canId) ?? 1), 0);
   const achievements = computeAchievements({ ownedCanIds: ownedIds, cans: catalog.cans, brands: catalog.brands });
   const brandStats = catalog.brands.map((brand) => {
