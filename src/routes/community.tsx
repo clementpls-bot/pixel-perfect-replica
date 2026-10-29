@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useState } from "react";
+import { Crown, Flame, MessageCircle, Sparkles, Target, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useOwned } from "@/lib/data";
+import { useCatalog, useOwned } from "@/lib/data";
 import { pastelCanColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/community")({
@@ -45,10 +46,76 @@ function CommunityFeedPage() {
   const canMap = new Map((rows?.cans ?? []).map((can) => [can.id, can]));
   const brandMap = new Map((rows?.brands ?? []).map((brand) => [brand.id, brand]));
 
+  const [tab, setTab] = useState<"feed" | "ranking" | "quests">("feed");
+  const { data: catalog } = useCatalog();
+  const allPosts = rows?.posts ?? [];
+  const scores = new Map<string, { id: string; name: string; posts: number; likes: number; points: number }>();
+  for (const p of allPosts) {
+    const e = scores.get(p.user_id) ?? { id: p.user_id, name: p.profiles?.username ?? "Collectionneur", posts: 0, likes: 0, points: 0 };
+    e.posts += 1; e.likes += p.comment_likes.filter((v) => v.vote !== -1).length;
+    e.points = e.posts * 10 + e.likes * 5 + (p.image_url ? 0 : 0);
+    if (p.image_url) e.points += 5;
+    scores.set(p.user_id, e);
+  }
+  const ranking = [...scores.values()].sort((a, b) => b.points - a.points);
+  const cans = (catalog as any)?.cans ?? [];
+  const day = Math.floor(Date.now() / 86400000);
+  const canOfDay = cans.length ? cans[day % cans.length] : null;
+  const weekAgo = Date.now() - 7 * 86400000;
+  const myPostsWeek = allPosts.filter((p) => p.user_id === user?.id && new Date(p.created_at).getTime() > weekAgo);
+  const ownedCount = owned?.size ?? 0;
+  const quests = [
+    { label: "Publie 3 messages cette semaine", cur: myPostsWeek.length, goal: 3, xp: 50 },
+    { label: "Partage une photo de canette", cur: myPostsWeek.filter((p) => p.image_url).length, goal: 1, xp: 30 },
+    { label: "Possède 10 canettes", cur: ownedCount, goal: 10, xp: 100 },
+    { label: "Possède 50 canettes", cur: ownedCount, goal: 50, xp: 300 },
+    { label: "Possède la canette du jour", cur: canOfDay && owned?.has(canOfDay.id) ? 1 : 0, goal: 1, xp: 40 },
+  ];
+  const myScore = scores.get(user?.id ?? "")?.points ?? 0;
+  const myXp = myScore + ownedCount * 10 + quests.filter((q) => q.cur >= q.goal).reduce((a, q) => a + q.xp, 0);
+  const level = Math.floor(Math.sqrt(myXp / 50)) + 1;
+  const lvlStart = (level - 1) ** 2 * 50, lvlEnd = level ** 2 * 50;
+  const titles = ["Novice", "Curieux", "Chasseur", "Collectionneur", "Expert", "Maître", "Légende"];
+  const title = titles[Math.min(titles.length - 1, Math.floor((level - 1) / 2))];
+  const myRank = ranking.findIndex((r) => r.id === user?.id) + 1;
+
+  const header = <div className="space-y-4">
+    {user && <div className="rounded-2xl bg-primary/15 p-4">
+      <div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Niveau {level}</p><p className="text-lg font-black">{title}</p></div>
+      <div className="text-right"><p className="text-2xl font-black">{myXp} XP</p>{myRank > 0 && <p className="text-xs text-muted-foreground">#{myRank} du classement</p>}</div></div>
+      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-background"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, ((myXp - lvlStart) / (lvlEnd - lvlStart)) * 100)}%` }} /></div>
+      <p className="mt-1 text-[11px] text-muted-foreground">{lvlEnd - myXp} XP avant le niveau {level + 1}</p>
+    </div>}
+    {canOfDay && <Link to="/cans/$id" params={{ id: canOfDay.id }} className="flex items-center gap-3 rounded-2xl border bg-card p-3 transition hover:border-primary/40">
+      {canOfDay.image_url ? <img src={canOfDay.image_url} alt="" className="h-16 w-10 object-contain" /> : <div className="h-16 w-10 rounded-md bg-muted" />}
+      <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary"><Sparkles className="h-3 w-3" />Canette du jour</p><p className="truncate font-bold">{canOfDay.name}</p><p className="text-xs text-muted-foreground">{owned?.has(canOfDay.id) ? "✓ Tu l'as déjà, bravo !" : "Trouve-la pour gagner +40 XP"}</p></div>
+    </Link>}
+    <div className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
+      {([["feed", "Fil", MessageCircle], ["ranking", "Classement", Trophy], ["quests", "Défis", Target]] as const).map(([k, l, I]) => <button key={k} onClick={() => setTab(k)} className={`flex items-center justify-center gap-1 rounded-full py-2 text-xs font-bold transition ${tab === k ? "bg-background shadow-sm" : "text-muted-foreground"}`}><I className="h-3.5 w-3.5" />{l}</button>)}
+    </div>
+  </div>;
+
+  if (tab === "ranking") return <div className="space-y-5">{header}
+    <div className="flex items-end justify-center gap-2 pt-2">{[1, 0, 2].map((i) => { const r = ranking[i]; if (!r) return <div key={i} className="w-24" />; const h = ["h-28", "h-20", "h-14"][i];
+      return <Link key={r.id} to="/users/$id" params={{ id: r.id }} className="flex w-24 flex-col items-center gap-1">{i === 0 && <Crown className="h-5 w-5 text-primary" />}<span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-black">{r.name[0]?.toUpperCase()}</span><span className="w-full truncate text-center text-xs font-bold">{r.name}</span><div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-primary pt-2 text-lg font-black text-primary-foreground`}>{i + 1}</div></Link>; })}</div>
+    <ol className="space-y-2">{ranking.map((r, i) => <li key={r.id}><Link to="/users/$id" params={{ id: r.id }} className={`flex items-center gap-3 rounded-2xl border bg-card p-3 ${r.id === user?.id ? "border-primary" : ""}`}><span className="w-6 text-center font-black text-muted-foreground">{i + 1}</span><span className="flex-1 truncate font-semibold">{r.name}</span><span className="text-xs text-muted-foreground">{r.posts} posts · {r.likes} 👍</span><span className="font-black">{r.points}</span></Link></li>)}</ol>
+    {!ranking.length && <p className="py-8 text-center text-sm text-muted-foreground">Personne au classement pour l'instant — publie le premier message !</p>}
+    <p className="text-center text-[11px] text-muted-foreground">Points : 10 par publication, +5 avec photo, +5 par 👍 reçu.</p>
+  </div>;
+
+  if (tab === "quests") return <div className="space-y-5">{header}
+    {!user ? <p className="text-center text-sm text-muted-foreground">Connecte-toi pour suivre tes défis.</p> :
+    <div className="space-y-2">{quests.map((q) => { const done = q.cur >= q.goal; return <div key={q.label} className={`rounded-2xl border p-3 ${done ? "border-success bg-success/10" : "bg-card"}`}>
+      <div className="flex items-center justify-between gap-2"><p className="flex items-center gap-2 text-sm font-semibold">{done ? "✅" : <Flame className="h-4 w-4 text-primary" />}{q.label}</p><span className="shrink-0 rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-bold">+{q.xp} XP</span></div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${done ? "bg-success" : "bg-primary"}`} style={{ width: `${Math.min(100, (q.cur / q.goal) * 100)}%` }} /></div>
+      <p className="mt-1 text-right text-[11px] text-muted-foreground">{Math.min(q.cur, q.goal)} / {q.goal}</p></div>; })}</div>}
+  </div>;
+
   return <div className="space-y-5">
     <header className="pt-1">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Cansdex · Communauté</p>
       <h1 className="mt-1 text-2xl font-black">Les dernières publications</h1>
+      {header}
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Un fil pour découvrir les nouvelles photos et les échanges. Chaque publication appartient à une canette précise : ouvre sa fiche pour participer.</p>
     </header>
     {posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
