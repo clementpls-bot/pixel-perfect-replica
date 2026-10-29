@@ -107,7 +107,7 @@ function AdminSubmissions() {
         ? await supabase.from("profiles").select("id,username").in("id", userIds)
         : { data: [], error: null };
       if (profilesError) throw profilesError;
-      const usernames = new Map((profiles ?? []).map((profile) => [profile.id, profile.username]));
+      const usernames = new Map((profiles ?? []).map((profile) => [profile.id, profile.username] as const));
       return Promise.all(rows.map(async (row) => {
         const signedImages = await Promise.all((row.image_urls ?? []).map(async (path) => {
           if (/^https?:\\/\\//i.test(path)) return path;
