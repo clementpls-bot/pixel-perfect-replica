@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { ScanBarcode, ImagePlus } from "lucide-react";
+import { ScanBarcode } from "lucide-react";
 import { useAddCan, useCatalog, type Can } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
