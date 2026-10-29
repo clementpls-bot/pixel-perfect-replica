@@ -303,6 +303,7 @@ function Scanner() {
     setProposedBrandName("");
     setNewBrandSelected(false);
     setUnknownVisual(false);
+    setDirectProposal(false);
     setFlavour("");
     setReleaseYear("");
     setDescription("");
