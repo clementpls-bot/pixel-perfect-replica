@@ -71,8 +71,8 @@ function CommunityFeedPage() {
     { label: "Possède 50 canettes", cur: ownedCount, goal: 50, xp: 300 },
     { label: "Possède la canette du jour", cur: canOfDay && owned?.has(canOfDay.id) ? 1 : 0, goal: 1, xp: 40 },
   ];
-  const myScore = scores.get(user?.id ?? "")?.points ?? 0;
-  const myXp = myScore + ownedCount * 10 + quests.filter((q) => q.cur >= q.goal).reduce((a, q) => a + q.xp, 0);
+  // XP comes only from cans added to your wall: 10 XP per distinct can owned.
+  const myXp = ownedCount * 10;
   const level = Math.floor(Math.sqrt(myXp / 50)) + 1;
   const lvlStart = (level - 1) ** 2 * 50, lvlEnd = level ** 2 * 50;
   const titles = ["Novice", "Curieux", "Chasseur", "Collectionneur", "Expert", "Maître", "Légende"];
