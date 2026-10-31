@@ -97,8 +97,8 @@ const ModelsIdRoute = ModelsIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsersUsernameRoute = UsersUsernameRouteImport.update({
-  id: '/users/$id',
-  path: '/users/$id',
+  id: '/users/$username',
+  path: '/users/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -115,7 +115,7 @@ export interface FileRoutesByFullPath {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
-  '/users/$id': typeof UsersUsernameRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -131,7 +131,7 @@ export interface FileRoutesByTo {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
-  '/users/$id': typeof UsersUsernameRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands': typeof BrandsIndexRoute
 }
 export interface FileRoutesById {
@@ -149,7 +149,7 @@ export interface FileRoutesById {
   '/brands/$slug': typeof BrandsSlugRoute
   '/cans/$id': typeof CansIdRoute
   '/models/$id': typeof ModelsIdRoute
-  '/users/$id': typeof UsersUsernameRoute
+  '/users/$username': typeof UsersUsernameRoute
   '/brands/': typeof BrandsIndexRoute
 }
 export interface FileRouteTypes {
@@ -167,7 +167,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
-    | '/users/$id'
+    | '/users/$username'
     | '/brands/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -183,7 +183,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
-    | '/users/$id'
+    | '/users/$username'
     | '/brands'
   id:
     | '__root__'
@@ -200,7 +200,7 @@ export interface FileRouteTypes {
     | '/brands/$slug'
     | '/cans/$id'
     | '/models/$id'
-    | '/users/$id'
+    | '/users/$username'
     | '/brands/'
   fileRoutesById: FileRoutesById
 }
@@ -316,10 +316,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/users/$id': {
-      id: '/users/$id'
-      path: '/users/$id'
-      fullPath: '/users/$id'
+    '/users/$username': {
+      id: '/users/$username'
+      path: '/users/$username'
+      fullPath: '/users/$username'
       preLoaderRoute: typeof UsersUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
