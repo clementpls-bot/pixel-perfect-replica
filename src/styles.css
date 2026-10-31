@@ -413,3 +413,21 @@
 @media (prefers-reduced-motion: reduce) {
   .app-ui *, .app-ui *::before, .app-ui *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* A compact, high-contrast sign-in panel keeps the entry point in the same universe. */
+.app-ui > div.pt-8 {
+  width: min(100%, 30rem);
+  margin: clamp(1.25rem, 7vh, 4.5rem) auto 0;
+  padding: clamp(1.4rem, 5vw, 2.4rem);
+  border: 2px solid #17151c;
+  border-radius: 1.5rem;
+  background: #fffaf0;
+  box-shadow: 7px 7px 0 #17151c;
+}
+.app-ui > div.pt-8 h1 {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 2.65rem;
+  letter-spacing: -.04em;
+}
+.app-ui > div.pt-8 form { margin-top: 1.75rem; }
+.app-ui > div.pt-8 button { font-weight: 800; }
