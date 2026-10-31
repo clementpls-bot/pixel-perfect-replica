@@ -55,11 +55,16 @@ function Scanner() {
     setManual(""); busy.current = false;
   };
 
-  const handleBarcode = async (rawCode: string) => {
+  const handleBarcode = async (rawCode: string, source: "camera" | "manual" = "camera") => {
     const code = rawCode.trim().replace(/\D/g, "").slice(0, 14);
     if (!code || busy.current || !catalogRef.current) return;
     busy.current = true;
     const can = catalogRef.current.cans.find((item) => item.barcode === code);
+    if (can && source !== "camera") {
+      toast.error("Scanne le code-barres avec la caméra pour débloquer cette canette pour la première fois.");
+      busy.current = false;
+      return;
+    }
     if (!can) {
       setUnknownBarcode(code);
       setManual(code);
@@ -213,7 +218,7 @@ function Scanner() {
       <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
       {cameraError ? <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><ScanBarcode className="h-8 w-8" /><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCameraError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div> : <><div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" /><div className="absolute inset-x-[14%] h-0.5 bg-primary shadow-glow animate-scan-line" /></>}
     </div>
-    <form onSubmit={(e) => { e.preventDefault(); void handleBarcode(manual); }} className="mt-4 flex gap-2"><Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))} className="h-12 rounded-xl" /><Button type="submit" className="h-12 rounded-xl font-bold">Rechercher</Button></form>
+    <form onSubmit={(e) => { e.preventDefault(); void handleBarcode(manual, "manual"); }} className="mt-4 flex gap-2"><Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))} className="h-12 rounded-xl" /><Button type="submit" className="h-12 rounded-xl font-bold">Rechercher</Button></form>
     <Button type="button" variant="outline" className="mt-3 h-11 w-full rounded-xl font-semibold" onClick={() => { setUnknownBarcode(""); setDirectProposal(true); setName(""); setBrandId(""); setNewBrandName(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
     <p className="mt-3 text-xs text-muted-foreground">Si le code-barres est inconnu, tu pourras proposer la canette à la communauté.</p>
   </div>;
