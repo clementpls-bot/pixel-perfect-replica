@@ -171,7 +171,7 @@ create table if not exists public.can_barcodes (
 alter table public.can_barcodes drop constraint if exists can_barcodes_barcode_check;
 alter table public.can_barcodes
   add constraint can_barcodes_barcode_check
-  check (barcode ~ '^[0-9]{8,14}
+  check (barcode ~ '^[0-9]{8,14}$') not valid;
 alter table public.can_barcodes enable row level security;
 revoke all on public.can_barcodes from anon, public;
 grant select on public.can_barcodes to anon, authenticated;
