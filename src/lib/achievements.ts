@@ -28,6 +28,7 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
   const completeMultiDesignModels = [...modelVariants.values()]
     .filter((ids) => ids.length >= 2 && ids.every((id) => ownedCanIds.has(id))).length;
   const hasRecentCan = ownedYears.some((year) => year >= 2025);
+  const catalogCompletion = cans.length === 0 ? 0 : owned / cans.length;
 
   return [
     { id: "first", title: "Premier scan", description: "Ajoute ta première canette", icon: "🔍", earned: owned >= 1 },
@@ -56,6 +57,8 @@ export function computeAchievements({ ownedCanIds, cans, brands }: AchievementIn
     { id: "decades-3", title: "À travers les décennies", description: "Possède des canettes de 3 décennies différentes", icon: "📆", earned: ownedDecades.size >= 3 },
     { id: "vintage", title: "Chasseur de vintage", description: "Possède une canette sortie avant 2000", icon: "📻", earned: hasVintageCan },
     { id: "recent", title: "Tout juste sortie", description: "Possède une canette sortie en 2025 ou après", icon: "🆕", earned: hasRecentCan },
+    { id: "catalog-25", title: "Explorateur du catalogue", description: "Complète 25 % du catalogue", icon: "📈", earned: catalogCompletion >= 0.25 },
+    { id: "catalog-50", title: "À mi-parcours", description: "Complète 50 % du catalogue", icon: "🚀", earned: catalogCompletion >= 0.5 },
     { id: "model-designs-1", title: "Tous les designs", description: "Possède tous les designs d’un modèle (au moins 2)", icon: "🎨", earned: completeMultiDesignModels >= 1 },
     { id: "model-designs-5", title: "Chasseur de designs", description: "Possède tous les designs de 5 modèles", icon: "🖼️", earned: completeMultiDesignModels >= 5 },
   ];
