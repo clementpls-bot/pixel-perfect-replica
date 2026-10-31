@@ -205,6 +205,7 @@ export type Database = {
           model_id: string | null
           name: string
           notes: string | null
+          proposed_brand_name: string | null
           region: string | null
           release_year: number | null
           review_notes: string | null
@@ -239,6 +240,7 @@ export type Database = {
           model_id?: string | null
           name: string
           notes?: string | null
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           model_id?: string | null
           name?: string
           notes?: string | null
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null

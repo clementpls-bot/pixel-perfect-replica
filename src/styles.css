@@ -230,3 +230,10 @@
 
 /* Condensed editorial type for the public Cansdex landing page. */
 .landing-display { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+
+/* Landing — sticker / comic energy style */
+.lp { --lp-sky: oklch(0.86 0.06 235); --lp-sky-deep: oklch(0.78 0.08 238); --lp-ink: oklch(0.15 0 0); --lp-peach: oklch(0.76 0.15 50); --lp-peach-soft: oklch(0.9 0.06 55); --lp-cream: oklch(0.98 0.01 80); }
+.lp-sticker { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-style: italic; text-transform: uppercase; color: var(--lp-cream); -webkit-text-stroke: 2px var(--lp-ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--lp-ink); letter-spacing: -.01em; line-height: .9; }
+.lp-ink-line { height: 4px; background: var(--lp-ink); border-radius: 2px; }
+.lp-box { border: 3px solid var(--lp-ink); box-shadow: 6px 6px 0 var(--lp-ink); }
+.lp-clouds { background: radial-gradient(ellipse 40% 18% at 20% 25%, oklch(1 0 0 / .7), transparent 70%), radial-gradient(ellipse 35% 14% at 80% 15%, oklch(1 0 0 / .6), transparent 70%), radial-gradient(ellipse 50% 20% at 60% 80%, oklch(1 0 0 / .55), transparent 70%), linear-gradient(180deg, var(--lp-sky-deep), var(--lp-sky)); }
