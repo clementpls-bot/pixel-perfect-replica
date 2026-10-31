@@ -3,7 +3,7 @@ import { Library, MessageCircle, ScanLine, User } from "lucide-react";
 
 const mobileItem = "flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-extrabold uppercase tracking-wide text-white/65 transition-colors";
 const desktopItem = "flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-bold text-white/70 transition-all hover:border-white/10 hover:bg-white/10 hover:text-white";
-const active = { className: "!text-[#d4f36a] md:!border-[#d4f36a]/30 md:!bg-[#d4f36a]/10 md:!text-[#d4f36a]" };
+const active = { className: "!text-[#b9a8ff] md:!border-[#b9a8ff]/30 md:!bg-[#b9a8ff]/10 md:!text-[#c6baff]" };
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -30,10 +30,10 @@ export function BottomNav() {
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r-2 border-white/10 bg-[#17151c] px-4 py-6 shadow-[8px_0_30px_rgba(23,21,28,.08)] md:flex">
         <Link to="/collection" className="mb-10 flex items-center gap-3 px-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#17151c] bg-[#d4f36a] font-display text-xl text-[#17151c] shadow-[3px_3px_0_#fffaf0]">C</span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#17151c] bg-gradient-to-br from-[#b9a8ff] via-[#a9dfff] to-[#f0b8df] font-display text-xl text-[#29213e] shadow-[3px_3px_0_#f3f5fb]">C</span>
           <span className="font-display text-2xl tracking-tight text-white">Cansdex</span>
         </Link>
-        <div className="mb-2 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d4f36a]">Explorer</div>
+        <div className="mb-2 px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#b9a8ff]">Explorer</div>
         <nav className="flex flex-col gap-1">
           <Link to="/collection" className={desktopItem} activeProps={active}>
             <Library className="h-5 w-5" />
