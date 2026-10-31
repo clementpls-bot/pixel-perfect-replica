@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
-  ArrowDown, ArrowRight, Camera, Check, ChevronRight, Compass, MessageCircle,
+  ArrowDown, ArrowRight, Camera, Check, Compass, MessageCircle,
   ScanBarcode, Sparkles, Star, Trophy, Users, WandSparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
