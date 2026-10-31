@@ -50,12 +50,25 @@ function CanPage() {
   const [savingCollection, setSavingCollection] = useState(false);
   const [reportCategory, setReportCategory] = useState("name");
   const [reportValue, setReportValue] = useState("");
+  const [reportBarcode, setReportBarcode] = useState("");
   const [reportDetails, setReportDetails] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [reporting, setReporting] = useState(false);
   const qc = useQueryClient();
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
+
+  const knownBarcodes = useQuery({
+    queryKey: ["can-barcodes", id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("can_barcodes")
+        .select("id,barcode,status,created_at")
+        .eq("can_id", id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const ratings = useQuery({
     queryKey: ["ratings", id],
@@ -98,8 +111,11 @@ function CanPage() {
 
   const submitReport = async () => {
     if (!user) { toast("Connecte-toi pour contribuer."); return; }
-    if (!reportDetails.trim()) { toast.error("Ajoute un commentaire pour expliquer la modification."); return; }
-    if (!reportValue.trim() && reportCategory !== "image_url") { toast.error("Indique l’information que tu proposes."); return; }
+    const proposedBarcode = reportBarcode.trim();
+    if (!reportDetails.trim() && !proposedBarcode && reportImages.length === 0) { toast.error("Ajoute un commentaire, un code-barres ou une image."); return; }
+    if (proposedBarcode && !/^[0-9]{8,14}$/.test(proposedBarcode)) { toast.error("Le code-barres doit contenir de 8 à 14 chiffres."); return; }
+    if (proposedBarcode && (proposedBarcode === can.barcode || knownBarcodes.data?.some((item: { barcode: string }) => item.barcode === proposedBarcode))) { toast.error("Ce code-barres est déjà connu ou proposé pour cette canette."); return; }
+    if (reportDetails.trim() && !reportValue.trim() && reportCategory !== "image_url") { toast.error("Indique l’information que tu proposes."); return; }
     if (reportCategory === "image_url" && !reportValue.trim() && reportImages.length === 0) { toast.error("Ajoute au moins une image ou une URL de photo."); return; }
     setReporting(true);
     try {
@@ -113,18 +129,28 @@ function CanPage() {
         if (uploadError) throw uploadError;
         imageUrls.push(supabase.storage.from("can-submissions").getPublicUrl(path).data.publicUrl);
       }
+      if (reportDetails.trim() || imageUrls.length > 0) {
       const { error } = await supabase.from("can_reports").insert({
         can_id: can.id,
         user_id: user.id,
         category: "Information incorrecte",
-        details: reportDetails.trim(),
+        details: reportDetails.trim() || "Contribution avec pièces jointes.",
         proposed_field: reportCategory,
         proposed_value: reportValue.trim() || null,
         image_urls: imageUrls,
       });
       if (error) throw error;
+      }
+      if (proposedBarcode) {
+        const { error: barcodeError } = await (supabase as any).from("can_barcodes").insert({ can_id: can.id, barcode: proposedBarcode, submitted_by: user.id, status: "pending" });
+        if (barcodeError) {
+          if (barcodeError.code === "23505") throw new Error("Ce code-barres a déjà été proposé.");
+          throw barcodeError;
+        }
+        await qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
+      }
       toast.success("Merci ! Ta proposition a été envoyée pour vérification.");
-      setReportDetails(""); setReportValue(""); setReportImages([]); setReportCategory("name"); setReportOpen(false);
+      setReportDetails(""); setReportValue(""); setReportBarcode(""); setReportImages([]); setReportCategory("name"); setReportOpen(false);
     } catch (error) {
       toast.error((error as Error).message || "Impossible d’envoyer la proposition. Réessaie plus tard.");
     } finally {
@@ -335,6 +361,12 @@ function CanPage() {
               <option value="history_verified">Historique vérifié</option>
             </select>
             {reportCategory === "brand_id" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Marque proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une marque</option>{data?.brands.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div> : reportCategory === "category" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Catégorie proposée</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir une catégorie</option><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></div> : reportCategory === "history_verified" ? <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Historique vérifié ?</label><select id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} className="w-full rounded-xl border bg-background px-3 py-2 text-sm"><option value="">Choisir</option><option value="true">Oui</option><option value="false">Non</option></select></div> : reportCategory !== "image_url" && <div className="space-y-1"><label className="block text-sm font-medium" htmlFor="report-value">Information proposée</label><Input id="report-value" value={reportValue} onChange={(e) => setReportValue(e.target.value)} placeholder="Saisis la valeur proposée" maxLength={1000} className="rounded-xl" /></div>}
+            <div className="space-y-1.5 rounded-xl border p-3">
+              <label className="block text-sm font-medium" htmlFor="report-barcode">Proposer un code-barres supplémentaire (facultatif)</label>
+              <Input id="report-barcode" inputMode="numeric" maxLength={14} value={reportBarcode} onChange={(e) => setReportBarcode(e.target.value.replace(/\\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="rounded-lg" />
+              <p className="text-xs text-muted-foreground">Pour une même canette, un code-barres différent peut correspondre à un autre format ou pays.</p>
+              {(knownBarcodes.data ?? []).length > 0 && <div className="space-y-1"><p className="text-xs font-semibold">Autres codes connus</p>{knownBarcodes.data?.map((entry: { id: string; barcode: string; status: string }) => <div key={entry.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-xs"><code>{entry.barcode}</code><span className="text-muted-foreground">{entry.status === "approved" ? "Vérifié" : "En attente"}</span></div>)}</div>}
+            </div>
             <label className="block text-sm font-medium" htmlFor="report-details">Commentaire</label>
             <Textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Explique pourquoi cette information doit être ajoutée ou remplacée…" maxLength={1000} className="rounded-xl" />
             <div className="space-y-2">
@@ -354,7 +386,7 @@ function CanPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
-            <Button onClick={() => void submitReport()} disabled={reporting || !reportDetails.trim()}>{reporting ? "Envoi…" : "Envoyer la proposition"}</Button>
+            <Button onClick={() => void submitReport()} disabled={reporting || (!reportDetails.trim() && !reportBarcode.trim() && reportImages.length === 0)}>{reporting ? "Envoi…" : "Envoyer la proposition"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
