@@ -120,7 +120,7 @@ function LandingPage() {
               </div>
               <div className="mt-5 flex items-center justify-between">
                 <p className="text-xs font-extrabold">Dernières trouvailles</p>
-                <span className="text-[10px] font-bold text-[#8c80aa]">Aperçu de l'application</span>
+                <span className="text-[10px] font-bold text-[#8c80aa]">Illustration de l'interface</span>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-[#eee8f6] bg-gradient-to-b from-[#f3edff] to-white p-3">
