@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -43,6 +44,8 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isLandingPage = pathname === "/";
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -137,11 +140,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthProvider>
-        <main className="mx-auto min-h-screen w-full app-main w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-24">
+        <main className={isLandingPage ? "min-h-screen w-full p-0" : "mx-auto min-h-screen w-full app-main max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-24"}>
           <Outlet />
         </main>
-        <BottomNav />
-        <BatOverlay />
+        {!isLandingPage && <BottomNav />}
+        {!isLandingPage && <BatOverlay />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
