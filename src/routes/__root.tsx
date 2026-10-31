@@ -144,7 +144,7 @@ function RootComponent() {
           <Outlet />
         </main>
         {!isLandingPage && <BottomNav />}
-        {!isLandingPage && <BatOverlay />
+        {!isLandingPage && <BatOverlay />}
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
