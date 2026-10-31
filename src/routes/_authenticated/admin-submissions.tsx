@@ -110,12 +110,24 @@ function AdminSubmissions() {
       const usernames = new Map((profiles ?? []).map((profile) => [profile.id, profile.username] as const));
       return Promise.all(rows.map(async (row) => {
         const signedImages = await Promise.all((row.image_urls ?? []).map(async (path) => {
-          if (/^https?:\\/\\//i.test(path)) return path;
+          if (/^https?:\/\//i.test(path)) return path;
           const { data: signed, error: signedError } = await supabase.storage.from("account-report-images").createSignedUrl(path, 3600);
           return signedError ? null : signed?.signedUrl ?? null;
         }));
         return { ...row, reporter_username: usernames.get(row.reporter_user_id) ?? row.reporter_user_id, reported_username: usernames.get(row.reported_user_id) ?? row.reported_user_id, signedImages: signedImages.filter(Boolean) as string[] };
       }));
+    },
+  });
+  const barcodesQuery = useQuery({
+    queryKey: ["can-barcodes-review"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("can_barcodes")
+        .select("id,can_id,barcode,submitted_by,status,created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Array<{ id: string; can_id: string; barcode: string; submitted_by: string | null; status: string; created_at: string }>;
     },
   });
   const reviewAccountReport = async (id: string, status: "reviewed" | "dismissed") => {
@@ -129,8 +141,27 @@ function AdminSubmissions() {
       toast.error((error as Error).message || "Impossible de mettre à jour le signalement.");
     } finally { setAccountReportBusyId(null); }
   };
+  const reviewBarcode = async (id: string, status: "approved" | "rejected") => {
+    setBusyId(id);
+    try {
+      const { data, error } = await (supabase as any).from("can_barcodes")
+        .update({ status })
+        .eq("id", id)
+        .eq("status", "pending")
+        .select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error("Ce code-barres a déjà été traité.");
+      await refresh();
+      toast.success(status === "approved" ? "Code-barres supplémentaire validé." : "Code-barres supplémentaire refusé.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de traiter ce code-barres.");
+    } finally {
+      setBusyId(null);
+    }
+  };
   const submissions = submissionsQuery.data ?? [];
   const reports = reportsQuery.data ?? [];
+  const pendingBarcodes = barcodesQuery.data ?? [];
   const counts = useMemo(() => ({
     pending: submissions.filter((item) => item.status === "pending").length,
     approved: submissions.filter((item) => item.status === "approved").length,
@@ -147,6 +178,7 @@ function AdminSubmissions() {
       queryClient.invalidateQueries({ queryKey: ["can-submissions-review"] }),
       queryClient.invalidateQueries({ queryKey: ["can-reports-review"] }),
       queryClient.invalidateQueries({ queryKey: ["account-reports-review"] }),
+      queryClient.invalidateQueries({ queryKey: ["can-barcodes-review"] }),
       queryClient.invalidateQueries({ queryKey: ["catalog"] }),
     ]);
   };
@@ -317,8 +349,8 @@ function AdminSubmissions() {
     { value: "pending", label: "En attente" }, { value: "approved", label: "Acceptées" },
     { value: "rejected", label: "Refusées" }, { value: "all", label: "Toutes" },
   ];
-  const loading = submissionsQuery.isLoading || reportsQuery.isLoading || accountReportsQuery.isLoading;
-  const combinedError = submissionsQuery.error ?? reportsQuery.error ?? accountReportsQuery.error;
+  const loading = submissionsQuery.isLoading || reportsQuery.isLoading || accountReportsQuery.isLoading || barcodesQuery.isLoading;
+  const combinedError = submissionsQuery.error ?? reportsQuery.error ?? accountReportsQuery.error ?? barcodesQuery.error;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-8 pb-8">
@@ -440,6 +472,22 @@ function AdminSubmissions() {
           })}
         </div>
       </section>
+      <section className="space-y-4 border-t pt-8">
+        <div><h2 className="text-xl font-black">Codes-barres supplémentaires</h2><p className="text-sm text-muted-foreground">Vérifie les autres codes-barres proposés pour des canettes déjà présentes au catalogue.</p></div>
+        {barcodesQuery.error && <div className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les codes-barres : {barcodesQuery.error.message}</div>}
+        {!barcodesQuery.isLoading && !barcodesQuery.error && pendingBarcodes.length === 0 && <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucun code-barres supplémentaire en attente.</div>}
+        <div className="space-y-3">
+          {pendingBarcodes.map((entry) => {
+            const can = catalog?.cans.find((item) => item.id === entry.can_id);
+            const working = busyId === entry.id;
+            return <article key={entry.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4">
+              <div className="min-w-0"><p className="font-bold">{can?.name ?? "Canette introuvable"}</p><code className="mt-1 block text-sm">{entry.barcode}</code><p className="mt-1 text-xs text-muted-foreground">{new Date(entry.created_at).toLocaleString("fr-FR")}</p></div>
+              <div className="flex gap-2"><Button type="button" size="sm" variant="outline" disabled={working} onClick={() => void reviewBarcode(entry.id, "rejected")}><X className="mr-1 h-4 w-4" />Refuser</Button><Button type="button" size="sm" disabled={working} onClick={() => void reviewBarcode(entry.id, "approved")}><Check className="mr-1 h-4 w-4" />Valider</Button></div>
+            </article>;
+          })}
+        </div>
+      </section>
+
     </main>
   );
 }

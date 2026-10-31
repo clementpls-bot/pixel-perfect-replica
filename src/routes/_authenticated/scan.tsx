@@ -55,11 +55,16 @@ function Scanner() {
     setManual(""); busy.current = false;
   };
 
-  const handleBarcode = async (rawCode: string) => {
+  const handleBarcode = async (rawCode: string, source: "camera" | "manual" = "camera") => {
     const code = rawCode.trim().replace(/\D/g, "").slice(0, 14);
     if (!code || busy.current || !catalogRef.current) return;
     busy.current = true;
     const can = catalogRef.current.cans.find((item) => item.barcode === code);
+    if (can && source !== "camera") {
+      toast.error("Scanne le code-barres avec la caméra pour débloquer cette canette pour la première fois.");
+      busy.current = false;
+      return;
+    }
     if (!can) {
       setUnknownBarcode(code);
       setManual(code);
@@ -198,7 +203,7 @@ function Scanner() {
       <div className="space-y-1.5"><label htmlFor="proposal-category" className="text-sm font-semibold">Catégorie</label><select id="proposal-category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-12 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="Energy Drink">Boisson énergisante</option><option value="Soda">Soda</option><option value="Soft Drink">Boisson sans alcool</option><option value="Limited Edition">Édition limitée</option></select></div>
       <div className="space-y-1.5"><label htmlFor="proposal-description" className="text-sm font-semibold">Informations complémentaires</label><textarea id="proposal-description" maxLength={1000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Détails utiles pour identifier la canette…" rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" /></div>
       <div className="space-y-3 rounded-2xl border bg-card p-4"><div><h2 className="font-bold">Photos</h2><p className="text-xs text-muted-foreground">Photo de face obligatoire ; dos et code-barres facultatifs. JPG, PNG ou WebP, 8 Mo maximum par photo.</p></div>
-        {([["front", "Face avant *", true], ["back", "Dos (facultatif)", false], ["barcode", "Gros plan du code-barres (facultatif)", false]] as const).map(([key, label, required]) => <div key={key} className="space-y-1"><label htmlFor={`photo-${key}`} className="text-sm font-medium">{label}</label><input id={`photo-${key}`} type="file" accept="image/jpeg,image/png,image/webp" required={required} onChange={(e) => chooseImage(key, e.target.files?.[0])} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />{images[key] && <p className="break-all text-xs text-primary">{images[key]?.name}</p>}</div>)}
+        {([["front", "Face avant *", true], ["back", "Dos (facultatif)", false], ["barcode", "Gros plan du code-barres (facultatif)", false]] as const).map(([key, label, required]) => <div key={key} className="space-y-2"><label className="text-sm font-medium">{label}</label><div className="flex flex-wrap gap-2"><label htmlFor={`camera-photo-${key}`} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground">Prendre une photo</label><input id={`camera-photo-${key}`} type="file" accept="image/*" capture="environment" onChange={(e) => { chooseImage(key, e.target.files?.[0]); e.currentTarget.value = ""; }} className="sr-only" /><label htmlFor={`photo-${key}`} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border bg-background px-3 text-sm font-semibold">Choisir dans la galerie</label><input id={`photo-${key}`} type="file" accept="image/jpeg,image/png,image/webp" required={required} onChange={(e) => { chooseImage(key, e.target.files?.[0]); e.currentTarget.value = ""; }} className="sr-only" /></div>{images[key] && <p className="break-all text-xs text-primary">{images[key]?.name}</p>}</div>)}
       </div>
       <Button type="submit" disabled={isSubmitting || !user} className="h-12 w-full rounded-xl font-bold">{isSubmitting ? "Envoi…" : "Envoyer pour vérification"}</Button>
       {!user && <p className="text-center text-xs text-muted-foreground">Connecte-toi pour proposer une canette.</p>}
@@ -213,7 +218,7 @@ function Scanner() {
       <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
       {cameraError ? <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground"><ScanBarcode className="h-8 w-8" /><p>Caméra indisponible. Vérifie les autorisations du navigateur et utilise Cansdex en HTTPS.</p><Button type="button" variant="secondary" className="rounded-xl" onClick={() => { setCameraError(false); setCameraAttempt((n) => n + 1); }}>Réessayer la caméra</Button></div> : <><div className="absolute inset-[12%] rounded-2xl border-2 border-primary/70" /><div className="absolute inset-x-[14%] h-0.5 bg-primary shadow-glow animate-scan-line" /></>}
     </div>
-    <form onSubmit={(e) => { e.preventDefault(); void handleBarcode(manual); }} className="mt-4 flex gap-2"><Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))} className="h-12 rounded-xl" /><Button type="submit" className="h-12 rounded-xl font-bold">Rechercher</Button></form>
+    <form onSubmit={(e) => { e.preventDefault(); void handleBarcode(manual, "manual"); }} className="mt-4 flex gap-2"><Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))} className="h-12 rounded-xl" /><Button type="submit" className="h-12 rounded-xl font-bold">Rechercher</Button></form>
     <Button type="button" variant="outline" className="mt-3 h-11 w-full rounded-xl font-semibold" onClick={() => { setUnknownBarcode(""); setDirectProposal(true); setName(""); setBrandId(""); setNewBrandName(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
     <p className="mt-3 text-xs text-muted-foreground">Si le code-barres est inconnu, tu pourras proposer la canette à la communauté.</p>
   </div>;

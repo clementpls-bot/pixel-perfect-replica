@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, Clock3, ImagePlus, LogOut, Pencil, Trash2, X } from "lucide-react";
+import { Camera, Check, LogOut, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
+import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
+import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -36,7 +39,10 @@ function Profile() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
+  const [deletingComment, setDeletingComment] = useState(false);
+  const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -59,7 +65,7 @@ function Profile() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase.from("comments")
-        .select("id,body,created_at,can_id")
+        .select("id,body,image_url,created_at,can_id")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -68,49 +74,17 @@ function Profile() {
     },
   });
 
-  const { data: gallery = [], isLoading: galleryLoading } = useQuery({
-    queryKey: ["profile-gallery", user?.id],
+  const { data: drinkRows = [] } = useQuery({
+    queryKey: ["profile-drinks", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profile_gallery").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("user_can_drinks")
+        .select("can_id,drinks_count")
+        .eq("user_id", user!.id);
       if (error) throw error;
       return data;
     },
   });
-
-  const uploadGalleryPhoto = async (file?: File) => {
-    if (!file || !user) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Choisissez une image JPG, PNG ou WebP."); return;
-    }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Chaque photo doit faire 5 Mo maximum."); return; }
-    if (gallery.length >= 12) { toast.error("Votre galerie peut contenir jusqu’à 12 photos."); return; }
-    setUploadingGallery(true);
-    try {
-      const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-      const path = `${user.id}/gallery-${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage.from("profile-gallery").upload(path, file, { cacheControl: "3600", contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-      const { data: publicUrl } = supabase.storage.from("profile-gallery").getPublicUrl(path);
-      const { error: insertError } = await supabase.from("profile_gallery").insert({ user_id: user.id, image_url: publicUrl.publicUrl, storage_path: path });
-      if (insertError) { await supabase.storage.from("profile-gallery").remove([path]); throw insertError; }
-      await qc.invalidateQueries({ queryKey: ["profile-gallery", user.id] });
-      toast.success("Photo ajoutée à votre galerie.");
-    } catch (error) {
-      toast.error((error as Error).message || "Impossible d’ajouter cette photo.");
-    } finally { setUploadingGallery(false); }
-  };
-
-  const deleteGalleryPhoto = async (photo: (typeof gallery)[number]) => {
-    try {
-      const { error: storageError } = await supabase.storage.from("profile-gallery").remove([photo.storage_path]);
-      if (storageError) throw storageError;
-      const { error } = await supabase.from("profile_gallery").delete().eq("id", photo.id).eq("user_id", user!.id);
-      if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["profile-gallery", user?.id] });
-      toast.success("Photo supprimée.");
-    } catch (error) { toast.error((error as Error).message || "Impossible de supprimer cette photo."); }
-  };
 
   const changedAt = (profile as { username_changed_at?: string | null } | null | undefined)?.username_changed_at;
   const canChangeUsernameAt = changedAt
@@ -131,8 +105,16 @@ function Profile() {
     return { ...b, total: list.length, have: list.filter((c) => ownedSet.has(c.id)).length,
       copies: list.reduce((s, c) => s + (owned.get(c.id) ?? 0), 0) };
   });
-  const fav = [...brandStats].sort((a, b) => b.copies - a.copies)[0];
   const sortedBrandStats = [...brandStats].sort((a, b) => (b.total ? b.have / b.total : 0) - (a.total ? a.have / a.total : 0) || b.have - a.have || a.name.localeCompare(b.name, "fr"));
+  const totalDrinks = drinkRows.reduce((sum, row) => sum + (row.drinks_count ?? 0), 0);
+  const drinksByBrand = new Map<string, number>();
+  for (const row of drinkRows) {
+    const can = data.cans.find((item) => item.id === row.can_id);
+    if (can) drinksByBrand.set(can.brand_id, (drinksByBrand.get(can.brand_id) ?? 0) + (row.drinks_count ?? 0));
+  }
+  const mostDrunkBrand = data.brands
+    .map((brand) => ({ ...brand, drinks: drinksByBrand.get(brand.id) ?? 0 }))
+    .sort((a, b) => b.drinks - a.drinks || a.name.localeCompare(b.name, "fr"))[0];
   const achievements = computeAchievements({ ownedCanIds: ownedSet, cans: data.cans, brands: data.brands });
 
   const signOut = async () => {
@@ -169,20 +151,43 @@ function Profile() {
     }
   };
 
-  const uploadAvatar = async (file?: File) => {
+  const deleteComment = async () => {
+    if (!user || !commentToDelete) return;
+    setDeletingComment(true);
+    try {
+      const { error } = await supabase.from("comments")
+        .delete().eq("id", commentToDelete.id).eq("user_id", user.id);
+      if (error) throw error;
+      const deletedCanId = commentToDelete.can_id;
+      setCommentToDelete(null);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["my-comments", user.id] }),
+        qc.invalidateQueries({ queryKey: ["comments", deletedCanId] }),
+        qc.invalidateQueries({ queryKey: ["community-feed"] }),
+      ]);
+      toast.success("Commentaire supprimé.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de supprimer ce commentaire.");
+    } finally {
+      setDeletingComment(false);
+    }
+  };
+
+  const uploadImage = async (file: File | undefined, kind: "avatar" | "banner") => {
     if (!file || !user) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast.error("Choisissez une image JPG, PNG ou WebP.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Votre photo de profil doit faire 5 Mo maximum.");
+      toast.error("L’image doit faire 5 Mo maximum.");
       return;
     }
-    setUploadingAvatar(true);
+    const setBusy = kind === "avatar" ? setUploadingAvatar : setUploadingBanner;
+    setBusy(true);
     try {
       const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-      const path = `${user.id}/avatar-${Date.now()}.${extension}`;
+      const path = `${user.id}/${kind}-${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("profile-avatars").upload(path, file, {
         cacheControl: "3600",
         contentType: file.type,
@@ -190,34 +195,46 @@ function Profile() {
       });
       if (uploadError) throw uploadError;
       const { data: publicUrl } = supabase.storage.from("profile-avatars").getPublicUrl(path);
-      const { error: updateError } = await supabase.from("profiles")
-        .update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
+      const update = kind === "avatar" ? { avatar_url: publicUrl.publicUrl } : { banner_url: publicUrl.publicUrl };
+      const { error: updateError } = await supabase.from("profiles").update(update).eq("id", user.id);
       if (updateError) throw updateError;
       await qc.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast.success("Photo de profil mise à jour.");
+      toast.success(kind === "avatar" ? "Photo de profil mise à jour." : "Bannière mise à jour.");
     } catch (error) {
-      toast.error((error as Error).message || "Impossible d’envoyer la photo de profil.");
+      toast.error((error as Error).message || "Impossible d’envoyer l’image.");
     } finally {
-      setUploadingAvatar(false);
+      setBusy(false);
     }
   };
 
   return (
     <div className="profile-page space-y-6">
-      <header className="flex items-center gap-4">
-        <label className="group relative flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground">
-          {profile?.avatar_url
-            ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
-            : profile?.username?.[0]?.toUpperCase()}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition group-hover:opacity-100">
-            {uploadingAvatar ? <span className="text-xs">Envoi en cours…</span> : <Camera className="h-5 w-5" />}
-          </span>
+      <ProfileBanner src={profile?.banner_url}>
+        <label className="absolute right-3 top-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-bold shadow backdrop-blur">
+          <Camera className="h-3.5 w-3.5" />{uploadingBanner ? "Envoi…" : "Bannière"}
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
-            disabled={uploadingAvatar} onChange={(event) => {
-              void uploadAvatar(event.target.files?.[0]);
+            disabled={uploadingBanner} onChange={(event) => {
+              void uploadImage(event.target.files?.[0], "banner");
               event.currentTarget.value = "";
             }} />
         </label>
+      </ProfileBanner>
+      <header className="relative -mt-20 flex items-center gap-4">
+        <div className="relative shrink-0">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground ring-4 ring-background">
+            {profile?.avatar_url
+              ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
+              : profile?.username?.[0]?.toUpperCase()}
+          </AvatarZoom>
+          <label className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-background shadow" aria-label="Changer la photo de profil">
+            {uploadingAvatar ? <span className="text-[9px]">…</span> : <Camera className="h-4 w-4" />}
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
+              disabled={uploadingAvatar} onChange={(event) => {
+                void uploadImage(event.target.files?.[0], "avatar");
+                event.currentTarget.value = "";
+              }} />
+          </label>
+        </div>
         <div className="min-w-0 flex-1">
           {editing ? (
             <div className="space-y-2">
@@ -237,46 +254,44 @@ function Profile() {
           ) : (
             <>
               <h1 className="break-words text-xl font-black">{profile?.username}</h1>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => setDrinksDialogOpen(true)}
+                  disabled={totalDrinks === 0}
+                  className="inline-flex items-center gap-1 font-semibold text-foreground underline-offset-4 transition hover:text-primary hover:underline disabled:cursor-default disabled:no-underline disabled:hover:text-foreground"
+                  aria-label="Voir les canettes correspondant à mes Drinks"
+                >
+                  {totalDrinks} Drinks
+                </button>{totalDrinks > 0 && mostDrunkBrand?.drinks ? <> <span aria-hidden="true">·</span> Plus consommée : <span className="font-semibold" style={{ color: mostDrunkBrand.color }}>{mostDrunkBrand.name}</span></> : ""}
+              </p>
               <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 onClick={() => {
                   if (!canChangeUsername) {
-                    toast.info(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
+                    toast.error(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
                     return;
                   }
                   setEditing(true);
                 }}>
                 <Pencil className="h-3 w-3" /> Modifier le nom d’utilisateur
               </button>
-              {!canChangeUsername && (
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3 w-3" /> Prochaine modification : {nextUsernameDate}
-                </p>
-              )}
             </>
           )}
         </div>
         <Button size="icon" variant="ghost" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
       </header>
-      <p className="text-xs text-muted-foreground">Cliquez sur votre photo de profil pour la remplacer. JPG, PNG ou WebP · 5 Mo maximum.</p>
-
       {user?.app_metadata?.["role"] === "admin" && (
-        <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link to="/admin-cans" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Gérer le catalogue des canettes →</Link>
+          <Link to="/admin-submissions" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Modérer les propositions de canettes →</Link>
+          <Link to="/admin-reports" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Consulter les signalements de comptes →</Link>
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{ownedSet.size}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canettes différentes</p></div>
         <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{totalExemplaires}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nombre de canettes</p></div>
       </div>
-
-      {fav && fav.copies > 0 && <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4"><div><p className="text-xs text-muted-foreground">Boisson préférée</p><p className="font-bold" style={{ color: fav.color }}>{fav.name}</p></div><span className="text-xs text-muted-foreground">{fav.copies} exemplaire{fav.copies > 1 ? "s" : ""}</span></div>}
-
-      <section className="rounded-2xl border bg-card px-4">
-        <div className="flex items-center justify-between gap-3 py-4"><div><h2 className="font-bold">Galerie</h2><p className="text-xs text-muted-foreground">Vos photos de collection · {gallery.length}/12</p></div>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"><ImagePlus className="h-4 w-4" />{uploadingGallery ? "Envoi…" : "Ajouter"}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploadingGallery || gallery.length >= 12} onChange={(event) => { void uploadGalleryPhoto(event.target.files?.[0]); event.currentTarget.value = ""; }} /></label>
-        </div>
-        <p className="mb-3 text-[11px] text-muted-foreground">JPG, PNG ou WebP · 5 Mo maximum par photo.</p>
-        {galleryLoading ? <p className="pb-4 text-sm text-muted-foreground">Chargement de la galerie…</p> : gallery.length === 0 ? <div className="mb-4 rounded-xl border border-dashed p-6 text-center"><ImagePlus className="mx-auto mb-2 h-7 w-7 text-muted-foreground" /><p className="text-sm font-medium">Votre galerie est vide</p><p className="mt-1 text-xs text-muted-foreground">Ajoutez quelques photos pour montrer votre collection.</p></div> : <div className="mb-4 grid grid-cols-3 gap-2">{gallery.map((photo) => <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-muted"><img src={photo.image_url} alt="Photo de ma collection" loading="lazy" className="h-full w-full object-cover" /><button type="button" aria-label="Supprimer la photo" onClick={() => void deleteGalleryPhoto(photo)} className="absolute right-1 top-1 rounded-full bg-black/70 p-1.5 text-white opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100"><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div>}
-      </section>
 
       <Accordion type="multiple" className="space-y-2">
         <AccordionItem value="achievements" className="rounded-2xl border bg-card px-4">
@@ -305,11 +320,16 @@ function Profile() {
             {comments.map((comment) => {
               const can = data.cans.find((item) => item.id === comment.can_id);
               return (
-                <article key={comment.id} className="rounded-2xl border bg-card p-4">
-                  <p className="whitespace-pre-wrap text-sm">{comment.body}</p>
+                <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: pastelCanColor(can?.color_primary) }}>
+                  {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>}
+                  {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{new Date(comment.created_at).toLocaleDateString()}</span>
                     {can ? <Link to="/cans/$id" params={{ id: can.id }} className="font-semibold text-primary hover:underline">Sur {can.name} →</Link> : <span>Canette</span>}
+                    <Button type="button" variant="ghost" size="sm" className="h-8 rounded-lg px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setCommentToDelete({ id: comment.id, can_id: comment.can_id, body: comment.body })}>
+                      <Trash2 className="mr-1 h-3.5 w-3.5" /> Supprimer
+                    </Button>
                   </div>
                 </article>
               );
@@ -317,6 +337,55 @@ function Profile() {
           </div>
         )}
       </section>
+      <Dialog open={drinksDialogOpen} onOpenChange={setDrinksDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mes Drinks par canette</DialogTitle>
+            <DialogDescription>Appuie sur une canette pour ouvrir sa fiche et consulter son compteur.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[55vh] space-y-2 overflow-y-auto">
+            {drinkRows
+              .map((row) => {
+                const can = data.cans.find((item) => item.id === row.can_id);
+                const brand = data.brands.find((item) => item.id === can?.brand_id);
+                return { can, brand, count: row.drinks_count ?? 0 };
+              })
+              .filter((item) => item.can && item.count > 0)
+              .sort((a, b) => b.count - a.count || a.can!.name.localeCompare(b.can!.name, "fr"))
+              .map((item) => (
+                <Link
+                  key={item.can!.id}
+                  to="/cans/$id"
+                  params={{ id: item.can!.id }}
+                  className="flex items-center justify-between gap-3 rounded-xl border p-3 transition hover:border-primary hover:bg-muted/50"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-bold">{item.can!.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{item.brand?.name ?? "Marque inconnue"}</span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-sm font-black tabular-nums">{item.count} Drinks</span>
+                </Link>
+              ))}
+            {totalDrinks === 0 && <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">Tu n’as pas encore enregistré de Drinks.</p>}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!commentToDelete} onOpenChange={(open) => { if (!open && !deletingComment) setCommentToDelete(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer ce commentaire ?</DialogTitle>
+            <DialogDescription>Cette action est définitive. Le commentaire sera retiré de l’espace communautaire.</DialogDescription>
+          </DialogHeader>
+          {commentToDelete?.body?.trim() && <p className="max-h-32 overflow-y-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-3 text-sm">{commentToDelete.body}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setCommentToDelete(null)} disabled={deletingComment}>Annuler</Button>
+            <Button type="button" variant="destructive" onClick={() => void deleteComment()} disabled={deletingComment}>
+              {deletingComment ? "Suppression…" : "Supprimer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
