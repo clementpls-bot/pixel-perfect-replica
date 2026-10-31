@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
 import { recognizeCanImage } from "@/lib/can-vision";
-import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2 } from "lucide-react";
+import { Sparkles, ScanBarcode, ImagePlus, CheckCircle2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
 import { Input } from "@/components/ui/input";
@@ -680,8 +680,31 @@ function Scanner() {
               ["barcode", "Gros plan du code-barres (facultatif)", false],
             ] as const).map(([key, label, required]) => (
               <div key={key} className="space-y-1">
-                <label htmlFor={`photo-${key}`} className="text-sm font-medium">{label}</label>
-                <input id={`photo-${key}`} type="file" accept="image/jpeg,image/png,image/webp" required={required} onChange={(e) => chooseImage(key, e.target.files?.[0])} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-semibold file:text-secondary-foreground" />
+                <label className="text-sm font-medium">{label}</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor={`camera-photo-${key}`} className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                    <Camera className="h-4 w-4" />Prendre une photo
+                  </label>
+                  <input
+                    id={`camera-photo-${key}`}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => { chooseImage(key, e.target.files?.[0]); e.currentTarget.value = ""; }}
+                    className="sr-only"
+                  />
+                  <label htmlFor={`photo-${key}`} className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-background px-3 text-sm font-semibold transition-colors hover:bg-muted">
+                    <ImagePlus className="h-4 w-4" />Choisir dans la galerie
+                  </label>
+                  <input
+                    id={`photo-${key}`}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    required={required}
+                    onChange={(e) => { chooseImage(key, e.target.files?.[0]); e.currentTarget.value = ""; }}
+                    className="sr-only"
+                  />
+                </div>
                 {images[key] && <div className="mt-2 flex items-center gap-3"><img src={URL.createObjectURL(images[key]!)} alt={`Aperçu : ${label}`} className="h-20 w-16 rounded-lg border object-contain" /><p className="min-w-0 break-all text-xs text-primary">{images[key]?.name}</p></div>}
               </div>
             ))}
