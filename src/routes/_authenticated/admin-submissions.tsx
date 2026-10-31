@@ -110,7 +110,7 @@ function AdminSubmissions() {
       const usernames = new Map((profiles ?? []).map((profile) => [profile.id, profile.username] as const));
       return Promise.all(rows.map(async (row) => {
         const signedImages = await Promise.all((row.image_urls ?? []).map(async (path) => {
-          if (/^https?:\\/\\//i.test(path)) return path;
+          if (/^https?:\/\//i.test(path)) return path;
           const { data: signed, error: signedError } = await supabase.storage.from("account-report-images").createSignedUrl(path, 3600);
           return signedError ? null : signed?.signedUrl ?? null;
         }));
