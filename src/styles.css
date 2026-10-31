@@ -431,3 +431,95 @@
 }
 .app-ui > div.pt-8 form { margin-top: 1.75rem; }
 .app-ui > div.pt-8 button { font-weight: 800; }
+
+
+/* Cooler Cansdex palette: remove the yellow cast from the app canvas and brand mark. */
+:root {
+  --background: #edf1f8;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --muted: #e5eaf3;
+  --primary: #7664d8;
+  --primary-foreground: #ffffff;
+  --accent: #dfe7ff;
+  --accent-foreground: #38245f;
+  --ring: #8876e8;
+  --gradient-progress: linear-gradient(90deg, #8876e8 0%, #65b9d8 52%, #9a8be9 100%);
+  --glow-primary: 0 8px 24px rgba(118, 100, 216, .22);
+}
+.app-ui {
+  --app-paper: #edf1f8;
+  --app-lime: #8c7be8;
+  background-color: #edf1f8;
+  background-image:
+    radial-gradient(rgba(47, 57, 83, .075) .8px, transparent .8px),
+    linear-gradient(145deg, rgba(255,255,255,.34), transparent 48%);
+  background-size: 18px 18px, 100% 100%;
+}
+.app-ui .bg-primary\/10 { background-color: rgba(136,118,232,.13); }
+.app-ui .text-primary { color: #6b59c5; }
+.app-ui .bg-card { background-color: rgba(255,255,255,.97); }
+.app-ui > div.pt-8 { background: #f9fbff; }
+.app-ui .can-add-glint {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 2px solid #282238;
+  color: #29213e;
+  background: linear-gradient(112deg, #c7b8ff 0%, #a9dfff 28%, #f2b9dc 55%, #b9e9df 78%, #c7b8ff 100%);
+  background-size: 260% 260%;
+  box-shadow: 4px 4px 0 #282238, 0 0 18px rgba(174,151,255,.22);
+  animation: cansdex-magic-flow 5.5s ease-in-out infinite;
+}
+.app-ui .can-add-glint::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -60% auto -60% -55%;
+  width: 34%;
+  transform: rotate(22deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
+  animation: cansdex-magic-sweep 3.8s ease-in-out infinite;
+}
+.app-ui .can-add-glint::after {
+  content: "✦";
+  position: absolute;
+  top: 5px;
+  right: 12px;
+  color: rgba(255,255,255,.95);
+  font-size: 13px;
+  text-shadow: 0 0 8px rgba(255,255,255,.95);
+  pointer-events: none;
+  animation: cansdex-magic-twinkle 2.2s ease-in-out infinite;
+}
+.app-ui .can-add-glint:hover {
+  background-size: 260% 260%;
+  box-shadow: 5px 5px 0 #282238, 0 0 25px rgba(174,151,255,.38);
+  filter: saturate(1.12);
+}
+.app-ui .can-add-glint-icon svg,
+.app-ui .can-add-glint > span svg {
+  animation: cansdex-magic-twinkle 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,.9));
+}
+.app-ui .shadow-glow { box-shadow: 4px 4px 0 #282238, 0 0 18px rgba(174,151,255,.22); }
+@keyframes cansdex-magic-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes cansdex-magic-sweep {
+  0%, 58%, 100% { left: -55%; opacity: 0; }
+  68% { opacity: .9; }
+  86% { left: 125%; opacity: 0; }
+}
+@keyframes cansdex-magic-twinkle {
+  0%, 100% { transform: scale(.88) rotate(-8deg); opacity: .72; }
+  50% { transform: scale(1.18) rotate(12deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-ui .can-add-glint,
+  .app-ui .can-add-glint::before,
+  .app-ui .can-add-glint::after,
+  .app-ui .can-add-glint-icon svg,
+  .app-ui .can-add-glint > span svg { animation: none; }
+}
