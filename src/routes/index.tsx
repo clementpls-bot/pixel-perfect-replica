@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
-  ArrowDown, ArrowRight, Barcode, Check, ChevronRight, CircleDot, Crown,
+  ArrowDown, ArrowRight, Barcode, Check, CircleDot,
   Library, ScanLine, Sparkles, Star, Trophy, Users, Zap,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
