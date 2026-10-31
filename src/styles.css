@@ -226,3 +226,7 @@
 @media (prefers-reduced-motion: reduce) {
   .contribute-magic-sheen, .contribute-magic-sparkle { animation: none; }
 }
+
+
+/* Condensed editorial type for the public Cansdex landing page. */
+.landing-display { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; }
