@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowRight, Check, ChevronDown, Crown, Library, ScanLine, Trophy, Users } from "lucide-react";
+import { ArrowRight, Library, ScanLine, Trophy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
