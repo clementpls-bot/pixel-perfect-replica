@@ -88,16 +88,12 @@ function Scanner() {
     if (busy.current || !catalogRef.current || !code) return;
     busy.current = true;
     let matches = catalogRef.current.cans.filter((c) => c.barcode === code);
-    // Approved additional barcodes must work just like a can's primary barcode.
+    // Resolve an approved additional barcode without exposing the barcode directory.
     if (matches.length === 0) {
       try {
-        const { data: extraMatches, error } = await supabase.from("can_barcodes" as any)
-          .select("can_id")
-          .eq("barcode", code)
-          .eq("status", "approved");
-        if (!error && extraMatches?.length) {
-          const matchedIds = new Set((extraMatches as any[]).map((entry: { can_id: string }) => entry.can_id));
-          matches = catalogRef.current.cans.filter((can) => matchedIds.has(can.id));
+        const { data: matchedCanId, error } = await (supabase as any).rpc("resolve_can_barcode", { p_barcode: code });
+        if (!error && matchedCanId) {
+          matches = catalogRef.current.cans.filter((can) => can.id === matchedCanId);
         }
       } catch {
         // If the optional lookup is unavailable, continue to the unknown-barcode flow.
