@@ -104,7 +104,10 @@ function Collection() {
                 <div className="py-2">
                   <CanArt can={c} brandName={brand?.name} className="max-w-[76px] transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">Possédé</span>
+                <div className="flex flex-wrap items-center justify-center gap-1">
+                  <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">Possédé</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary" title="Nombre de collectionneurs qui ont ajouté cette canette à leur mur">👥 {c.popularity_count ?? 0}</span>
+                </div>
                 <div
                   className="mt-1.5 rounded border-l-[3px] border-foreground bg-secondary px-1.5 py-1"
                 >
