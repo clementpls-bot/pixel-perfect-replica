@@ -12,7 +12,9 @@ export const Route = createFileRoute("/brands/")({
       { name: "description", content: "Explore les marques, découvre leurs canettes et complète ta collection." },
       { property: "og:title", content: "Catalogue — Cansdex" },
       { property: "og:description", content: "Explore les marques, découvre leurs canettes et complète ta collection." },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: Brands,
 });

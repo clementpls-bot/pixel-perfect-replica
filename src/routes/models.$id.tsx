@@ -7,7 +7,11 @@ export const Route = createFileRoute("/models/$id")({
     meta: [
       { title: "Collection de canettes — Cansdex" },
       { name: "description", content: "Chaque canette possède son propre design et sa propre fiche." },
-    ],
+    { property: "og:title", content: "Collection de canettes — Cansdex" },
+    { property: "og:description", content: "Chaque canette possède son propre design et sa propre fiche." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: ModelPage,
 });
@@ -19,7 +23,7 @@ function ModelPage() {
   const brand = data?.brands.find((item) => item.id === model?.brand_id);
 
   return (
-    <div className="rounded-3xl border bg-card p-6">
+    <div className="border-y-2 border-foreground py-6">
       <p className="text-xs font-bold uppercase tracking-widest text-primary">Collection</p>
       <h1 className="mt-2 text-2xl font-black">Chaque design est unique</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

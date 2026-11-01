@@ -14,7 +14,9 @@ export const Route = createFileRoute("/_authenticated/collection")({
       { name: "description", content: "Votre mur personnel de canettes." },
       { property: "og:title", content: "Mon mur — Cansdex" },
       { property: "og:description", content: "Votre mur personnel de canettes." },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: Collection,
 });

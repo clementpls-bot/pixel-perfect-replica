@@ -14,7 +14,9 @@ export const Route = createFileRoute("/brands/$slug")({
       { name: "description", content: `Toutes les canettes ${params.slug} : découvrez celles que vous possédez et celles qu’il vous manque.` },
       { property: "og:title", content: `Collection ${params.slug} — Cansdex` },
       { property: "og:description", content: `Toutes les canettes ${params.slug} : celles que vous possédez et celles qu’il vous reste à trouver.` },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: BrandPage,
 });

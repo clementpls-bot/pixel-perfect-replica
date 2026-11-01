@@ -13,6 +13,10 @@ export const Route = createFileRoute("/community")({
   head: () => ({ meta: [
     { title: "Communauté des canettes — Cansdex" },
     { name: "description", content: "Les dernières photos et discussions publiées sur les fiches de canettes Cansdex." },
+    { property: "og:title", content: "Communauté des canettes — Cansdex" },
+    { property: "og:description", content: "Les dernières photos et discussions publiées sur les fiches de canettes Cansdex." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: CommunityFeedPage,
 });

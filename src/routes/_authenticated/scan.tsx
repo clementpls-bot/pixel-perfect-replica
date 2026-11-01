@@ -18,7 +18,9 @@ export const Route = createFileRoute("/_authenticated/scan")({
       { name: "description", content: "Identifie une canette par code-barres." },
       { property: "og:title", content: "Reconnaissance de canettes — Cansdex" },
       { property: "og:description", content: "Identifie une canette par reconnaissance visuelle IA ou par code-barres." },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: Scanner,
 });

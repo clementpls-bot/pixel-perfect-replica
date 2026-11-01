@@ -21,7 +21,9 @@ export const Route = createFileRoute("/_authenticated/profile")({
       { name: "description", content: "Vos statistiques de collection et vos succès." },
       { property: "og:title", content: "Moi — Cansdex" },
       { property: "og:description", content: "Vos statistiques de collection et vos succès." },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: Profile,
 });

@@ -20,7 +20,9 @@ export const Route = createFileRoute("/cans/$id")({
       { name: "description", content: "Historique, saveur, notes et commentaires de la communauté sur cette canette." },
       { property: "og:title", content: "Détail de la canette — Cansdex" },
       { property: "og:description", content: "Historique, saveur, notes et commentaires de la communauté sur cette canette." },
-    ],
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ],
   }),
   component: CanPage,
 });
