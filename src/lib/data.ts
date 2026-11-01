@@ -97,6 +97,7 @@ function invalidateOwned(qc: ReturnType<typeof useQueryClient>, userId: string) 
   return Promise.all([
     qc.invalidateQueries({ queryKey: ["owned", userId] }),
     qc.invalidateQueries({ queryKey: ["owned-conditions", userId] }),
+    qc.invalidateQueries({ queryKey: ["catalog"] }),
   ]);
 }
 
