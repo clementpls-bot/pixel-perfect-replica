@@ -17,6 +17,8 @@ create table if not exists public.can_models (
   constraint can_models_brand_slug_key unique (brand_id, slug)
 );
 
+create unique index if not exists can_models_brand_slug_key on public.can_models(brand_id, slug);
+
 alter table public.can_models enable row level security;
 revoke all on public.can_models from public;
 grant select on public.can_models to anon, authenticated;
@@ -54,7 +56,6 @@ alter table public.cans
   add constraint cans_edition_type_check
   check (edition_type in ('standard', 'limited', 'collab', 'import', 'redesign'))
   not valid;
-alter table public.cans validate constraint cans_edition_type_check;
 
 create index if not exists cans_model_id_idx on public.cans(model_id);
 
@@ -96,7 +97,6 @@ alter table public.user_cans
   add constraint user_cans_condition_check
   check (condition in ('full', 'empty', 'empty_bottom_opened'))
   not valid;
-alter table public.user_cans validate constraint user_cans_condition_check;
 
 alter table public.user_cans
   drop constraint if exists user_cans_user_id_can_id_key;
