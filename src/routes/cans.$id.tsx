@@ -62,14 +62,16 @@ function CanPage() {
       if (error) throw error;
       return data ?? [];
     },
-    refetchInterval: 15_000,
+    enabled: !!user && !!owned?.has(id),
+    refetchInterval: owned?.has(id) ? 15_000 : false,
   });
   useEffect(() => {
+    if (!user || !owned?.has(id)) return;
     const channel = (supabase as any).channel(`can-barcodes-${id}`).on("postgres_changes", { event: "*", schema: "public", table: "can_barcodes", filter: `can_id=eq.${id}` }, () => {
       void qc.invalidateQueries({ queryKey: ["can-barcodes", id] });
     }).subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [id, qc]);
+  }, [id, qc, user, owned]);
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
 
@@ -98,9 +100,17 @@ function CanPage() {
       toast("Ajoute d’abord cette canette à ton mur pour noter son goût.");
       return;
     }
-    const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
-    if (error) toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["ratings", id] });
+    const nextValue = mine?.[k] === v ? null : v;
+    const nextDesign = k === "design" ? nextValue : mine?.design ?? null;
+    const nextTaste = k === "taste" ? nextValue : mine?.taste ?? null;
+    const result = nextDesign === null && nextTaste === null
+      ? await supabase.from("ratings").delete().eq("can_id", id).eq("user_id", user.id)
+      : await supabase.from("ratings").upsert({
+          can_id: id, user_id: user.id, design: nextDesign, taste: nextTaste,
+          updated_at: new Date().toISOString(),
+        });
+    if (result.error) toast.error(result.error.message);
+    else await qc.invalidateQueries({ queryKey: ["ratings", id] });
   };
 
   const submitReport = async () => {
@@ -333,7 +343,7 @@ function CanPage() {
               <label className="block text-sm font-medium" htmlFor="report-barcode">Proposer un code-barres supplémentaire (facultatif)</label>
               <Input id="report-barcode" inputMode="numeric" maxLength={14} value={reportBarcode} onChange={(e) => setReportBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="rounded-lg" />
               <p className="text-xs text-muted-foreground">Une même canette peut avoir plusieurs codes-barres selon le format ou le pays.</p>
-              <div className="mt-3 rounded-lg bg-muted/40 p-3">
+              {qty > 0 && <div className="mt-3 rounded-lg bg-muted/40 p-3">
                 <p className="text-xs font-semibold">Codes-barres connus</p>
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
@@ -347,7 +357,7 @@ function CanPage() {
                   {knownBarcodes.isLoading && <p className="text-xs text-muted-foreground">Chargement des autres codes-barres…</p>}
                   {!knownBarcodes.isLoading && !knownBarcodes.data?.length && <p className="text-xs text-muted-foreground">Aucun autre code-barres enregistré pour le moment.</p>}
                 </div>
-              </div>
+              </div>}
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium" htmlFor="report-images">Ajouter des images (jusqu’à 5)</label>
