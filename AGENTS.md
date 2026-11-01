@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Shared presentation uses global semantic tokens, shared button variants and PageHeading; this keeps the visual identity consistent without changing collection or scan rules.

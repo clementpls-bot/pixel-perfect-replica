@@ -17,6 +17,10 @@ export const Route = createFileRoute("/users/$id")({
   head: () => ({ meta: [
     { title: "Profil collectionneur — Cansdex" },
     { name: "description", content: "Découvre la collection, les succès et les échanges d’un collectionneur Cansdex." },
+    { property: "og:title", content: "Profil collectionneur — Cansdex" },
+    { property: "og:description", content: "Découvre la collection, les succès et les échanges d’un collectionneur Cansdex." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: PublicUserProfile,
 });

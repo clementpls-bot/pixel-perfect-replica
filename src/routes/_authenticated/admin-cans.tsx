@@ -12,7 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
 
 export const Route = createFileRoute("/_authenticated/admin-cans")({
-  head: () => ({ meta: [{ title: "Gestion des canettes — Cansdex" }] }),
+  head: () => ({ meta: [{ title: "Gestion des canettes — Cansdex" },
+    { name: "description", content: "Administration et modération de la communauté Cansdex." },
+    { property: "og:title", content: "Gestion des canettes — Cansdex" },
+    { property: "og:description", content: "Administration et modération de la communauté Cansdex." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: AdminCans,
 });
 

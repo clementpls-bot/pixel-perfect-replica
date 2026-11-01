@@ -12,7 +12,7 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
     <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] transition-all duration-300", className)}>
       {showPhoto ? (
         <img
-          src={can.image_url!}
+           src={can.image_url ?? undefined}
           alt={can.name}
           className="h-full w-full object-contain"
           loading="lazy"
@@ -28,7 +28,7 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
       )}
       {missing && (
         <span
-          className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 bg-white/95 text-slate-700 shadow-md ring-1 ring-black/5"
+          className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-foreground bg-card text-foreground"
           aria-label="Canette non possédée"
           title="Ajoute cette canette à ton mur pour la débloquer"
         >
