@@ -5,6 +5,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
+import { PageHeading } from "@/components/PageHeading";
 
 export const Route = createFileRoute("/brands/$slug")({
   head: ({ params }) => ({
@@ -42,11 +43,8 @@ function BrandPage() {
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" />Catalogue
       </Link>
-      <div className="flex items-center gap-3">
-        {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
-        <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
-      </div>
-      <div className="mt-4 rounded-2xl border bg-card p-4">
+      <PageHeading title={brand.name} eyebrow="Les designs" action={brand.logo_url ? <img src={brand.logo_url} alt={"Logo " + brand.name} className="brand-medallion h-14 w-14 rounded-full border-2 border-foreground bg-card p-2 object-contain" loading="lazy" /> : undefined} />
+      <div className="mt-4 border-y-2 border-foreground bg-secondary px-1 py-4">
         <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brand.color} />
       </div>
       <div className="mt-5 flex items-end justify-between gap-3">
@@ -76,8 +74,8 @@ function BrandPage() {
               can.flavour,
             ].filter(Boolean);
             return (
-              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="group rounded-2xl border bg-card p-3 text-center transition-transform active:scale-[0.98]">
-                <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[68px] group-hover:-translate-y-1" />
+              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="collectible-card group rounded-lg border-2 border-foreground bg-card p-3 text-center transition-transform hover:-translate-y-1 active:scale-[0.98]">
+                <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[82px] group-hover:-translate-y-1" />
                 <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
                 {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
                 {has && <span className="mt-2 inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Possédée</span>}
