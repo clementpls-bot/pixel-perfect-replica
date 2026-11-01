@@ -36,4 +36,36 @@ create index if not exists comments_general_feed_idx
   on public.comments (created_at desc)
   where can_id is null and parent_id is null;
 
+-- Barcode values are private to collectors who own the can. Scanning uses a
+-- narrow resolver RPC so the app can match a scanned code without listing codes.
+create or replace function public.resolve_can_barcode(p_barcode text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select cb.can_id
+  from public.can_barcodes cb
+  where cb.barcode = p_barcode
+    and cb.status = 'approved'
+  limit 1;
+$;
+
+revoke all on function public.resolve_can_barcode(text) from public;
+grant execute on function public.resolve_can_barcode(text) to authenticated;
+
+drop policy if exists "Anyone can read can barcode entries" on public.can_barcodes;
+drop policy if exists "Owners and admins can read can barcode entries" on public.can_barcodes;
+create policy "Owners and admins can read can barcode entries"
+  on public.can_barcodes for select to authenticated
+  using (
+    (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    or exists (
+      select 1 from public.user_cans uc
+      where uc.can_id = can_barcodes.can_id
+        and uc.user_id = (select auth.uid())
+    )
+  );
+
 notify pgrst, 'reload schema';
