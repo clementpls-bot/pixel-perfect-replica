@@ -169,11 +169,7 @@ function CommunityFeedPage() {
     {posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
       : posts.error ? <p className="rounded-2xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les publications pour le moment.</p>
       : <div className="space-y-4">
-        {user ? <section className="rounded-2xl border bg-card p-3">
-          <p className="mb-2 text-sm font-bold">Une trouvaille, une question, une idée ?</p>
-          <Textarea value={generalBody} onChange={(event) => setGeneralBody(event.target.value)} maxLength={1000} placeholder="Partage quelque chose avec tous les collectionneurs…" className="min-h-24 rounded-xl" />
-          <div className="mt-2 flex justify-end"><Button onClick={() => void publishGeneralPost()} disabled={publishingGeneral || !generalBody.trim()} className="rounded-xl">{publishingGeneral ? "Publication…" : "Publier"}</Button></div>
-        </section> : <Link to="/auth" className="block rounded-xl border bg-card p-3 text-sm text-primary">Connecte-toi pour publier dans la communauté.</Link>}
+        
         {!trendingPosts.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><MessageCircle className="mx-auto h-8 w-8 text-muted-foreground" /><h2 className="mt-3 font-bold">Le fil est encore vide</h2><p className="mt-1 text-sm text-muted-foreground">Sois le premier à partager quelque chose avec les collectionneurs.</p><Link to="/brands" className="mt-4 inline-flex text-sm font-semibold text-primary">Explorer les marques</Link></div>
         : <div className="grid items-start gap-4 xl:grid-cols-2">{trendingPosts.map((post) => {
           const can = post.can_id ? canMap.get(post.can_id) : null;
