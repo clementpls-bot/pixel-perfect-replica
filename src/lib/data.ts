@@ -10,7 +10,7 @@ export type Can = {
   caffeine_mg_per_100ml: number | null; sugar_g_per_100ml: number | null; taurine_mg_per_100ml: number | null;
   energy_kcal_per_100ml: number | null; volume_ml: number | null; history_verified: boolean;
   model_id: string | null; variant_name: string; region: string | null; edition_type: string;
-  tab_color: string | null; notes: string | null;
+  tab_color: string | null; notes: string | null; popularity_count?: number;
 };
 export type CanModel = {
   id: string; brand_id: string; slug: string; name: string; flavour: string | null;
@@ -39,7 +39,21 @@ export function useCatalog() {
       if (b.error) throw b.error;
       if (c.error) throw c.error;
       if (m.error) throw m.error;
-      return { brands: b.data as unknown as Brand[], cans: c.data as unknown as Can[], models: m.data as CanModel[] };
+      const canRows = c.data as unknown as Can[];
+      const { data: popularity, error: popularityError } = await (supabase as any).rpc(
+        "get_can_popularity_counts",
+        { p_can_ids: canRows.map((can) => can.id) },
+      );
+      if (popularityError) throw popularityError;
+      const popularityByCan = new Map<string, number>(
+        ((popularity ?? []) as { can_id: string; collector_count: number }[])
+          .map((row) => [row.can_id, Number(row.collector_count)]),
+      );
+      return {
+        brands: b.data as unknown as Brand[],
+        cans: canRows.map((can) => ({ ...can, popularity_count: popularityByCan.get(can.id) ?? 0 })),
+        models: m.data as CanModel[],
+      };
     },
   });
 }
