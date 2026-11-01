@@ -80,7 +80,10 @@ function BrandPage() {
                 <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[82px] group-hover:-translate-y-1" />
                 <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
                 {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
-                {has && <span className="mt-2 inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Possédée</span>}
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
+                  {has && <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Possédée</span>}
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary" title="Nombre de collectionneurs qui ont ajouté cette canette à leur mur">👥 {can.popularity_count ?? 0}</span>
+                </div>
               </Link>
             );
           })}
