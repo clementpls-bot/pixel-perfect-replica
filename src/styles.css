@@ -339,6 +339,7 @@
 
 /* Ghost-inspired shared identity. Colours and shadows live here, never in feature markup. */
 :root {
+  --radius: .5rem;
   --background: oklch(0.985 0.003 240);
   --foreground: oklch(0.19 0.005 270);
   --card: oklch(1 0 0);
