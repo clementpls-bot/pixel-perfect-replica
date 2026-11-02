@@ -44,13 +44,13 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select cb.can_id
   from public.can_barcodes cb
   where cb.barcode = p_barcode
     and cb.status = 'approved'
   limit 1;
-$;
+$$;
 
 revoke all on function public.resolve_can_barcode(text) from public;
 grant execute on function public.resolve_can_barcode(text) to authenticated;
