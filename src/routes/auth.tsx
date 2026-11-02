@@ -62,7 +62,11 @@ function AuthPage() {
       });
       if (error) toast.error(error.message);
       else {
-        window.localStorage.removeItem("cansdex_onboarding_v1");
+        try {
+          window.localStorage.removeItem("cansdex_onboarding_v1");
+        } catch {
+          // Account creation must not depend on browser storage availability.
+        }
         toast.success("Consultez vos e-mails pour confirmer votre compte.");
       }
     } else {
