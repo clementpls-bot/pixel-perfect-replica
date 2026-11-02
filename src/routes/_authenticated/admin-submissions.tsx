@@ -101,7 +101,7 @@ function AdminSubmissions() {
     queryFn: async () => {
       const { data, error } = await supabase.from("account_reports" as any).select("*").order("created_at", { ascending: false });
       if (error) throw error;
-      const rows = (data ?? []) as Array<{ id: string; reporter_user_id: string; reported_user_id: string; details: string; image_urls: string[]; status: string; review_notes: string | null; created_at: string }>;
+      const rows = (data ?? []) as unknown as Array<{ id: string; reporter_user_id: string; reported_user_id: string; details: string; image_urls: string[]; status: string; review_notes: string | null; created_at: string }>;
       const userIds = [...new Set(rows.flatMap((row) => [row.reporter_user_id, row.reported_user_id]))];
       const { data: profiles, error: profilesError } = userIds.length
         ? await supabase.from("profiles").select("id,username").in("id", userIds)
