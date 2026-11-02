@@ -41,7 +41,7 @@ function sampleByBrand<T extends { brand_id: string }>(items: T[], limit: number
     let added = false;
     for (const group of brandGroups) {
       if (index < group.length) {
-        result.push(group[index]);
+        result.push(group[index]!);
         added = true;
         if (result.length === limit) break;
       }

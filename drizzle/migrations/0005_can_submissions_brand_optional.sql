@@ -1,0 +1,1 @@
+ALTER TABLE public.can_submissions ALTER COLUMN brand_id DROP NOT NULL;
