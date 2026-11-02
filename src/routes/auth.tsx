@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: search.mode === "up" ? "up" as const : "in" as const,
+  }),
   head: () => ({
     meta: [
       { title: "Connexion — Cansdex" },
@@ -20,25 +23,52 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const { mode: requestedMode } = Route.useSearch();
+  const [mode, setMode] = useState<"in" | "up">(requestedMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
-  useEffect(() => { if (user) navigate({ to: "/collection" }); }, [user, navigate]);
+
+  useEffect(() => {
+    setMode(requestedMode);
+  }, [requestedMode]);
+
+  useEffect(() => {
+    if (user) navigate({ to: "/collection" });
+  }, [user, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     if (mode === "up") {
+      let onboarding: unknown;
+      try {
+        const raw = window.localStorage.getItem("cansdex_onboarding_v1");
+        onboarding = raw ? JSON.parse(raw) : undefined;
+      } catch {
+        onboarding = undefined;
+      }
+
       const { error } = await supabase.auth.signUp({
-        email, password,
-        options: { emailRedirectTo: window.location.origin, data: { username } },
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { username, ...(onboarding ? { onboarding } : {}) },
+        },
       });
       if (error) toast.error(error.message);
-      else toast.success("Consultez vos e-mails pour confirmer votre compte.");
+      else {
+        try {
+          window.localStorage.removeItem("cansdex_onboarding_v1");
+        } catch {
+          // Account creation must not depend on browser storage availability.
+        }
+        toast.success("Consultez vos e-mails pour confirmer votre compte.");
+      }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) toast.error(error.message);
