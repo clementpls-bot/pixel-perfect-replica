@@ -42,7 +42,7 @@ function Profile() {
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string; body: string | null } | null>(null);
+  const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string | null; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
   const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
 

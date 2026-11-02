@@ -44,7 +44,8 @@ export function useCatalog() {
         "get_can_popularity_counts",
         { p_can_ids: canRows.map((can) => can.id) },
       );
-      if (popularityError) throw popularityError;
+      // Popularity is decorative: never block the catalogue if it is unavailable.
+      if (popularityError) console.warn("Popularity counts unavailable", popularityError);
       const popularityByCan = new Map<string, number>(
         ((popularity ?? []) as { can_id: string; collector_count: number }[])
           .map((row) => [row.can_id, Number(row.collector_count)]),
