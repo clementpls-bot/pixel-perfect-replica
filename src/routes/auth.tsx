@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { mode?: "in" | "up" } => ({
+  validateSearch: (search: Record<string, unknown>): { mode?: "in" | "up" | undefined } => ({
     mode: search["mode"] === "up" ? ("up" as const) : (search["mode"] === "in" ? ("in" as const) : undefined),
   }),
   head: () => ({
@@ -33,7 +33,7 @@ function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setMode(requestedMode);
+    setMode(requestedMode ?? "in");
   }, [requestedMode]);
 
   useEffect(() => {
