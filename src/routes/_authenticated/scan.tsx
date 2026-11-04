@@ -580,7 +580,7 @@ function Scanner() {
         </div>
         <form onSubmit={submitProposal} className="space-y-6 rounded-2xl border bg-card p-4 sm:p-6">
           {unknownVisual && <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3"><div className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Résultat de la reconnaissance IA</div><p className="mt-1 text-sm text-muted-foreground">Les champs sont préremplis à partir de la photo. Corrige-les si nécessaire ; la fiche restera en attente de validation.</p></div>}
-          {(unknownVisual || directProposal) && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres principal *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-10 rounded-md" /></div>}
+          {(unknownVisual || directProposal) && <div className="space-y-1.5"><label htmlFor="proposal-barcode" className="text-sm font-semibold">Code-barres principal *</label><Input id="proposal-barcode" required inputMode="numeric" maxLength={14} value={unknownBarcode} onChange={(e) => setUnknownBarcode(e.target.value.replace(/\D/g, "").slice(0, 14))} placeholder="8 à 14 chiffres" className="h-12 rounded-full border-[#e8e8ec] bg-white" /></div>}
           <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Identification</h2>
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
@@ -724,10 +724,10 @@ function Scanner() {
   return (
     <div>
       <Button type="button" variant="ghost" className="-ml-3 mb-2 rounded-xl" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}>← Retour</Button>
-      <h1 className="text-2xl font-black">Scanner une canette</h1>
+      <p className="mb-1 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">Ajouter à ta collection</p>\n      <h1 className="text-[2rem] font-black leading-none tracking-[-.055em] text-black">SCANNER</h1>
       <p className="text-sm text-muted-foreground">Scanne le code-barres pour retrouver une canette dans le catalogue.</p>
-      <Button type="button" variant="outline" className="mt-4 h-11 w-full rounded-xl font-semibold" onClick={() => { setDirectProposal(true); setUnknownVisual(false); setUnknownBarcode(""); setManual(""); setVisionResult(null); setVisionError(""); setName(""); setBrandId(""); setProposedBrandName(""); setNewBrandSelected(false); setModelId(""); setFlavour(""); setReleaseYear(""); setDescription(""); setHistoricalContext(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl(""); setNotes(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
-      <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-3xl border bg-card">
+      <Button type="button" variant="outline" className="mt-4 h-12 w-full rounded-full border-[#e8e8ec] font-semibold" onClick={() => { setDirectProposal(true); setUnknownVisual(false); setUnknownBarcode(""); setManual(""); setVisionResult(null); setVisionError(""); setName(""); setBrandId(""); setProposedBrandName(""); setNewBrandSelected(false); setModelId(""); setFlavour(""); setReleaseYear(""); setDescription(""); setHistoricalContext(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl(""); setNotes(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
+      <div className="relative mt-5 aspect-[3/4] overflow-hidden rounded-[28px] border border-[#ededf0] bg-[#f5f6f8] shadow-sm">
 
             <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
             {camError ? (
@@ -736,7 +736,7 @@ function Scanner() {
           </div>
           <form onSubmit={(e) => { e.preventDefault(); void handle(manual); }} className="mt-4 flex gap-2">
             <Input inputMode="numeric" placeholder="Saisir le code-barres manuellement" value={manual} onChange={(e) => setManual(e.target.value)} className="h-10 rounded-md" />
-            <Button type="submit" className="h-12 rounded-xl font-bold">Ajouter</Button>
+            <Button type="submit" className="h-12 rounded-full bg-black px-6 font-bold text-white hover:bg-black/85">Ajouter</Button>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">Scanne un code-barres pour retrouver une canette déjà répertoriée. S’il est inconnu, tu pourras la proposer à la communauté.</p>
 
