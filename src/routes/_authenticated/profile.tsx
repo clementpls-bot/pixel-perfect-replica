@@ -210,7 +210,7 @@ function Profile() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-7 pb-8">
       <ProfileBanner src={profile?.banner_url}>
         <label className="absolute right-3 top-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-bold shadow backdrop-blur">
           <Camera className="h-3.5 w-3.5" />{uploadingBanner ? "Envoi…" : "Bannière"}
@@ -224,12 +224,12 @@ function Profile() {
       <header className="relative -mt-24 flex flex-col items-center gap-3 text-center">
         <Button size="icon" variant="ghost" className="absolute right-0 top-24 rounded-full" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
         <div className="relative shrink-0">
-          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-pastel-blue font-display text-5xl font-black text-foreground ring-4 ring-background">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-[#fff4bd] font-display text-5xl font-black text-foreground shadow-[0_0_0_5px_#e5a34c]">
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
               : profile?.username?.[0]?.toUpperCase()}
           </AvatarZoom>
-          <label className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-background shadow" aria-label="Changer la photo de profil">
+          <label className="absolute -bottom-1 -right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-black text-white shadow" aria-label="Changer la photo de profil">
             {uploadingAvatar ? <span className="text-[9px]">…</span> : <Camera className="h-4 w-4" />}
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
               disabled={uploadingAvatar} onChange={(event) => {
@@ -283,8 +283,8 @@ function Profile() {
         </div>
         <Link to="/community" className="pill-dark mt-1 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Voir le classement <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">Nv {Math.floor(Math.sqrt(ownedSet.size * 10 / 50)) + 1}</span></Link>
       </header>
-      <div className="flex justify-center gap-2">
-        {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`rounded-full px-5 py-2 text-sm font-bold transition ${profileTab === k ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>{l}</button>)}
+      <div className="flex border-b border-[#ececf0] gap-0">
+        {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`flex-1 border-b-[3px] px-5 py-3 text-sm font-bold transition ${profileTab === k ? "border-black text-black" : "border-transparent text-muted-foreground"}`}>{l}</button>)}
       </div>
       {user?.app_metadata?.["role"] === "admin" && (
         <div className="grid gap-2 sm:grid-cols-2">
@@ -295,14 +295,14 @@ function Profile() {
       )}
 
       {profileTab === "overview" && <section className="space-y-3">
-        <h2 className="font-display text-xl uppercase">Highlights</h2>
+        <h2 className="font-display text-xl uppercase tracking-tight">Highlights</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
             { v: ownedSet.size, l: "Canettes", e: "🥫", c: "bg-pastel-yellow" },
             { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-pastel-peach" },
             { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-pastel-sand" },
             { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-pastel-blue" },
-          ].map((h) => <div key={h.l} className={`${h.c} rounded-3xl p-4`}><span className="text-2xl">{h.e}</span><p className="mt-6 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="mt-1 text-sm font-semibold">{h.l}</p></div>)}
+          ].map((h) => <div key={h.l} className={`${h.c} relative min-h-[112px] overflow-hidden rounded-[22px] p-4`}><span className="absolute bottom-2 right-3 text-5xl opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
         </div>
       </section>}
 
