@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { ArrowRight, Search, SlidersHorizontal } from "lucide-react";
 import { useCatalog, useOwned, type Brand } from "@/lib/data";
 import { pct } from "@/lib/achievements";
 import { CanSearch, matchesSearch, normalizeSearch } from "@/components/CanSearch";
@@ -95,13 +96,13 @@ function Brands() {
                 key={b.id}
                 to="/brands/$slug"
                 params={{ slug: b.slug }}
-                className="group relative isolate min-w-0 overflow-hidden rounded-[28px] border border-white/15 p-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5"
-                style={{ background: `radial-gradient(ellipse at 85% 5%, ${color}66 0%, transparent 48%), linear-gradient(145deg, ${color}28 0%, var(--card) 78%)` }}
+                className="group relative isolate min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-3 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
+                style={{ background: "#fff" }}
               >
-                <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-40 w-40 rounded-full blur-3xl opacity-50 transition-opacity group-hover:opacity-80" style={{ backgroundColor: color }} />
-                <div className="flex h-32 items-center justify-center rounded-2xl border border-white/35 bg-white/75 p-4 shadow-inner dark:bg-black/20 sm:h-36">
+                <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-40 w-40 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-35" style={{ backgroundColor: color }} />
+                <div className="flex h-32 items-center justify-center rounded-[18px] border border-[#f0f0f2] bg-[#f7f8fa] p-4 sm:h-36">
                   {b.logo_url ? (
-                    <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105" />
+                    <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                   ) : (
                     <span className="break-words text-center text-3xl font-black tracking-tight sm:text-4xl" style={{ color }}>{b.name}</span>
                   )}
@@ -114,15 +115,15 @@ function Brands() {
                       {list.length} {list.length > 1 ? "canettes au catalogue" : "canette au catalogue"}
                     </p>
                   </div>
-                  <div className="shrink-0 rounded-xl border border-white/30 bg-background/65 px-3 py-2 text-right backdrop-blur">
+                  <div className="shrink-0 rounded-xl bg-[#fff4bd] px-3 py-2 text-right">
                     <p className="text-sm font-black tabular-nums">{n}<span className="font-medium text-muted-foreground">/{list.length}</span></p>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{pct(n, list.length)} %</p>
                   </div>
                 </div>
-                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-foreground/10">
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#f0f0f2]">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct(n, list.length)}%`, backgroundColor: color }} />
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs font-bold" style={{ color }}>
+                <div className="mt-3 flex items-center justify-between text-xs font-bold text-black">
                   <span>{list.length === 0 ? "Catalogue à compléter" : "Voir la collection"}</span>
                   <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
                 </div>
