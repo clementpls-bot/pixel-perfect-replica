@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowRight, Search, SlidersHorizontal } from "lucide-react";
 import { useCatalog, useOwned, type Brand } from "@/lib/data";
 import { pct } from "@/lib/achievements";
 import { CanSearch, matchesSearch, normalizeSearch } from "@/components/CanSearch";
