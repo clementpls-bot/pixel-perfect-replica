@@ -77,7 +77,7 @@ function Brands() {
         ariaLabel="Rechercher une marque dans le catalogue"
         className="mb-4"
       />
-      <p className="mb-4 text-xs text-muted-foreground">{brands.length} marque{brands.length > 1 ? "s" : ""}</p>
+      <div className="mb-5 flex items-center justify-between"><div className="flex gap-2 overflow-x-auto"><span className="shrink-0 rounded-xl bg-[#24262b] px-4 py-2.5 text-xs font-bold text-white">Toutes</span><span className="shrink-0 rounded-xl bg-[#f3f4f6] px-4 py-2.5 text-xs font-bold text-black">Marques populaires</span></div><span className="shrink-0 text-xs text-muted-foreground">{brands.length} marques</span></div>
 
       {brands.length === 0 ? (
         <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
