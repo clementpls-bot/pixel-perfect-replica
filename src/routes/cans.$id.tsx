@@ -197,16 +197,16 @@ function CanPage() {
   };
 
   return (
-    <div className="can-detail-page -mx-4 min-h-screen px-4 pb-8 pt-2" style={{ background: `linear-gradient(180deg, ${can.color_primary}24 0%, ${can.color_secondary}12 34%, transparent 620px)` }}>
+    <div className="can-detail-page mx-auto max-w-4xl pb-8 pt-2">
       <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
-      <div className="relative mt-4 rounded-3xl border p-8" style={{ background: `radial-gradient(circle at 50% 40%, ${can.color_primary}55, transparent 70%)` }}>
-        <div className="mx-auto w-28"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
+      <div className="relative mt-4 flex min-h-[300px] items-center justify-center overflow-hidden rounded-[28px] border border-[#ededf0] p-8" style={{ background: `linear-gradient(145deg, ${can.color_primary}24, #f7f8fa 78%)` }}>
+        <div className="mx-auto w-36 drop-shadow-[0_14px_18px_rgba(0,0,0,.12)]"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
         {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
       </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
-      <h1 className="text-2xl font-black">{can.name}</h1>
+      <p className="mt-6 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
+      <h1 className="text-[2rem] font-black leading-tight tracking-[-.05em] text-black">{can.name}</h1>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {can.volume_ml && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.volume_ml} ml</span>}
+        {can.volume_ml && <span className="rounded-xl bg-[#f3f4f6] px-3 py-1.5 text-[11px] font-semibold text-black">{can.volume_ml} ml</span>}
         {can.region && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">{can.region}</span>}
         {can.tab_color && <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">Languette {can.tab_color}</span>}
       </div>
@@ -382,7 +382,7 @@ function CanPage() {
           {(["design", "taste"] as const).map((k) => {
             const tasteLocked = k === "taste" && qty === 0;
             return (
-              <div key={k} className="rounded-2xl border bg-card p-3">
+              <div key={k} className="rounded-[20px] border border-[#ededf0] bg-white p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{k === "design" ? "Design" : "Goût"}</p>
                 <div className="mt-2 flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
