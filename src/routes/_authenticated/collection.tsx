@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Store } from "lucide-react";
+import { ArrowRight, Search, SlidersHorizontal, Sparkles, Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "owned">("all");
   const allMine = useMemo(() => (data?.cans ?? [])
     .filter((can) => owned?.has(can.id))
     .sort((a, b) => {
@@ -40,81 +41,69 @@ function Collection() {
   if (!data || !owned) return <p className="py-12 text-center text-sm text-muted-foreground">Chargement de ton mur…</p>;
 
   return (
-    <div>
+    <div className="mx-auto max-w-6xl space-y-6 pb-8">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black">Mon mur</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {allMine.length} {allMine.length === 1 ? "design" : "designs"} sur ton mur
-          </p>
+          <p className="mb-1 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">Ta collection personnelle</p>
+          <h1 className="text-[2rem] font-black leading-none tracking-[-.055em] text-black sm:text-4xl">MON MUR</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{allMine.length} {allMine.length === 1 ? "canette" : "canettes"} collectionnée{allMine.length > 1 ? "s" : ""}</p>
         </div>
-        <Link
-          to="/brands"
-          aria-label="Catalogue"
-          title="Catalogue"
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent active:scale-95"
-        >
+        <Link to="/brands" aria-label="Catalogue" title="Catalogue" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#e8e8ec] bg-white text-black transition hover:bg-[#f6f6f8]">
           <Store className="h-5 w-5" />
-          <span>Catalogue</span>
         </Link>
       </header>
 
-      <CanSearch
-        value={search}
-        onChange={setSearch}
-        placeholder="Rechercher sur ton mur…"
-        ariaLabel="Rechercher une canette sur mon mur"
-        className="mt-5"
-      />
-      {search.trim() && <p className="mt-2 text-xs text-muted-foreground">{mine.length} résultat{mine.length > 1 ? "s" : ""}</p>}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex min-h-[88px] items-center justify-between overflow-hidden rounded-[22px] bg-[#fff4bd] p-4">
+          <div><p className="text-2xl font-black leading-none tabular-nums">{allMine.length}</p><p className="mt-1 text-xs font-semibold text-black/60">Canettes</p></div>
+          <span className="text-4xl" aria-hidden="true">🥫</span>
+        </div>
+        <div className="flex min-h-[88px] items-center justify-between overflow-hidden rounded-[22px] bg-[#e5f2ff] p-4">
+          <div><p className="text-2xl font-black leading-none tabular-nums">{data.brands.filter((brand) => data.cans.some((can) => can.brand_id === brand.id && owned.has(can.id))).length}</p><p className="mt-1 text-xs font-semibold text-black/60">Marques représentées</p></div>
+          <span className="text-4xl" aria-hidden="true">🏆</span>
+        </div>
+      </div>
+
+      <div className="relative">
+        <CanSearch value={search} onChange={setSearch} placeholder="Rechercher une canette…" ariaLabel="Rechercher une canette sur mon mur" />
+        <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-0" />
+      </div>
+
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <button onClick={() => setFilter("all")} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${filter === "all" ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}>Toutes</button>
+        <button onClick={() => setFilter("owned")} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${filter === "owned" ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}>Sur mon mur</button>
+        <Link to="/brands" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#f3f4f6] px-4 py-2.5 text-xs font-bold text-black">Découvrir le catalogue <ArrowRight className="h-3.5 w-3.5" /></Link>
+      </div>
+      {search.trim() && <p className="text-xs text-muted-foreground">{mine.length} résultat{mine.length > 1 ? "s" : ""}</p>}
 
       {allMine.length === 0 ? (
-        <div className="mt-12 rounded-3xl border border-dashed bg-card/50 px-6 py-10 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Store className="h-6 w-6" />
-          </div>
-          <h2 className="mt-4 text-lg font-bold">Ton mur est encore vide</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Scanne une canette pour l’ajouter à ton mur, ou parcours le catalogue pour en découvrir.
-          </p>
-          <div className="mt-5 flex flex-col gap-2">
-            <Link to="/brands">
-              <Button className="h-11 w-full rounded-xl font-bold">Explorer le catalogue</Button>
-            </Link>
-            <Link to="/scan">
-              <Button variant="secondary" className="h-11 w-full rounded-xl font-semibold">Scanner une canette</Button>
-            </Link>
+        <div className="mt-8 rounded-[28px] border border-dashed border-[#d9d9df] bg-white px-6 py-12 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#fff4bd] text-3xl">🥫</div>
+          <h2 className="mt-4 text-xl font-black tracking-tight">Ton mur est encore vide</h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Scanne une canette pour l’ajouter à ta collection, ou parcours le catalogue pour trouver ta prochaine pièce.</p>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Link to="/scan"><Button className="h-12 rounded-full bg-black px-6 font-bold text-white hover:bg-black/85">Scanner une canette</Button></Link>
+            <Link to="/brands"><Button variant="outline" className="h-12 rounded-full px-6 font-bold">Explorer le catalogue</Button></Link>
           </div>
         </div>
       ) : mine.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Aucune canette de ton mur ne correspond à « {search} ».
-        </div>
+        <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Aucune canette de ton mur ne correspond à « {search} ».</div>
       ) : (
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          {mine.map((c, i) => {
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {mine.map((c) => {
             const brand = data.brands.find((b) => b.id === c.brand_id);
+            const color = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : "#dfe9f7";
             return (
-              <Link key={c.id} to="/cans/$id" params={{ id: c.id }}
-                className="group relative block overflow-hidden rounded-2xl border bg-card p-2 text-center shadow-sm transition-transform duration-300 hover:-translate-y-1 active:scale-95 animate-pop-in"
-                style={{ background: `radial-gradient(circle at 50% 40%, ${c.color_primary}33, transparent 70%)`, animationDelay: `${i * 40}ms` }}>
-                <div className="flex items-start justify-between gap-1">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border bg-background shadow-sm">
-                    {brand?.logo_url
-                      ? <img src={brand.logo_url} alt={`Logo ${brand.name}`} className="h-6 w-6 object-contain" />
-                      : <span className="text-xs font-black" style={{ color: brand?.color }}>{brand?.name.slice(0, 2).toUpperCase()}</span>}
-                  </div>
+              <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="group min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-2.5 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)]">
+                <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ background: `linear-gradient(145deg, ${color}25, #f7f8fa 78%)` }}>
+                  <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-bold text-black shadow-sm">✓ Dans mon mur</span>
+                  {brand?.logo_url && <img src={brand.logo_url} alt={brand.name} className="absolute bottom-2 left-2 h-5 max-w-14 object-contain opacity-80" />}
+                  <CanArt can={c} brandName={brand?.name} className="max-h-36 max-w-[76px] transition-transform duration-300 group-hover:scale-105 sm:max-h-44" />
                 </div>
-                <div className="py-2">
-                  <CanArt can={c} brandName={brand?.name} className="max-w-[64px] transition-transform duration-500 group-hover:scale-105" />
-                </div>
-                <span className="inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">Possédé</span>
-                <div
-                  className="mt-1.5 rounded-lg border-l-[3px] px-1.5 py-1"
-                  style={{ background: `${brand?.color ?? "var(--color-muted)"}1f`, borderLeftColor: brand?.color ?? "var(--color-border)" }}
-                >
-                  <p className="line-clamp-2 min-h-8 text-[11px] font-bold leading-tight">{c.name}</p>
-                  {c.variant_name !== "Standard" && <p className="truncate text-[10px] text-muted-foreground">{c.variant_name}</p>}
+                <div className="px-1 pb-1 pt-3">
+                  <p className="truncate text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{brand?.name ?? "Marque"}</p>
+                  <p className="mt-1 line-clamp-2 min-h-10 text-sm font-extrabold leading-5 text-black">{c.name}</p>
+                  {c.variant_name !== "Standard" && <p className="mt-1 truncate text-[11px] text-muted-foreground">{c.variant_name}</p>}
                 </div>
               </Link>
             );
