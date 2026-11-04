@@ -284,7 +284,7 @@ function Profile() {
         <Link to="/community" className="pill-dark mt-1 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Voir le classement <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">Nv {Math.floor(Math.sqrt(ownedSet.size * 10 / 50)) + 1}</span></Link>
       </header>
       <div className="flex justify-center gap-2">
-        {(["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`rounded-full px-5 py-2 text-sm font-bold transition ${profileTab === k ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>{l}</button>)}
+        {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`rounded-full px-5 py-2 text-sm font-bold transition ${profileTab === k ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>{l}</button>)}
       </div>
       {user?.app_metadata?.["role"] === "admin" && (
         <div className="grid gap-2 sm:grid-cols-2">
