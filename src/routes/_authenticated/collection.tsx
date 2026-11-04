@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowRight, Search, SlidersHorizontal, Sparkles, Store } from "lucide-react";
+import { ArrowRight, Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ function Collection() {
   const { data } = useCatalog();
   const { data: owned } = useOwned();
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "owned">("all");
   const allMine = useMemo(() => (data?.cans ?? [])
     .filter((can) => owned?.has(can.id))
     .sort((a, b) => {
@@ -70,8 +69,7 @@ function Collection() {
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <button onClick={() => setFilter("all")} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${filter === "all" ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}>Toutes</button>
-        <button onClick={() => setFilter("owned")} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${filter === "owned" ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}>Sur mon mur</button>
+        <span className="shrink-0 rounded-xl bg-[#24262b] px-4 py-2.5 text-xs font-bold text-white">Sur mon mur</span>
         <Link to="/brands" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#f3f4f6] px-4 py-2.5 text-xs font-bold text-black">Découvrir le catalogue <ArrowRight className="h-3.5 w-3.5" /></Link>
       </div>
       {search.trim() && <p className="text-xs text-muted-foreground">{mine.length} résultat{mine.length > 1 ? "s" : ""}</p>}
