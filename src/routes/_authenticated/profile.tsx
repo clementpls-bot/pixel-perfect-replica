@@ -43,6 +43,8 @@ function Profile() {
   const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string | null; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
   const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState<"overview" | "activity">("overview");
+
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -172,8 +174,6 @@ function Profile() {
       setDeletingComment(false);
     }
   };
-
-  const [profileTab, setProfileTab] = useState<"overview" | "activity">("overview");
 
   const uploadImage = async (file: File | undefined, kind: "avatar" | "banner") => {
     if (!file || !user) return;
