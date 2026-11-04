@@ -584,7 +584,7 @@ function Scanner() {
           <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Identification</h2>
           <div className="space-y-1.5">
             <label htmlFor="proposal-name" className="text-sm font-semibold">Nom de la canette *</label>
-            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-10 rounded-md" />
+            <Input id="proposal-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. Monster Ultra Violet" className="h-12 rounded-full border-[#e8e8ec] bg-white" />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="proposal-brand" className="text-sm font-semibold">Marque *</label>
@@ -722,8 +722,8 @@ function Scanner() {
   }
 
   return (
-    <div>
-      <Button type="button" variant="ghost" className="-ml-3 mb-2 rounded-xl" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}>← Retour</Button>
+    <div className="mx-auto max-w-2xl pb-8">
+      <Button type="button" variant="ghost" className="-ml-3 mb-2 rounded-full" onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}>← Retour</Button>
       <p className="mb-1 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">Ajouter à ta collection</p>\n      <h1 className="text-[2rem] font-black leading-none tracking-[-.055em] text-black">SCANNER</h1>
       <p className="text-sm text-muted-foreground">Scanne le code-barres pour retrouver une canette dans le catalogue.</p>
       <Button type="button" variant="outline" className="mt-4 h-12 w-full rounded-full border-[#e8e8ec] font-semibold" onClick={() => { setDirectProposal(true); setUnknownVisual(false); setUnknownBarcode(""); setManual(""); setVisionResult(null); setVisionError(""); setName(""); setBrandId(""); setProposedBrandName(""); setNewBrandSelected(false); setModelId(""); setFlavour(""); setReleaseYear(""); setDescription(""); setHistoricalContext(""); setVariantName(""); setRegion(""); setEditionType("standard"); setVolumeMl(""); setNotes(""); setImages({ front: null, back: null, barcode: null }); }}>＋ Ajouter une canette inexistante</Button>
