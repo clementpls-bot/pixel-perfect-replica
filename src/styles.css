@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Lexend", system-ui, sans-serif;
-  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-display: "Archivo Black", system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -36,31 +36,36 @@
 }
 
 :root {
-  --radius: 1.25rem;
-  --background: oklch(0.985 0.018 300);
-  --foreground: oklch(0.25 0.025 285);
-  --card: oklch(0.998 0.012 330);
-  --card-foreground: oklch(0.2 0 0);
-  --popover: oklch(0.998 0.012 330);
-  --popover-foreground: oklch(0.2 0 0);
-  --primary: oklch(0.56 0.16 300);
-  --primary-foreground: oklch(0.99 0.01 300);
-  --secondary: oklch(0.95 0.045 205);
-  --secondary-foreground: oklch(0.3 0.04 250);
-  --muted: oklch(0.96 0.025 300);
-  --muted-foreground: oklch(0.49 0.035 285);
-  --accent: oklch(0.94 0.06 145);
-  --accent-foreground: oklch(0.3 0.05 150);
-  --gold: oklch(0.8 0.16 80);
-  --success: oklch(0.62 0.14 155);
+  --radius: 1rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.13 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.006 260);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.965 0.005 260);
+  --muted-foreground: oklch(0.55 0.01 260);
+  --accent: oklch(0.97 0.08 105);
+  --accent-foreground: oklch(0.2 0 0);
+  --gold: oklch(0.88 0.15 95);
+  --success: oklch(0.72 0.12 175);
   --success-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.9 0.035 300);
-  --input: oklch(0.9 0.035 300);
-  --ring: oklch(0.62 0.15 300);
-  --gradient-progress: linear-gradient(90deg, #b9a6f5, #f4b8d1 34%, #a9dcd2 68%, #a9c8f5);
-  --glow-primary: 0 8px 24px oklch(0.56 0.16 300 / 18%);
+  --border: oklch(0.91 0.005 260);
+  --input: oklch(0.91 0.005 260);
+  --ring: oklch(0.2 0 0);
+  --pastel-yellow: oklch(0.98 0.06 110);
+  --pastel-peach: oklch(0.97 0.025 60);
+  --pastel-sand: oklch(0.95 0.02 60);
+  --pastel-blue: oklch(0.95 0.03 250);
+  --pastel-mint: oklch(0.95 0.05 165);
+  --gradient-progress: linear-gradient(90deg, oklch(0.95 0.12 105), oklch(0.9 0.15 100));
+  --glow-primary: 0 6px 18px oklch(0 0 0 / 14%);
 }
 
 @layer base {
@@ -72,12 +77,20 @@
     font-family: var(--font-sans);
     background-attachment: fixed;
   }
-  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+  h1 { text-transform: uppercase; letter-spacing: -0.02em; }
 }
 
 @utility font-display { font-family: var(--font-display); }
 @utility bg-progress { background-image: var(--gradient-progress); }
 @utility shadow-glow { box-shadow: var(--glow-primary); }
+@utility bg-pastel-yellow { background-color: var(--pastel-yellow); }
+@utility bg-pastel-peach { background-color: var(--pastel-peach); }
+@utility bg-pastel-sand { background-color: var(--pastel-sand); }
+@utility bg-pastel-blue { background-color: var(--pastel-blue); }
+@utility bg-pastel-mint { background-color: var(--pastel-mint); }
+@utility chip { display:inline-flex; align-items:center; gap:.4rem; border-radius:.75rem; background:var(--muted); padding:.55rem 1rem; font-weight:700; font-size:.875rem; color:var(--foreground); }
+@utility pill-dark { display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; background:var(--primary); color:var(--primary-foreground); font-weight:700; }
 
 @keyframes pop-in {
   0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
@@ -93,6 +106,7 @@
 
 /* Decorative bats: slightly larger silhouettes and a more lively, swooping flight. */
 .bat-overlay {
+  display: none;
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -145,9 +159,7 @@
 
 /* A restrained multicolour light sweep makes the primary add-can action easier to spot. */
 .can-add-glint {
-  background: linear-gradient(112deg, #6558a8 0%, #a65f9a 28%, #548f83 52%, #5c77b6 74%, #6558a8 100%);
-  background-size: 240% 100%;
-  animation: cansdex-glint 3.6s ease-in-out infinite;
+  background: var(--primary);
 }
 .can-add-glint-icon svg {
   animation: cansdex-sparkle 3.6s ease-in-out infinite;

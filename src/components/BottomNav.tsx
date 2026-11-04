@@ -1,9 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Library, MessageCircle, ScanLine, User } from "lucide-react";
 
-const mobileItem = "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-muted-foreground transition-colors";
+const mobileItem = "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted-foreground transition-colors";
 const desktopItem = "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
-const active = { className: "text-primary md:bg-primary/10 md:text-primary" };
+const active = { className: "!text-foreground font-bold [&_svg]:fill-foreground md:bg-muted" };
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -11,7 +11,7 @@ export function BottomNav() {
   return (
     <>
       {/* Mobile navigation stays at the bottom; desktop gets a persistent sidebar. */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="mx-auto flex max-w-lg items-end">
           <Link to="/collection" className={mobileItem} activeProps={active}>
             <Library className="h-5 w-5" />
@@ -28,10 +28,10 @@ export function BottomNav() {
         </div>
       </nav>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r bg-background/90 px-4 py-6 backdrop-blur-xl md:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r bg-background px-4 py-6 md:flex">
         <Link to="/collection" className="mb-10 flex items-center gap-3 px-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-lg font-extrabold text-primary-foreground">C</span>
-          <span className="font-display text-xl font-extrabold tracking-tight text-foreground">Cansdex</span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display text-lg text-primary-foreground">C</span>
+          <span className="font-display text-xl uppercase tracking-tight text-foreground">Cansdex</span>
         </Link>
         <div className="mb-2 px-4 text-[10px] font-extrabold uppercase tracking-[0.18em] text-muted-foreground">Explorer</div>
         <nav className="flex flex-col gap-1">
@@ -49,7 +49,7 @@ export function BottomNav() {
           </Link>
         </nav>
         <div className="mt-auto">
-          <Link to="/scan" className="can-add-glint flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-bold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <Link to="/scan" className="can-add-glint flex items-center justify-center gap-2 rounded-full px-4 py-3 font-bold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98]">
             <ScanLine className="h-5 w-5" />
             Ajouter une canette
           </Link>
