@@ -80,32 +80,32 @@ function CommunityFeedPage() {
   const myRank = ranking.findIndex((r) => r.id === user?.id) + 1;
 
   const header = <div className="space-y-4">
-    {user && <div className="rounded-2xl bg-primary/15 p-4">
+    {user && <div className="rounded-3xl bg-pastel-yellow p-4">
       <div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Niveau {level}</p><p className="text-lg font-black">{title}</p></div>
       <div className="text-right"><p className="text-2xl font-black">{myXp} XP</p>{myRank > 0 && <p className="text-xs text-muted-foreground">#{myRank} du classement</p>}</div></div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-background"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, ((myXp - lvlStart) / (lvlEnd - lvlStart)) * 100)}%` }} /></div>
       <p className="mt-1 text-[11px] text-muted-foreground">{lvlEnd - myXp} XP avant le niveau {level + 1}</p>
     </div>}
-    {canOfDay && <Link to="/cans/$id" params={{ id: canOfDay.id }} className="flex items-center gap-3 rounded-2xl border bg-card p-3 transition hover:border-primary/40">
+    {canOfDay && <Link to="/cans/$id" params={{ id: canOfDay.id }} className="flex items-center gap-3 rounded-3xl bg-pastel-blue p-3 transition hover:opacity-90">
       {canOfDay.image_url ? <img src={canOfDay.image_url} alt="" className="h-16 w-10 object-contain" /> : <div className="h-16 w-10 rounded-md bg-muted" />}
       <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary"><Sparkles className="h-3 w-3" />Canette du jour</p><p className="truncate font-bold">{canOfDay.name}</p><p className="text-xs text-muted-foreground">{owned?.has(canOfDay.id) ? "✓ Tu l'as déjà, bravo !" : "Trouve-la pour gagner +40 XP"}</p></div>
     </Link>}
-    <div className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
-      {([["feed", "Fil", MessageCircle], ["ranking", "Classement", Trophy], ["quests", "Défis", Target]] as const).map(([k, l, I]) => <button key={k} onClick={() => setTab(k)} className={`flex items-center justify-center gap-1 rounded-full py-2 text-xs font-bold transition ${tab === k ? "bg-background shadow-sm" : "text-muted-foreground"}`}><I className="h-3.5 w-3.5" />{l}</button>)}
+    <div className="flex gap-2 overflow-x-auto">
+      {([["feed", "Fil", MessageCircle], ["ranking", "Classement", Trophy], ["quests", "Défis", Target]] as const).map(([k, l, I]) => <button key={k} onClick={() => setTab(k)} className={`chip shrink-0 ${tab === k ? "!bg-primary !text-primary-foreground" : ""}`}><I className="h-3.5 w-3.5" />{l}</button>)}
     </div>
   </div>;
 
-  if (tab === "ranking") return <div className="space-y-5">{header}
+  if (tab === "ranking") return <div className="space-y-5"><h1 className="font-display text-4xl">Social</h1>{header}
     <div className="flex items-end justify-center gap-2 pt-2">{[1, 0, 2].map((i) => { const r = ranking[i]; if (!r) return <div key={i} className="w-24" />; const h = ["h-28", "h-20", "h-14"][i];
-      return <Link key={r.id} to="/users/$id" params={{ id: r.id }} className="flex w-24 flex-col items-center gap-1">{i === 0 && <Crown className="h-5 w-5 text-primary" />}<span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-black">{r.name[0]?.toUpperCase()}</span><span className="w-full truncate text-center text-xs font-bold">{r.name}</span><div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-primary pt-2 text-lg font-black text-primary-foreground`}>{i + 1}</div></Link>; })}</div>
-    <ol className="space-y-2">{ranking.map((r, i) => <li key={r.id}><Link to="/users/$id" params={{ id: r.id }} className={`flex items-center gap-3 rounded-2xl border bg-card p-3 ${r.id === user?.id ? "border-primary" : ""}`}><span className="w-6 text-center font-black text-muted-foreground">{i + 1}</span><span className="flex-1 truncate font-semibold">{r.name}</span><span className="text-xs text-muted-foreground">{r.posts} posts · {r.likes} 👍</span><span className="font-black">{r.points}</span></Link></li>)}</ol>
+      return <Link key={r.id} to="/users/$id" params={{ id: r.id }} className="flex w-24 flex-col items-center gap-1">{i === 0 && <Crown className="h-5 w-5 text-primary" />}<span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-black">{r.name[0]?.toUpperCase()}</span><span className="w-full truncate text-center text-xs font-bold">{r.name}</span><div className={`${h} flex w-full items-start justify-center rounded-t-2xl bg-primary pt-2 text-lg font-black text-primary-foreground`}>{i + 1}</div></Link>; })}</div>
+    <ol className="space-y-2">{ranking.map((r, i) => <li key={r.id}><Link to="/users/$id" params={{ id: r.id }} className={`flex items-center gap-3 rounded-3xl bg-muted p-3 ${r.id === user?.id ? "ring-2 ring-primary" : ""}`}><span className="w-7 text-center text-lg font-black">{["🥇","🥈","🥉"][i] ?? i + 1}</span><span className="flex h-10 w-10 items-center justify-center rounded-full bg-pastel-peach font-display">{r.name[0]?.toUpperCase()}</span><span className="flex-1 truncate font-semibold">{r.name}</span><span className="text-xs text-muted-foreground">{r.posts} posts · {r.likes} 👍</span><span className="font-black">{r.points}</span></Link></li>)}</ol>
     {!ranking.length && <p className="py-8 text-center text-sm text-muted-foreground">Personne au classement pour l'instant — publie le premier message !</p>}
     <p className="text-center text-[11px] text-muted-foreground">Points : 10 par publication, +5 avec photo, +5 par 👍 reçu.</p>
   </div>;
 
-  if (tab === "quests") return <div className="space-y-5">{header}
+  if (tab === "quests") return <div className="space-y-5"><h1 className="font-display text-4xl">Social</h1>{header}
     {!user ? <p className="text-center text-sm text-muted-foreground">Connecte-toi pour suivre tes défis.</p> :
-    <div className="space-y-2">{quests.map((q) => { const done = q.cur >= q.goal; return <div key={q.label} className={`rounded-2xl border p-3 ${done ? "border-success bg-success/10" : "bg-card"}`}>
+    <div className="space-y-2">{quests.map((q) => { const done = q.cur >= q.goal; return <div key={q.label} className={`rounded-3xl p-4 ${done ? "bg-pastel-mint" : "bg-muted"}`}>
       <div className="flex items-center justify-between gap-2"><p className="flex items-center gap-2 text-sm font-semibold">{done ? "✅" : <Flame className="h-4 w-4 text-primary" />}{q.label}</p><span className="shrink-0 rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-bold">+{q.xp} XP</span></div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${done ? "bg-success" : "bg-primary"}`} style={{ width: `${Math.min(100, (q.cur / q.goal) * 100)}%` }} /></div>
       <p className="mt-1 text-right text-[11px] text-muted-foreground">{Math.min(q.cur, q.goal)} / {q.goal}</p></div>; })}</div>}
@@ -113,8 +113,7 @@ function CommunityFeedPage() {
 
   return <div className="space-y-5">
     <header className="pt-1">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Cansdex · Communauté</p>
-      <h1 className="mt-1 text-2xl font-black">Les dernières publications</h1>
+      <h1 className="mb-4 font-display text-4xl">Social</h1>
       {header}
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Un fil pour découvrir les nouvelles photos et les échanges. Chaque publication appartient à une canette précise : ouvre sa fiche pour participer.</p>
     </header>
@@ -126,7 +125,7 @@ function CommunityFeedPage() {
         const brand = brandMap.get(can.brand_id);
         const ups = post.comment_likes.filter((vote) => vote.vote !== -1).length;
         const downs = post.comment_likes.filter((vote) => vote.vote === -1).length;
-        return <article key={post.id} className="overflow-hidden rounded-2xl border transition hover:border-primary/40 hover:shadow-sm" style={{ backgroundColor: pastelCanColor(can.color_primary) }}>
+        return <article key={post.id} className="overflow-hidden rounded-3xl transition hover:border-primary/40 hover:shadow-sm" style={{ backgroundColor: pastelCanColor(can.color_primary) }}>
           <Link to="/cans/$id" params={{ id: post.can_id }} className="flex items-center gap-3 border-b bg-muted/30 p-3 transition hover:bg-muted/50">
             {can.image_url ? <img src={can.image_url} alt="" className="h-11 w-8 rounded-md object-contain" /> : <div className="flex h-11 w-8 items-center justify-center rounded-md bg-muted"><MessageCircle className="h-4 w-4 text-muted-foreground" /></div>}
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{can.name}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><p className="truncate text-xs text-muted-foreground">{brand?.name ?? "Marque"} · espace de discussion</p>{user && owned && <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${owned.has(can.id) ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>{owned.has(can.id) ? "✓ Dans ma collection" : "Pas dans ma collection"}</span>}</div></div>
