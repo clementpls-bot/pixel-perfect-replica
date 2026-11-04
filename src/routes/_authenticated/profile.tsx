@@ -43,6 +43,8 @@ function Profile() {
   const [commentToDelete, setCommentToDelete] = useState<{ id: string; can_id: string | null; body: string | null } | null>(null);
   const [deletingComment, setDeletingComment] = useState(false);
   const [drinksDialogOpen, setDrinksDialogOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState<"overview" | "activity">("overview");
+
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -219,9 +221,10 @@ function Profile() {
             }} />
         </label>
       </ProfileBanner>
-      <header className="relative -mt-20 flex items-center gap-4">
+      <header className="relative -mt-24 flex flex-col items-center gap-3 text-center">
+        <Button size="icon" variant="ghost" className="absolute right-0 top-24 rounded-full" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
         <div className="relative shrink-0">
-          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-primary font-display text-2xl font-black text-primary-foreground ring-4 ring-background">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-pastel-blue font-display text-5xl font-black text-foreground ring-4 ring-background">
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
               : profile?.username?.[0]?.toUpperCase()}
@@ -235,7 +238,7 @@ function Profile() {
               }} />
           </label>
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="w-full min-w-0">
           {editing ? (
             <div className="space-y-2">
               <input value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value)}
@@ -253,7 +256,7 @@ function Profile() {
             </div>
           ) : (
             <>
-              <h1 className="break-words text-xl font-black">{profile?.username}</h1>
+              <h1 className="break-words font-display text-4xl leading-none">{profile?.username}</h1>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 <button
                   type="button"
@@ -278,8 +281,11 @@ function Profile() {
             </>
           )}
         </div>
-        <Button size="icon" variant="ghost" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
+        <Link to="/community" className="pill-dark mt-1 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Voir le classement <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">Nv {Math.floor(Math.sqrt(ownedSet.size * 10 / 50)) + 1}</span></Link>
       </header>
+      <div className="flex justify-center gap-2">
+        {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`rounded-full px-5 py-2 text-sm font-bold transition ${profileTab === k ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>{l}</button>)}
+      </div>
       {user?.app_metadata?.["role"] === "admin" && (
         <div className="grid gap-2 sm:grid-cols-2">
           <Link to="/admin-cans" className="block rounded-2xl border bg-card p-4 text-sm font-bold transition hover:border-primary">Gérer le catalogue des canettes →</Link>
@@ -288,12 +294,19 @@ function Profile() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{ownedSet.size}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canettes différentes</p></div>
-        <div className="rounded-xl border bg-card/70 px-3 py-2.5"><p className="font-display text-xl font-bold tabular-nums">{totalExemplaires}</p><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nombre de canettes</p></div>
-      </div>
+      {profileTab === "overview" && <section className="space-y-3">
+        <h2 className="font-display text-xl uppercase">Highlights</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { v: ownedSet.size, l: "Canettes", e: "🥫", c: "bg-pastel-yellow" },
+            { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-pastel-peach" },
+            { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-pastel-sand" },
+            { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-pastel-blue" },
+          ].map((h) => <div key={h.l} className={`${h.c} rounded-3xl p-4`}><span className="text-2xl">{h.e}</span><p className="mt-6 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="mt-1 text-sm font-semibold">{h.l}</p></div>)}
+        </div>
+      </section>}
 
-      <Accordion type="multiple" className="space-y-2">
+      {profileTab === "overview" && <Accordion type="multiple" className="space-y-2">
         <AccordionItem value="achievements" className="rounded-2xl border bg-card px-4">
           <AccordionTrigger className="no-underline hover:no-underline"><span className="text-left"><span className="block font-bold">Succès</span><span className="text-xs font-normal text-muted-foreground">{achievements.filter((a) => a.earned).length}/{achievements.length} débloqués</span></span></AccordionTrigger>
           <AccordionContent><div className="grid grid-cols-2 gap-3">{achievements.map((a) => <div key={a.id} className={`rounded-xl border p-3 transition ${a.earned ? "border-gold/50 bg-background" : "opacity-40 grayscale"}`}><span className="text-2xl">{a.icon}</span><p className="mt-1 text-sm font-bold">{a.title}</p><p className="text-xs text-muted-foreground">{a.description}</p></div>)}</div></AccordionContent>
@@ -302,11 +315,11 @@ function Profile() {
           <AccordionTrigger className="no-underline hover:no-underline"><span className="text-left"><span className="block font-bold">Progression par marque</span><span className="text-xs font-normal text-muted-foreground">De la plus avancée à la moins avancée</span></span></AccordionTrigger>
           <AccordionContent><div className="space-y-4">{sortedBrandStats.map((b) => <ProgressBar key={b.id} label={b.name} value={b.have} total={b.total} color={b.color} />)}</div></AccordionContent>
         </AccordionItem>
-      </Accordion>
+      </Accordion>}
 
-      <section className="space-y-3">
+      {profileTab === "activity" && <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-bold">Mes commentaires</h2>
+          <h2 className="font-display text-xl uppercase">Mes commentaires</h2>
           <span className="text-xs text-muted-foreground">{comments?.length ?? 0}</span>
         </div>
         {commentsLoading ? (
@@ -336,7 +349,7 @@ function Profile() {
             })}
           </div>
         )}
-      </section>
+      </section>}
       <Dialog open={drinksDialogOpen} onOpenChange={setDrinksDialogOpen}>
         <DialogContent>
           <DialogHeader>
