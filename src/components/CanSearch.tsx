@@ -44,7 +44,7 @@ export function CanSearch({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         aria-label={ariaLabel}
-        className="h-11 rounded-xl pl-10 pr-10"
+        className="h-11 rounded-full border-0 bg-[#f2f3f6] pl-10 pr-10 shadow-none placeholder:text-[#8d929d] focus-visible:ring-2 focus-visible:ring-[#d9dbe2]"
       />
       {value && (
         <button
