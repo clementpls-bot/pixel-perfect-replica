@@ -188,7 +188,7 @@ export type Database = {
           back_image_url: string | null
           barcode: string
           barcode_image_url: string | null
-          brand_id: string
+          brand_id: string | null
           caffeine_mg_per_100ml: number | null
           category: Database["public"]["Enums"]["can_category"]
           color_primary: string | null
@@ -205,6 +205,7 @@ export type Database = {
           model_id: string | null
           name: string
           notes: string | null
+          proposed_brand_name: string | null
           region: string | null
           release_year: number | null
           review_notes: string | null
@@ -222,7 +223,7 @@ export type Database = {
           back_image_url?: string | null
           barcode: string
           barcode_image_url?: string | null
-          brand_id: string
+          brand_id?: string | null
           caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
           color_primary?: string | null
@@ -239,6 +240,7 @@ export type Database = {
           model_id?: string | null
           name: string
           notes?: string | null
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -256,7 +258,7 @@ export type Database = {
           back_image_url?: string | null
           barcode?: string
           barcode_image_url?: string | null
-          brand_id?: string
+          brand_id?: string | null
           caffeine_mg_per_100ml?: number | null
           category?: Database["public"]["Enums"]["can_category"]
           color_primary?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           model_id?: string | null
           name?: string
           notes?: string | null
+          proposed_brand_name?: string | null
           region?: string | null
           release_year?: number | null
           review_notes?: string | null
@@ -470,7 +473,7 @@ export type Database = {
       comments: {
         Row: {
           body: string | null
-          can_id: string
+          can_id: string | null
           created_at: string
           id: string
           image_url: string | null
@@ -479,7 +482,7 @@ export type Database = {
         }
         Insert: {
           body?: string | null
-          can_id: string
+          can_id?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -488,7 +491,7 @@ export type Database = {
         }
         Update: {
           body?: string | null
-          can_id?: string
+          can_id?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -708,7 +711,15 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: undefined
       }
+      get_can_popularity_counts: {
+        Args: { p_can_ids: string[] }
+        Returns: {
+          can_id: string
+          collector_count: number
+        }[]
+      }
       get_total_can_drinks: { Args: { p_can_id: string }; Returns: number }
+      resolve_can_barcode: { Args: { p_barcode: string }; Returns: string }
       review_can_report: {
         Args: {
           p_approve: boolean
