@@ -65,7 +65,6 @@ function Collection() {
 
       <div className="relative">
         <CanSearch value={search} onChange={setSearch} placeholder="Rechercher une canette…" ariaLabel="Rechercher une canette sur mon mur" />
-        <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-0" />
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
