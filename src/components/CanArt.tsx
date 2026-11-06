@@ -23,7 +23,7 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
   const scale = imageScale?.source === can.image_url ? imageScale.scale : 1;
 
   return (
-    <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] overflow-hidden transition-all duration-300", className)}>
+    <div className={cn("relative z-10 mx-auto aspect-[1/1.9] w-full max-w-[120px] overflow-visible transition-all duration-300", className)}>
       {showPhoto ? (
         <img
           src={can.image_url!}
