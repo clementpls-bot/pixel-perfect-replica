@@ -5,19 +5,22 @@
 -- Product images remain hosted by EnergyLevel and are referenced directly.
 
 insert into public.brands (slug, name, color, logo_url)
-values (
+select
   'ghost',
   'Ghost',
   '#B9FF00',
   'https://www.google.com/s2/favicons?domain=ghostlifestyle.com&sz=128'
-)
-on conflict (slug) do update
-set name = excluded.name,
-    color = excluded.color,
-    logo_url = coalesce(public.brands.logo_url, excluded.logo_url);
+where not exists (
+  select 1 from public.brands
+  where slug = 'ghost' or lower(trim(name)) = 'ghost'
+);
 
 with ghost as (
-  select id from public.brands where slug = 'ghost' limit 1
+  select id
+  from public.brands
+  where slug = 'ghost' or lower(trim(name)) = 'ghost'
+  order by (slug = 'ghost') desc
+  limit 1
 ),
 items(barcode, name, flavour, caffeine_mg_per_100ml, sugar_g_per_100ml, volume_ml, image_url) as (
 values
