@@ -125,7 +125,6 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
         <img
           src={displayImageUrl!}
           alt={can.name}
-          crossOrigin="anonymous"
           className="h-full w-full object-contain"
           loading="lazy"
           decoding="async"
