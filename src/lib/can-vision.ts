@@ -34,27 +34,19 @@ export const recognizeCanImage = createServerFn({ method: "POST" })
       throw new Error("La reconnaissance IA n’est pas encore configurée : ajoute OPENAI_API_KEY dans les secrets du serveur Lovable.");
     }
 
-    const [brandsResult, modelsResult, cansResult] = await Promise.all([
+    const [brandsResult, cansResult] = await Promise.all([
       supabase.from("brands").select("id,name").order("name"),
-      supabase.from("can_models").select("id,brand_id,name,flavour").order("name"),
       supabase.from("cans").select("*").order("name").limit(2500),
     ]);
     if (brandsResult.error) throw new Error("Impossible de charger les marques du catalogue.");
-    if (modelsResult.error) throw new Error("Impossible de charger les modèles du catalogue.");
     if (cansResult.error) throw new Error("Impossible de charger les canettes du catalogue.");
 
     const brands = brandsResult.data ?? [];
-    const models = modelsResult.data ?? [];
     const cans = cansResult.data ?? [];
     const brandById = new Map(brands.map((brand) => [brand.id, brand.name]));
-    const modelById = new Map(models.map((model) => [model.id, model.name]));
+    const modelById = new Map<string, string>();
     const compactCatalog = {
       brands: brands.slice(0, 300).map((brand) => brand.name),
-      models: models.slice(0, 500).map((model) => ({
-        brand: brandById.get(model.brand_id) ?? "",
-        name: model.name,
-        flavour: model.flavour,
-      })),
       variants: cans.slice(0, 350).map((can) => ({
         brand: brandById.get(can.brand_id) ?? "",
         model: can.model_id ? modelById.get(can.model_id) ?? can.name : can.name,

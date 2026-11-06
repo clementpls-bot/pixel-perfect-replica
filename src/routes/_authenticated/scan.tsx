@@ -595,20 +595,6 @@ function Scanner() {
             </select>
             {newBrandSelected && <div className="space-y-1.5"><label htmlFor="proposal-new-brand" className="text-sm font-medium">Nom de la nouvelle marque</label><Input id="proposal-new-brand" required={!brandId} maxLength={100} value={proposedBrandName} onChange={(e) => setProposedBrandName(e.target.value)} placeholder="Nom exact de la marque" className="h-10 rounded-md" /><p className="text-xs text-muted-foreground">La marque sera créée dans le catalogue uniquement si la proposition est validée.</p></div>}
           </div>
-          {brandId && (
-            <div className="space-y-1.5">
-              <label htmlFor="proposal-model" className="text-sm font-semibold">Modèle</label>
-              <select id="proposal-model" value={modelId} onChange={(e) => {
-                setModelId(e.target.value);
-                const m = data?.models.find((x) => x.id === e.target.value);
-                if (m) { setName(m.name); if (m.flavour) setFlavour(m.flavour); }
-              }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-                <option value="">Nouveau modèle (utilise le nom ci-dessus)</option>
-                {data?.models.filter((m) => m.brand_id === brandId).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-              <p className="text-xs text-muted-foreground">Si la saveur existe déjà, choisis-la : ta canette sera ajoutée comme nouveau design de ce modèle.</p>
-            </div>
-          )}
           </section>
           <section className="space-y-4"><h2 className="border-b pb-2 text-base font-bold">Modèle et design</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
