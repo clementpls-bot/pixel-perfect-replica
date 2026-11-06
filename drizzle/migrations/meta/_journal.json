@@ -36,6 +36,13 @@
       "when": 1793313177348,
       "tag": "0004_profile_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793948992541,
+      "tag": "0005_retire_can_models",
+      "breakpoints": true
     }
   ]
 }

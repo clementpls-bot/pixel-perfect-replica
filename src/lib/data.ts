@@ -12,10 +12,6 @@ export type Can = {
   model_id: string | null; variant_name: string; region: string | null; edition_type: string;
   tab_color: string | null; notes: string | null;
 };
-export type CanModel = {
-  id: string; brand_id: string; slug: string; name: string; flavour: string | null;
-  description: string | null; cover_image_url: string | null;
-};
 export type CanCondition = "full" | "empty" | "empty_bottom_opened";
 export const CONDITIONS: { value: CanCondition; label: string }[] = [
   { value: "full", label: "Pleine" },
@@ -31,15 +27,13 @@ export function useCatalog() {
     queryKey: ["catalog"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const [b, c, m] = await Promise.all([
+      const [b, c] = await Promise.all([
         supabase.from("brands").select("id,slug,name,color,logo_url").order("name"),
         supabase.from("cans").select("*").order("release_year"),
-        supabase.from("can_models").select("id,brand_id,slug,name,flavour,description,cover_image_url").order("name"),
       ]);
       if (b.error) throw b.error;
       if (c.error) throw c.error;
-      if (m.error) throw m.error;
-      return { brands: b.data as unknown as Brand[], cans: c.data as unknown as Can[], models: m.data as CanModel[] };
+      return { brands: b.data as unknown as Brand[], cans: c.data as unknown as Can[] };
     },
   });
 }
