@@ -301,7 +301,7 @@ function Scanner() {
         image_url: frontUrl,
         back_image_url: backUrl,
         barcode_image_url: barcodeUrl,
-        model_id: modelId || null,
+        model_id: null,
         variant_name: variantName.trim() || null,
         region: region.trim() || null,
         edition_type: editionType,

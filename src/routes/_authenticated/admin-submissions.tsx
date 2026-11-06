@@ -172,10 +172,6 @@ function AdminSubmissions() {
       toast.error("Vérifie le nom, le code-barres (8 à 14 chiffres) et la marque.");
       return;
     }
-    if (draft.model_id && (!catalog || !catalog.models.some((model) => model.id === draft.model_id && model.brand_id === draft.brand_id))) {
-      toast.error("Le modèle choisi doit appartenir à la marque sélectionnée.");
-      return;
-    }
     setBusyId(id);
     try {
       const image_url = replacementFiles.front ? await uploadReplacement(replacementFiles.front, "front") : draft.image_url;
@@ -186,7 +182,7 @@ function AdminSubmissions() {
         barcode: draft.barcode.trim(),
         brand_id: draft.brand_id || null,
         proposed_brand_name: draft.brand_id ? null : draft.proposed_brand_name.trim() || null,
-        model_id: draft.model_id || null,
+        model_id: null,
         variant_name: draft.variant_name.trim() || null,
         region: draft.region.trim() || null,
         edition_type: draft.edition_type || "standard",
