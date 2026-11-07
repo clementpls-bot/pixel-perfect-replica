@@ -78,9 +78,7 @@ function CanPage() {
     queryFn: async () => (await supabase.from("ratings").select("user_id,design,taste").eq("can_id", id)).data ?? [],
   });
 
-  if (!data) return null;
-  if (!can) return <p>Canette introuvable.</p>;
-  const qty = owned?.get(can.id) ?? 0;
+  const qty = can ? owned?.get(can.id) ?? 0 : 0;
   const isOwned = qty > 0;
   useEffect(() => {
     if (previousQty.current === 0 && isOwned) {
@@ -91,6 +89,8 @@ function CanPage() {
     }
     previousQty.current = qty;
   }, [isOwned, qty]);
+  if (!data) return null;
+  if (!can) return <p>Canette introuvable.</p>;
   const brandAccent = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : can.color_primary;
   const brandAccentSoft = brandAccent + "22";
   const ratingSummary = (k: "design" | "taste") => {
