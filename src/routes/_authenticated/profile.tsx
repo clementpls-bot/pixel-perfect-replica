@@ -309,7 +309,7 @@ function Profile() {
                   }
                   setEditing(true);
                 }}>
-                <Pencil className="h-3 w-3" /> Modifier le nom d’utilisateur
+                <Pencil className="h-3 w-3" /> Modifier le pseudo (@)
               </button>
             </>
           )}
