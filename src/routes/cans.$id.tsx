@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Droplets, FlaskConical, PenLine, Sparkles, Star, Zap, Wine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,8 @@ function CanPage() {
   const setCanDrinks = useSetCanDrinks();
   const setCanOwned = useSetCanOwned();
   const [reportOpen, setReportOpen] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const previousQty = useRef<number | null>(null);
   const [drinksOpen, setDrinksOpen] = useState(false);
   const [drinksDraft, setDrinksDraft] = useState("0");
   const [savingCollection, setSavingCollection] = useState(false);
@@ -79,6 +81,18 @@ function CanPage() {
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
   const qty = owned?.get(can.id) ?? 0;
+  const isOwned = qty > 0;
+  useEffect(() => {
+    if (previousQty.current === 0 && isOwned) {
+      setUnlocking(true);
+      const timeout = window.setTimeout(() => setUnlocking(false), 1500);
+      previousQty.current = qty;
+      return () => window.clearTimeout(timeout);
+    }
+    previousQty.current = qty;
+  }, [isOwned, qty]);
+  const brandAccent = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : can.color_primary;
+  const brandAccentSoft = brandAccent + "22";
   const ratingSummary = (k: "design" | "taste") => {
     const values = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
     return {
@@ -197,10 +211,12 @@ function CanPage() {
   };
 
   return (
-    <div className="can-detail-page mx-auto max-w-4xl pb-8 pt-2">
+    <div className={"can-detail-page can-page-theme mx-auto max-w-4xl pb-8 pt-2 " + (isOwned ? "can-page-owned " : "can-page-unowned ") + (unlocking ? "can-page-unlocking" : "")} style={{ "--can-accent": brandAccent, "--can-accent-soft": brandAccentSoft } as React.CSSProperties}>
+<style>{".can-page-theme{--can-accent:#171717;--can-accent-soft:#eee;transition:color .55s ease,background-color .55s ease}.can-page-unowned>:not([data-can-art]):not(style){filter:grayscale(1);transition:filter .55s ease}.can-page-unowned .can-hero-panel{background:linear-gradient(145deg,#ededed,#fafafa 78%)!important;border-color:#dedede!important}.can-page-owned .can-hero-panel{background:linear-gradient(145deg,var(--can-accent-soft),#fff 78%)!important;border-color:color-mix(in srgb,var(--can-accent) 35%,white)!important}.can-page-owned .can-accent-text{color:var(--can-accent)!important}.can-page-owned .can-accent-surface{background:var(--can-accent-soft)!important;border-color:color-mix(in srgb,var(--can-accent) 35%,white)!important}.can-page-owned .can-accent-fill{background:var(--can-accent)!important}.can-page-owned .can-accent-ring{box-shadow:0 0 0 1px color-mix(in srgb,var(--can-accent) 35%,transparent),0 8px 24px color-mix(in srgb,var(--can-accent) 15%,transparent)}.can-page-unlocking{animation:can-page-reveal 1.45s cubic-bezier(.2,.8,.2,1) both}.can-page-unlocking .can-hero-panel{animation:can-hero-pop 1.1s cubic-bezier(.16,1,.3,1) both}.can-page-unlocking .can-unlock-flash{animation:can-unlock-flash .9s ease-out both}@keyframes can-page-reveal{0%{filter:grayscale(1)}35%{filter:grayscale(.65)}100%{filter:grayscale(0)}}@keyframes can-hero-pop{0%{transform:scale(.985);box-shadow:0 0 0 0 transparent}45%{transform:scale(1.012);box-shadow:0 0 50px 8px color-mix(in srgb,var(--can-accent) 30%,transparent)}100%{transform:scale(1);box-shadow:0 0 0 0 transparent}}@keyframes can-unlock-flash{0%{opacity:0;transform:scale(.8)}30%{opacity:.85;transform:scale(1.15)}100%{opacity:0;transform:scale(1.5)}}@media(prefers-reduced-motion:reduce){.can-page-unlocking,.can-page-unlocking *{animation-duration:.01ms!important;transition-duration:.01ms!important}}"}</style>
       <Link to="/brands/$slug" params={{ slug: brand?.slug ?? "" }} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />{brand?.name}</Link>
-      <div className="relative mt-4 flex min-h-[300px] items-center justify-center overflow-hidden rounded-[28px] border border-[#ededf0] p-8" style={{ background: `linear-gradient(145deg, ${can.color_primary}24, #f7f8fa 78%)` }}>
-        <div className="mx-auto w-36 drop-shadow-[0_14px_18px_rgba(0,0,0,.12)]"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
+      <div className="can-hero-panel relative mt-4 flex min-h-[300px] items-center justify-center overflow-hidden rounded-[28px] border border-[#ededf0] p-8" style={{ background: `linear-gradient(145deg, ${isOwned ? brandAccentSoft : "#ededed"}, #f7f8fa 78%)` }}>
+        <div data-can-art className="mx-auto w-36 drop-shadow-[0_14px_18px_rgba(0,0,0,.12)]"><CanArt can={can} brandName={brand?.name} missing={qty === 0} /></div>
+        <div className="can-unlock-flash pointer-events-none absolute inset-0 rounded-[28px] border-2" style={{ borderColor: brandAccent }} />
         {qty === 0 && <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">Pas encore sur ton mur</p>}
       </div>
       <p className="mt-6 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">{({ "Energy Drink": "Boisson énergisante", Soda: "Soda", "Soft Drink": "Boisson sans alcool", "Limited Edition": "Édition limitée" } as Record<string, string>)[can.category] ?? can.category}</p>
@@ -222,7 +238,7 @@ function CanPage() {
         {can.release_year && <span>{can.release_year}</span>}
       </div>
 
-      <div className="mt-4 rounded-2xl border bg-card p-4">
+      <div className={"mt-4 rounded-2xl border bg-card p-4 " + (isOwned ? "can-accent-ring" : "")}>
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-bold">Mon mur</p>
@@ -232,7 +248,7 @@ function CanPage() {
         </div>
         {qty > 0
           ? <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant="secondary" className="mt-3 h-10 w-full rounded-xl border border-border/60 bg-transparent text-sm font-semibold text-muted-foreground shadow-none hover:bg-muted/50">Retirer du mur</Button>
-          : <Link to="/scan" className="mt-3 flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Scanner pour ajouter au mur</Link>}
+          : <Link to="/scan" className="mt-3 flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 can-accent-fill">Scanner pour ajouter au mur</Link>}
         <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Wine className="h-4 w-4" />
@@ -241,7 +257,7 @@ function CanPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <button type="button" onClick={() => { setDrinksDraft(String(canDrinks.data ?? 0)); setDrinksOpen(true); }} disabled={!user || qty <= 0} className="rounded-full px-2 py-1 text-[11px] text-muted-foreground/75 transition hover:bg-muted hover:text-foreground disabled:opacity-40">Modifier</button>
-            <button type="button" onClick={() => void addDrink()} disabled={!user || qty <= 0} aria-label="Dégoupiller une canette et ajouter un Drink" title="Dégoupiller une nouvelle canette" className="drink-tab-button inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-extrabold text-slate-800 shadow-sm transition active:scale-95 disabled:opacity-40">
+            <button type="button" onClick={() => void addDrink()} disabled={!user || qty <= 0} aria-label="Dégoupiller une canette et ajouter un Drink" title="Dégoupiller une nouvelle canette" className="drink-tab-button can-accent-surface inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-extrabold text-slate-800 shadow-sm transition active:scale-95 disabled:opacity-40">
               <svg viewBox="0 0 32 32" aria-hidden="true" className="h-5 w-5 shrink-0"><circle cx="16" cy="16" r="14" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="1.8"/><path d="M12 8.5h8a3 3 0 0 1 3 3v2.2a3.3 3.3 0 0 1-3.3 3.3h-1.4l-2.8 6.1a1.8 1.8 0 0 1-3.3-1.4l2.1-4.7h-.8a3.5 3.5 0 0 1-3.5-3.5v-2a3 3 0 0 1 3-3Z" fill="currentColor" fillOpacity=".72"/><circle cx="12" cy="12" r="1.3" fill="white"/></svg>
               +1 Drink
             </button>
@@ -270,7 +286,7 @@ function CanPage() {
       {can.description?.trim() && <p className="mt-5 leading-relaxed">{can.description}</p>}
 
       {(can.caffeine_mg_per_100ml != null || can.sugar_g_per_100ml != null || can.taurine_mg_per_100ml != null || can.energy_kcal_per_100ml != null || can.volume_ml != null) && (
-        <section className="mt-6 rounded-2xl border bg-card p-4">
+        <section className={"mt-6 rounded-2xl border bg-card p-4 " + (isOwned ? "can-accent-ring" : "")}>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold">Le profil de la boisson</h2>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Données / 100 ml</span>
@@ -376,7 +392,7 @@ function CanPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="mt-8">
+      <section className={"mt-8 " + (isOwned ? "can-accent-ring rounded-2xl p-4" : "")}>
         <h2 className="mb-3 text-sm font-bold">Donner ton avis</h2>
         <div className="grid grid-cols-2 gap-3">
           {(["design", "taste"] as const).map((k) => {
