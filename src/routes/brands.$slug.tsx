@@ -37,7 +37,7 @@ function BrandPage() {
     queryFn: async () => {
       const { data: rows, error } = await (supabase as any).rpc("get_brand_can_stats", { p_brand_id: brand!.id });
       if (error) throw error;
-      return (rows ?? []) as { can_id: string; total_drinks: number; average_rating: number | null; rating_count: number }[];
+      return (rows ?? []) as { can_id: string; total_drinks: number; average_design: number | null; design_rating_count: number; average_taste: number | null; taste_rating_count: number }[];
     },
     staleTime: 15_000,
     refetchInterval: 15_000,
@@ -70,12 +70,12 @@ function BrandPage() {
   }, [allCans, search, brand?.name, sortBy, statsByCan]);
   const ownedCount = allCans.filter((can) => owned?.has(can.id)).length;
   const brandDrinks = allCans.reduce((sum, can) => sum + (statsByCan.get(can.id)?.total_drinks ?? 0), 0);
-  const ratingPoints = allCans.reduce((sum, can) => {
-    const stat = statsByCan.get(can.id);
-    return sum + (stat?.average_rating ?? 0) * (stat?.rating_count ?? 0);
-  }, 0);
-  const brandRatingCount = allCans.reduce((sum, can) => sum + (statsByCan.get(can.id)?.rating_count ?? 0), 0);
-  const brandRating = brandRatingCount ? ratingPoints / brandRatingCount : null;
+  const designPoints = allCans.reduce((sum, can) => { const stat = statsByCan.get(can.id); return sum + (stat?.average_design ?? 0) * (stat?.design_rating_count ?? 0); }, 0);
+  const tastePoints = allCans.reduce((sum, can) => { const stat = statsByCan.get(can.id); return sum + (stat?.average_taste ?? 0) * (stat?.taste_rating_count ?? 0); }, 0);
+  const brandDesignCount = allCans.reduce((sum, can) => sum + (statsByCan.get(can.id)?.design_rating_count ?? 0), 0);
+  const brandTasteCount = allCans.reduce((sum, can) => sum + (statsByCan.get(can.id)?.taste_rating_count ?? 0), 0);
+  const brandDesign = brandDesignCount ? designPoints / brandDesignCount : null;
+  const brandTaste = brandTasteCount ? tastePoints / brandTasteCount : null;
 
   if (!data) return null;
   if (!brand) return <p>Marque introuvable.</p>;
@@ -93,12 +93,11 @@ function BrandPage() {
         <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brandColor} />
         <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> Note de la marque</div>
-            <p className="mt-1 text-2xl font-black tabular-nums">{brandRating == null ? "—" : brandRating.toFixed(1)}<span className="ml-1 text-xs font-semibold text-muted-foreground">/ 5</span></p>
-            <div className="mt-0.5 flex items-center gap-0.5" aria-label={brandRating == null ? "Aucune note" : `Note moyenne ${brandRating.toFixed(1)} sur 5`}>
-              {[1, 2, 3, 4, 5].map((n) => <Star key={n} className={`h-3.5 w-3.5 ${brandRating != null && brandRating >= n - 0.25 ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> Notes de la marque</div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div><p className="text-[10px] font-semibold text-muted-foreground">Design</p><p className="text-xl font-black tabular-nums">{brandDesign == null ? "—" : brandDesign.toFixed(1)}<span className="ml-1 text-[10px] font-semibold text-muted-foreground">/ 5</span></p><p className="text-[10px] text-muted-foreground">{brandDesignCount} avis</p></div>
+              <div><p className="text-[10px] font-semibold text-muted-foreground">Goût</p><p className="text-xl font-black tabular-nums">{brandTaste == null ? "—" : brandTaste.toFixed(1)}<span className="ml-1 text-[10px] font-semibold text-muted-foreground">/ 5</span></p><p className="text-[10px] text-muted-foreground">{brandTasteCount} avis</p></div>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">{brandRatingCount} avis sur les canettes</p>
           </div>
           <div className="min-w-0 border-l pl-3">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Wine className="h-4 w-4" /> Drinks cumulés</div>
@@ -150,7 +149,7 @@ function BrandPage() {
                 {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
                 <div className="mt-1.5 flex flex-wrap justify-center gap-x-2 text-[10px] text-muted-foreground">
                   <span className="inline-flex items-center gap-0.5"><Wine className="h-3 w-3" />{(statsByCan.get(can.id)?.total_drinks ?? 0).toLocaleString("fr-FR")}</span>
-                  {statsByCan.get(can.id)?.average_rating != null && <span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(statsByCan.get(can.id)?.average_rating).toFixed(1)}</span>}
+                  {(statsByCan.get(can.id)?.average_design != null || statsByCan.get(can.id)?.average_taste != null) && <span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />D. {statsByCan.get(can.id)?.average_design == null ? "—" : Number(statsByCan.get(can.id)?.average_design).toFixed(1)} · G. {statsByCan.get(can.id)?.average_taste == null ? "—" : Number(statsByCan.get(can.id)?.average_taste).toFixed(1)}</span>}
                 </div>
                 {has && <span className="mt-2 inline-block rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Possédée</span>}
               </Link>
