@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Crown, Flame, MessageCircle, Sparkles, Target, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
+import { Crown, Flame, MessageCircle, Sparkles, Target, ThumbsDown, ThumbsUp, Trophy, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
@@ -46,7 +46,22 @@ function CommunityFeedPage() {
   const canMap = new Map((rows?.cans ?? []).map((can) => [can.id, can]));
   const brandMap = new Map((rows?.brands ?? []).map((brand) => [brand.id, brand]));
 
-  const [tab, setTab] = useState<"feed" | "ranking" | "quests">("feed");
+  const [tab, setTab] = useState<"feed" | "friends" | "ranking" | "quests">("feed");
+  const friendships = useQuery({
+    queryKey: ["community-friendships", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("friendships").select("requester_id,addressee_id,status")
+        .or("requester_id.eq." + user!.id + ",addressee_id.eq." + user!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const friendIds = new Set<string>([
+    ...(user ? [user.id] : []),
+    ...(friendships.data ?? []).filter((r: any) => r.status === "accepted")
+      .map((r: any) => r.requester_id === user?.id ? r.addressee_id : r.requester_id),
+  ]);
   const { data: catalog } = useCatalog();
   const allPosts = rows?.posts ?? [];
   const scores = new Map<string, { id: string; name: string; posts: number; likes: number; points: number }>();
@@ -58,6 +73,8 @@ function CommunityFeedPage() {
     scores.set(p.user_id, e);
   }
   const ranking = [...scores.values()].sort((a, b) => b.points - a.points);
+  const friendRanking = ranking.filter((person) => friendIds.has(person.id));
+  const visiblePosts = tab === "friends" ? allPosts.filter((post) => friendIds.has(post.user_id)) : allPosts;
   const cans = (catalog as any)?.cans ?? [];
   const day = Math.floor(Date.now() / 86400000);
   const canOfDay = cans.length ? cans[day % cans.length] : null;
@@ -91,7 +108,7 @@ function CommunityFeedPage() {
       <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary"><Sparkles className="h-3 w-3" />Canette du jour</p><p className="truncate font-bold">{canOfDay.name}</p><p className="text-xs text-muted-foreground">{owned?.has(canOfDay.id) ? "✓ Tu l'as déjà, bravo !" : "Trouve-la pour gagner +40 XP"}</p></div>
     </Link>}
     <div className="flex gap-2 overflow-x-auto">
-      {([["feed", "Fil", MessageCircle], ["ranking", "Classement", Trophy], ["quests", "Défis", Target]] as const).map(([k, l, I]) => <button key={k} onClick={() => setTab(k)} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${tab === k ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}><I className="h-3.5 w-3.5" />{l}</button>)}
+      {([["feed", "Fil", MessageCircle], ["friends", "Mes amis", Users], ["ranking", "Classement", Trophy], ["quests", "Défis", Target]] as const).map(([k, l, I]) => <button key={k} onClick={() => setTab(k)} className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold transition ${tab === k ? "bg-[#24262b] text-white" : "bg-[#f3f4f6] text-black"}`}><I className="h-3.5 w-3.5" />{l}</button>)}
     </div>
   </div>;
 
@@ -113,14 +130,17 @@ function CommunityFeedPage() {
 
   return <div className="space-y-5">
     <header className="pt-1">
-      <h1 className="mb-2 font-display text-[2rem] tracking-[-.055em] text-black">COMMUNAUTÉ</h1>
+      <h1 className="mb-2 font-display text-[2rem] tracking-[-.055em] text-black">{tab === "friends" ? "MES AMIS" : "COMMUNAUTÉ"}</h1>
       {header}
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Un fil pour découvrir les nouvelles photos et les échanges. Chaque publication appartient à une canette précise : ouvre sa fiche pour participer.</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tab === "friends" ? "Les publications de tes amis, ainsi que leur classement communautaire." : "Un fil pour découvrir les nouvelles photos et les échanges. Chaque publication appartient à une canette précise : ouvre sa fiche pour participer."}</p>
     </header>
-    {posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
+    {tab === "friends" && !user ? <p className="rounded-2xl border p-5 text-center text-sm text-muted-foreground">Connecte-toi pour retrouver l’activité de tes amis.</p>
+      : tab === "friends" && friendships.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement de tes amis…</p>
+      : posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
       : posts.error ? <p className="rounded-2xl border border-destructive/30 p-4 text-sm text-destructive">Impossible de charger les publications pour le moment.</p>
-      : !rows?.posts.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><MessageCircle className="mx-auto h-8 w-8 text-muted-foreground" /><h2 className="mt-3 font-bold">Le fil est encore vide</h2><p className="mt-1 text-sm text-muted-foreground">Les publications apparaîtront ici quand les collectionneurs partageront quelque chose depuis une fiche de canette.</p><Link to="/brands" className="mt-4 inline-flex text-sm font-semibold text-primary">Explorer les marques</Link></div>
-      : <div className="space-y-3">{rows.posts.map((post) => {
+      : tab !== "friends" && !rows?.posts.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><MessageCircle className="mx-auto h-8 w-8 text-muted-foreground" /><h2 className="mt-3 font-bold">Le fil est encore vide</h2><p className="mt-1 text-sm text-muted-foreground">Les publications apparaîtront ici quand les collectionneurs partageront quelque chose depuis une fiche de canette.</p><Link to="/brands" className="mt-4 inline-flex text-sm font-semibold text-primary">Explorer les marques</Link></div>
+      : tab === "friends" && !visiblePosts.length ? <div className="rounded-2xl border border-dashed p-8 text-center"><Users className="mx-auto h-8 w-8 text-muted-foreground" /><h2 className="mt-3 font-bold">Pas encore d’activité entre amis</h2><p className="mt-1 text-sm text-muted-foreground">Ajoute des collectionneurs depuis ton profil ou invite tes amis à publier sur leurs canettes.</p><Link to="/profile" className="mt-4 inline-flex text-sm font-semibold text-primary">Gérer mes amis →</Link></div>
+      : <div className="space-y-3">{visiblePosts.map((post) => {
         const can = canMap.get(post.can_id); if (!can) return null;
         const brand = brandMap.get(can.brand_id);
         const ups = post.comment_likes.filter((vote) => vote.vote !== -1).length;
@@ -136,6 +156,6 @@ function CommunityFeedPage() {
           <div className="flex items-center justify-between gap-3 px-4 py-3"><span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">Par <Link to="/users/$id" params={{ id: post.user_id }} className="truncate font-semibold text-primary hover:underline">{post.profiles?.display_name || post.profiles?.username || "Collectionneur"}</Link></span><div className="flex shrink-0 items-center gap-3"><Link to="/cans/$id" params={{ id: post.can_id }} className="text-xs font-semibold text-primary hover:underline">Ouvrir la fiche</Link><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" />{ups}</span><span className="inline-flex items-center gap-1"><ThumbsDown className="h-3.5 w-3.5" />{downs}</span></span></div></div>
         </article>;
       })}</div>}
-    <p className="pb-2 text-center text-[11px] text-muted-foreground">Les publications se créent uniquement depuis la page d’une canette, jamais depuis ce fil général.</p>
+    {tab !== "friends" && <p className="pb-2 text-center text-[11px] text-muted-foreground">Les publications se créent uniquement depuis la page d’une canette, jamais depuis ce fil général.</p>}
   </div>;
 }
