@@ -64,7 +64,7 @@ function BrandPage() {
     return filtered.sort((a, b) => {
       if (sortBy === "drinks") return (statsByCan.get(b.id)?.total_drinks ?? 0) - (statsByCan.get(a.id)?.total_drinks ?? 0) || a.name.localeCompare(b.name, "fr");
       if (sortBy === "caffeine") return (b.caffeine_mg_per_100ml ?? -1) - (a.caffeine_mg_per_100ml ?? -1) || a.name.localeCompare(b.name, "fr");
-      if (sortBy === "rating") return (statsByCan.get(b.id)?.average_rating ?? -1) - (statsByCan.get(a.id)?.average_rating ?? -1) || a.name.localeCompare(b.name, "fr");
+      if (sortBy === "rating") { const score = (id: string) => { const stat = statsByCan.get(id); const values = [stat?.average_design, stat?.average_taste].filter((value): value is number => value != null); return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : -1; }; return score(b.id) - score(a.id) || a.name.localeCompare(b.name, "fr"); }
       return a.name.localeCompare(b.name, "fr");
     });
   }, [allCans, search, brand?.name, sortBy, statsByCan]);
