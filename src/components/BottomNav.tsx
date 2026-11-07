@@ -39,8 +39,7 @@ export function BottomNav() {
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[#ececf0] bg-white px-5 py-7 md:flex">
         <Link to="/collection" className="mb-10 flex items-center gap-3 px-2">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#fff0bd] text-xl font-black text-black">C</span>
-          <span className="text-2xl font-black tracking-[-.07em] text-black">CANSDEX</span>
+          <img src="/cansdex-logo.svg" alt="Cansdex" className="h-12 w-auto max-w-[190px] object-contain object-left" />
         </Link>
         <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[.16em] text-muted-foreground">Explorer</p>
         <nav className="flex flex-col gap-1">
