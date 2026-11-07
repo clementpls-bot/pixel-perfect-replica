@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { Can } from "@/lib/data";
 
 /** Affiche la photo d'origine sans filtre ; le cadenas reste discret dans un coin. */
-export function CanArt({ can, brandName, missing, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; className?: string | undefined }) {
+export function CanArt({ can, brandName, missing, showLock, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; showLock?: boolean | undefined; className?: string | undefined }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState<{ source: string; scale: number } | null>(null);
   const showPhoto = Boolean(can.image_url && failedImageUrl !== can.image_url);
@@ -42,7 +42,7 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
           {brandName && <span className="mt-1 text-[9px] text-muted-foreground">{brandName}</span>}
         </div>
       )}
-      {missing && (
+      {(showLock ?? missing) && (
         <span
           className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 bg-white/95 text-slate-700 shadow-md ring-1 ring-black/5"
           aria-label="Canette non possédée"
