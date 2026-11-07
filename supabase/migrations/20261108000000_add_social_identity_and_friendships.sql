@@ -9,7 +9,7 @@ update public.profiles
 set display_name = username
 where display_name is null or btrim(display_name) = '';
 
-create index if not exists profiles_username_lower_idx
+create unique index if not exists profiles_username_lower_idx
   on public.profiles (lower(username));
 
 create table if not exists public.friendships (
@@ -87,6 +87,12 @@ create policy "Senders can cancel friendship requests"
   on public.friendships for update to authenticated
   using (requester_id = (select auth.uid()) and status = 'pending')
   with check (requester_id = (select auth.uid()) and status = 'cancelled');
+
+drop policy if exists "Senders can retry declined friendship requests" on public.friendships;
+create policy "Senders can retry declined friendship requests"
+  on public.friendships for update to authenticated
+  using (requester_id = (select auth.uid()) and status in ('declined', 'cancelled'))
+  with check (requester_id = (select auth.uid()) and status = 'pending');
 
 drop policy if exists "Friends can end an accepted friendship" on public.friendships;
 create policy "Friends can end an accepted friendship"
