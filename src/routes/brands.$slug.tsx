@@ -38,6 +38,7 @@ function BrandPage() {
       return (rows ?? []) as { can_id: string; total_drinks: number; average_rating: number | null; rating_count: number }[];
     },
     staleTime: 15_000,
+    refetchInterval: 15_000,
   });
 
   useEffect(() => {
