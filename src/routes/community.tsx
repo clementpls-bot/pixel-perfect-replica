@@ -134,6 +134,15 @@ function CommunityFeedPage() {
       {header}
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tab === "friends" ? "Les publications de tes amis, ainsi que leur classement communautaire." : "Un fil pour découvrir les nouvelles photos et les échanges. Chaque publication appartient à une canette précise : ouvre sa fiche pour participer."}</p>
     </header>
+    {tab === "friends" && friendRanking.length > 0 && <section className="space-y-2 rounded-2xl border bg-card p-4">
+      <div><h2 className="font-bold">Classement entre amis</h2><p className="text-xs text-muted-foreground">Basé sur les publications et les réactions reçues dans la communauté.</p></div>
+      {friendRanking.map((person, index) => <Link key={person.id} to="/users/$id" params={{ id: person.id }} className="flex items-center gap-3 rounded-xl bg-muted/50 p-3">
+        <span className="w-6 text-center text-sm font-black">{index + 1}.</span>
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-background text-sm font-black">{person.name[0]?.toUpperCase()}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">{person.name}</span>
+        <span className="text-xs font-bold">{person.points} pts</span>
+      </Link>)}
+    </section>}
     {tab === "friends" && !user ? <p className="rounded-2xl border p-5 text-center text-sm text-muted-foreground">Connecte-toi pour retrouver l’activité de tes amis.</p>
       : tab === "friends" && friendships.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement de tes amis…</p>
       : posts.isLoading ? <p className="py-10 text-center text-sm text-muted-foreground">Chargement du fil…</p>
