@@ -28,7 +28,7 @@ export function CanArt({ can, brandName, missing, className }: { can: Can; brand
         <img
           src={can.image_url!}
           alt={can.name}
-          className="h-full w-full object-contain transition-transform duration-300"
+          className={cn("h-full w-full object-contain transition-[transform,filter] duration-300", missing && "grayscale")}
           style={{ transform: `scale(${scale})` }}
           loading="lazy"
           decoding="async"
