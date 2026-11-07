@@ -88,6 +88,7 @@ function CanPage() {
       return () => window.clearTimeout(timeout);
     }
     previousQty.current = qty;
+    return undefined;
   }, [isOwned, qty]);
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
