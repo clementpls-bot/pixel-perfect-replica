@@ -15,7 +15,7 @@ type Vote = { user_id: string; vote: number };
 type CommunityComment = {
   id: string; can_id: string; body: string | null; image_url: string | null;
   parent_id: string | null; user_id: string; created_at: string;
-  profiles: { username: string } | null; comment_likes: Vote[];
+  profiles: { username: string; display_name?: string | null } | null; comment_likes: Vote[];
 };
 
 function voteCounts(comment: CommunityComment) {
@@ -41,7 +41,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
     queryKey: ["comments", canId],
     queryFn: async () => {
       const { data, error } = await supabase.from("comments")
-        .select("id,can_id,body,image_url,parent_id,user_id,created_at,profiles(username),comment_likes(user_id,vote)")
+        .select("id,can_id,body,image_url,parent_id,user_id,created_at,profiles(username,display_name),comment_likes(user_id,vote)")
         .eq("can_id", canId).order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as unknown as CommunityComment[];
@@ -96,7 +96,7 @@ export function CanCommunity({ canId, canName }: { canId: string; canName: strin
       <div className="rounded-2xl border p-3.5" style={{ backgroundColor: canColor }}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <Link to="/users/$id" params={{ id: comment.user_id }} className="block truncate text-sm font-bold hover:text-primary hover:underline">{comment.profiles?.username ?? "Collectionneur"}</Link>
+            <Link to="/users/$id" params={{ id: comment.user_id }} className="block truncate text-sm font-bold hover:text-primary hover:underline">{comment.profiles?.display_name || comment.profiles?.username || "Collectionneur"}</Link>
             <p className="text-[11px] text-muted-foreground">{new Date(comment.created_at).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}</p>
           </div>
           {comment.parent_id && <span className="text-[10px] text-muted-foreground">Réponse</span>}
