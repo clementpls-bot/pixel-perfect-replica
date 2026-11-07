@@ -235,7 +235,7 @@ export function useCanDrinks(canId: string) {
     enabled: !!user && !!canId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_can_drinks").select("drinks_count").eq("can_id", canId).maybeSingle();
+        .from("user_can_drinks").select("drinks_count").eq("user_id", user.id).eq("can_id", canId).maybeSingle();
       if (error) throw error;
       return data?.drinks_count ?? 0;
     },
@@ -267,6 +267,7 @@ export function useSetCanDrinks() {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
       qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
+      qc.invalidateQueries({ queryKey: ["brand-can-stats"] }),
     ]);
   };
 }
