@@ -16,6 +16,7 @@ const BRAND_COLORS: Record<string, string> = {
   rockstar: "#D6A928",
   burn: "#E64A24",
   prime: "#3D70D6",
+  kongstrong: "#E64B2D",
   celsius: "#B7C6D0",
   bang: "#7C3AED",
   reign: "#8CC63F",
