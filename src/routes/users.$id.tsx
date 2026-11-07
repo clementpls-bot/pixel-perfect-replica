@@ -130,7 +130,8 @@ function PublicUserProfile() {
         {person.avatar_url ? <img src={person.avatar_url} alt={`Photo de ${person.username}`} className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? "?"}
       </AvatarZoom>
       <div className="min-w-0 flex-1">
-        <h1 className="break-words text-xl font-black">{person.display_name || person.username}</h1>\n        <p className="mt-0.5 text-xs text-muted-foreground">@{person.username}</p>
+        <h1 className="break-words text-xl font-black">{person.display_name || person.username}</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">@{person.username}</p>
         <p className="mt-1 text-xs text-muted-foreground">Membre depuis le {new Date(person.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
         <p className="mt-1 text-xs text-muted-foreground">{comments.data?.comments.length ?? 0}{comments.data && comments.data.comments.length === 50 ? "+" : ""} commentaires récents</p>
       </div>
