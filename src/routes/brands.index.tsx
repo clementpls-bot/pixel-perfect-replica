@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useCatalog, useOwned, type Brand } from "@/lib/data";
 import { pct } from "@/lib/achievements";
 import { CanSearch, matchesSearch, normalizeSearch } from "@/components/CanSearch";
+import { getBrandColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/brands/")({
   head: () => ({
@@ -88,7 +89,7 @@ function Brands() {
           {brands.map((b) => {
             const list = (data?.cans ?? []).filter((c) => c.brand_id === b.id);
             const n = list.filter((c) => owned?.has(c.id)).length;
-            const color = /^#[0-9a-fA-F]{6}$/.test(b.color) ? b.color : "#64748b";
+            const color = getBrandColor(b.name, b.color);
 
             return (
               <Link
