@@ -40,7 +40,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if old.status = 'pending' and new.status in ('accepted', 'declined') then
     if auth.uid() <> old.addressee_id
@@ -70,7 +70,7 @@ begin
   new.updated_at := now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists cansdex_guard_friendship_update on public.friendships;
 create trigger cansdex_guard_friendship_update
