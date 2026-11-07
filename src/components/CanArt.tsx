@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CanPlaceholder } from "@/components/CanPlaceholder";
 import type { Can } from "@/lib/data";
 
 /** Affiche la photo d'origine sans filtre ; le cadenas reste discret dans un coin. */
@@ -37,7 +38,7 @@ export function CanArt({ can, brandName, missing, showLock, className }: { can: 
         />
       ) : (
         <div role="img" aria-label={`Photo indisponible pour ${can.name}`} className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed bg-muted/40 p-2 text-center">
-          <span className="text-2xl" aria-hidden="true">🥫</span>
+          <CanPlaceholder className="h-12 w-9 text-slate-500" />
           <span className="mt-2 text-[10px] font-semibold text-muted-foreground">Photo indisponible</span>
           {brandName && <span className="mt-1 text-[9px] text-muted-foreground">{brandName}</span>}
         </div>
