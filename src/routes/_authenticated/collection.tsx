@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { ArrowRight, Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
+import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { Button } from "@/components/ui/button";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
 
@@ -55,7 +56,7 @@ function Collection() {
       <div className="grid grid-cols-2 gap-3">
         <div className="flex min-h-[88px] items-center justify-between overflow-hidden rounded-[22px] bg-[#fff4bd] p-4">
           <div><p className="text-2xl font-black leading-none tabular-nums">{allMine.length}</p><p className="mt-1 text-xs font-semibold text-black/60">Canettes</p></div>
-          <span className="text-4xl" aria-hidden="true">🥫</span>
+          <CanPlaceholder className="h-12 w-9 text-black/65" />
         </div>
         <div className="flex min-h-[88px] items-center justify-between overflow-hidden rounded-[22px] bg-[#e5f2ff] p-4">
           <div><p className="text-2xl font-black leading-none tabular-nums">{data.brands.filter((brand) => data.cans.some((can) => can.brand_id === brand.id && owned.has(can.id))).length}</p><p className="mt-1 text-xs font-semibold text-black/60">Marques représentées</p></div>
@@ -75,7 +76,7 @@ function Collection() {
 
       {allMine.length === 0 ? (
         <div className="mt-8 rounded-[28px] border border-dashed border-[#d9d9df] bg-white px-6 py-12 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#fff4bd] text-3xl">🥫</div>
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#fff4bd] text-black"><CanPlaceholder className="h-10 w-7" /></div>
           <h2 className="mt-4 text-xl font-black tracking-tight">Ton mur est encore vide</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Scanne une canette pour l’ajouter à ta collection, ou parcours le catalogue pour trouver ta prochaine pièce.</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
