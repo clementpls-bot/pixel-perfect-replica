@@ -12,6 +12,7 @@ import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
 import { pastelCanColor } from "@/lib/can-colors";
 import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
+import { FriendProfileActions } from "@/components/FriendSystem";
 
 export const Route = createFileRoute("/users/$id")({
   head: () => ({ meta: [
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/users/$id")({
   component: PublicUserProfile,
 });
 
-type PublicProfile = { id: string; username: string; avatar_url: string | null; banner_url: string | null; created_at: string };
+type PublicProfile = { id: string; username: string; display_name?: string | null; avatar_url: string | null; banner_url: string | null; created_at: string };
 type UserComment = { id: string; can_id: string; body: string | null; image_url: string | null; parent_id: string | null; created_at: string };
 type CanSummary = { id: string; name: string; image_url: string | null; color_primary: string };
 
@@ -38,7 +39,7 @@ function PublicUserProfile() {
   const profile = useQuery({
     queryKey: ["public-profile", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,avatar_url,banner_url,created_at").eq("id", id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id,username,display_name,avatar_url,banner_url,created_at").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as PublicProfile | null;
     },
@@ -129,11 +130,11 @@ function PublicUserProfile() {
         {person.avatar_url ? <img src={person.avatar_url} alt={`Photo de ${person.username}`} className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? "?"}
       </AvatarZoom>
       <div className="min-w-0 flex-1">
-        <h1 className="break-words text-xl font-black">{person.username}</h1>
+        <h1 className="break-words text-xl font-black">{person.display_name || person.username}</h1>\n        <p className="mt-0.5 text-xs text-muted-foreground">@{person.username}</p>
         <p className="mt-1 text-xs text-muted-foreground">Membre depuis le {new Date(person.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
         <p className="mt-1 text-xs text-muted-foreground">{comments.data?.comments.length ?? 0}{comments.data && comments.data.comments.length === 50 ? "+" : ""} commentaires récents</p>
       </div>
-      {user?.id !== id && <Button variant="outline" size="sm" className="shrink-0 rounded-xl" onClick={() => setReportOpen((open) => !open)}><Flag className="mr-1.5 h-4 w-4" /> Signaler</Button>}
+      {user?.id !== id && <div className="flex shrink-0 flex-col gap-2"><FriendProfileActions targetId={id} /><Button variant="outline" size="sm" className="rounded-xl" onClick={() => setReportOpen((open) => !open)}><Flag className="mr-1.5 h-4 w-4" /> Signaler</Button></div>}
     </header>
 
     {reportOpen && <section className="space-y-3 rounded-2xl border border-destructive/30 bg-card p-4">
