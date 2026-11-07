@@ -91,8 +91,16 @@ create policy "Senders can cancel friendship requests"
 drop policy if exists "Senders can retry declined friendship requests" on public.friendships;
 create policy "Senders can retry declined friendship requests"
   on public.friendships for update to authenticated
-  using (requester_id = (select auth.uid()) and status in ('declined', 'cancelled'))
-  with check (requester_id = (select auth.uid()) and status = 'pending');
+  using (
+    (requester_id = (select auth.uid()) or addressee_id = (select auth.uid()))
+    and status in ('declined', 'cancelled')
+  )
+  with check (
+    requester_id = (select auth.uid())
+    and addressee_id <> (select auth.uid())
+    and status = 'pending'
+    and not public.cansdex_users_blocked(requester_id, addressee_id)
+  );
 
 drop policy if exists "Friends can end an accepted friendship" on public.friendships;
 create policy "Friends can end an accepted friendship"
