@@ -522,6 +522,39 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+          user_high_id: string | null
+          user_low_id: string | null
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+          user_high_id?: string | null
+          user_low_id?: string | null
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+          user_high_id?: string | null
+          user_low_id?: string | null
+        }
+        Relationships: []
+      }
       profile_gallery: {
         Row: {
           created_at: string
@@ -573,53 +606,6 @@ export type Database = {
           reported_user_id?: string
           reporter_id?: string
           status?: string
-        }
-        Relationships: []
-      }
-      friendships: {
-        Row: {
-          id: string
-          requester_id: string
-          addressee_id: string
-          status: string
-          created_at: string
-          updated_at: string
-          user_low_id: string
-          user_high_id: string
-        }
-        Insert: {
-          id?: string
-          requester_id: string
-          addressee_id: string
-          status?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          requester_id?: string
-          addressee_id?: string
-          status?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      user_blocks: {
-        Row: {
-          blocker_id: string
-          blocked_id: string
-          created_at: string
-        }
-        Insert: {
-          blocker_id: string
-          blocked_id: string
-          created_at?: string
-        }
-        Update: {
-          blocker_id?: string
-          blocked_id?: string
-          created_at?: string
         }
         Relationships: []
       }
@@ -687,6 +673,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       user_can_drinks: {
         Row: {
@@ -761,6 +765,21 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: undefined
       }
+      cansdex_users_blocked: {
+        Args: { p_user_a: string; p_user_b: string }
+        Returns: boolean
+      }
+      get_brand_can_stats: {
+        Args: { p_brand_id: string }
+        Returns: {
+          average_design: number
+          average_taste: number
+          can_id: string
+          design_rating_count: number
+          taste_rating_count: number
+          total_drinks: number
+        }[]
+      }
       get_can_popularity_counts: {
         Args: { p_can_ids: string[] }
         Returns: {
@@ -769,7 +788,6 @@ export type Database = {
         }[]
       }
       get_total_can_drinks: { Args: { p_can_id: string }; Returns: number }
-      cansdex_users_blocked: { Args: { p_user_a: string; p_user_b: string }; Returns: boolean }
       resolve_can_barcode: { Args: { p_barcode: string }; Returns: string }
       review_can_report: {
         Args: {
