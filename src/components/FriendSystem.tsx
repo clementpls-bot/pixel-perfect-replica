@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clock3, Search, UserMinus, UserPlus, UserRound, UserX, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -70,7 +70,7 @@ function useFriendActions() {
   return {
     send: (targetId: string, existing?: Friendship) => run(
       () => existing
-        ? db.from("friendships").update({ status: "pending", updated_at: new Date().toISOString() }).eq("id", existing.id)
+        ? db.from("friendships").update({ requester_id: user!.id, addressee_id: targetId, status: "pending", updated_at: new Date().toISOString() }).eq("id", existing.id)
         : db.from("friendships").insert({ requester_id: user!.id, addressee_id: targetId, status: "pending" }),
       "Demande d’amitié envoyée."
     ),
@@ -83,7 +83,7 @@ function useFriendActions() {
   };
 }
 
-function PersonLine({ person, trailing }: { person: Person; trailing?: React.ReactNode }) {
+function PersonLine({ person, trailing }: { person: Person; trailing?: ReactNode }) {
   return <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-card p-3">
     <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-sm font-black">
       {person.avatar_url ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? <UserRound className="h-5 w-5" />}
