@@ -576,11 +576,59 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          id: string
+          requester_id: string
+          addressee_id: string
+          status: string
+          created_at: string
+          updated_at: string
+          user_low_id: string
+          user_high_id: string
+        }
+        Insert: {
+          id?: string
+          requester_id: string
+          addressee_id: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          requester_id?: string
+          addressee_id?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocker_id: string
+          blocked_id: string
+          created_at: string
+        }
+        Insert: {
+          blocker_id: string
+          blocked_id: string
+          created_at?: string
+        }
+        Update: {
+          blocker_id?: string
+          blocked_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           banner_url: string | null
           created_at: string
+          display_name: string | null
           favorite_can_ids: string[]
           id: string
           username: string
@@ -590,6 +638,7 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string
+          display_name?: string | null
           favorite_can_ids?: string[]
           id: string
           username: string
@@ -599,6 +648,7 @@ export type Database = {
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string
+          display_name?: string | null
           favorite_can_ids?: string[]
           id?: string
           username?: string
@@ -719,6 +769,7 @@ export type Database = {
         }[]
       }
       get_total_can_drinks: { Args: { p_can_id: string }; Returns: number }
+      cansdex_users_blocked: { Args: { p_user_a: string; p_user_b: string }; Returns: boolean }
       resolve_can_barcode: { Args: { p_barcode: string }; Returns: string }
       review_can_report: {
         Args: {
