@@ -9,6 +9,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
+import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -298,11 +299,11 @@ function Profile() {
         <h2 className="font-display text-xl uppercase tracking-tight">Highlights</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { v: ownedSet.size, l: "Canettes", e: "🥫", c: "bg-pastel-yellow" },
+            { v: ownedSet.size, l: "Canettes", e: <CanPlaceholder className="h-12 w-8 text-black/70" />, c: "bg-pastel-yellow" },
             { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-pastel-peach" },
             { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-pastel-sand" },
             { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-pastel-blue" },
-          ].map((h) => <div key={h.l} className={`${h.c} relative min-h-[112px] overflow-hidden rounded-[22px] p-4`}><span className="absolute bottom-2 right-3 text-5xl opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
+          ].map((h) => <div key={h.l} className={`${h.c} relative min-h-[112px] overflow-hidden rounded-[22px] p-4`}><span className="absolute bottom-2 right-3 opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
         </div>
       </section>}
 
