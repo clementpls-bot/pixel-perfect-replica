@@ -12,6 +12,13 @@ where display_name is null or btrim(display_name) = '';
 create unique index if not exists profiles_username_lower_idx
   on public.profiles (lower(username));
 
+
+alter table public.profiles
+  drop constraint if exists profiles_display_name_length;
+alter table public.profiles
+  add constraint profiles_display_name_length
+  check (display_name is null or char_length(btrim(display_name)) between 1 and 32);
+
 create table if not exists public.friendships (
   id uuid primary key default gen_random_uuid(),
   requester_id uuid not null references auth.users(id) on delete cascade,
@@ -25,6 +32,50 @@ create table if not exists public.friendships (
   constraint friendships_no_self check (requester_id <> addressee_id),
   constraint friendships_one_pair unique (user_low_id, user_high_id)
 );
+
+-- Keep the direction of a request immutable while it is pending. A declined/cancelled
+-- pair may be restarted by either participant, in which case the new sender becomes requester.
+create or replace function public.cansdex_guard_friendship_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if old.status = 'pending' and new.status in ('accepted', 'declined') then
+    if auth.uid() <> old.addressee_id
+      or new.requester_id <> old.requester_id
+      or new.addressee_id <> old.addressee_id then
+      raise exception 'Only the recipient can respond to this friendship request';
+    end if;
+  elsif old.status = 'pending' and new.status = 'cancelled' then
+    if auth.uid() <> old.requester_id
+      or new.requester_id <> old.requester_id
+      or new.addressee_id <> old.addressee_id then
+      raise exception 'Only the sender can cancel this friendship request';
+    end if;
+  elsif old.status in ('declined', 'cancelled') and new.status = 'pending' then
+    if auth.uid() not in (old.requester_id, old.addressee_id)
+      or new.requester_id <> auth.uid()
+      or new.addressee_id = auth.uid()
+      or not (new.addressee_id in (old.requester_id, old.addressee_id)) then
+      raise exception 'Only a participant can restart this friendship request';
+    end if;
+    if public.cansdex_users_blocked(new.requester_id, new.addressee_id) then
+      raise exception 'This user cannot receive a friendship request';
+    end if;
+  else
+    raise exception 'Invalid friendship state transition';
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$;
+
+drop trigger if exists cansdex_guard_friendship_update on public.friendships;
+create trigger cansdex_guard_friendship_update
+before update on public.friendships
+for each row execute function public.cansdex_guard_friendship_update();
 
 create index if not exists friendships_requester_status_idx
   on public.friendships (requester_id, status);
