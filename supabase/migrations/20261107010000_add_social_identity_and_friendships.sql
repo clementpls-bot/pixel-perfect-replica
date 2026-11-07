@@ -33,6 +33,38 @@ create table if not exists public.friendships (
   constraint friendships_one_pair unique (user_low_id, user_high_id)
 );
 
+create index if not exists friendships_requester_status_idx
+  on public.friendships (requester_id, status);
+create index if not exists friendships_addressee_status_idx
+  on public.friendships (addressee_id, status);
+
+create table if not exists public.user_blocks (
+  blocker_id uuid not null references auth.users(id) on delete cascade,
+  blocked_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker_id, blocked_id),
+  constraint user_blocks_no_self check (blocker_id <> blocked_id)
+);
+
+create index if not exists user_blocks_blocked_idx on public.user_blocks (blocked_id);
+
+create or replace function public.cansdex_users_blocked(p_user_a uuid, p_user_b uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.user_blocks b
+    where (b.blocker_id = p_user_a and b.blocked_id = p_user_b)
+       or (b.blocker_id = p_user_b and b.blocked_id = p_user_a)
+  );
+$$;
+
+revoke all on function public.cansdex_users_blocked(uuid, uuid) from public;
+grant execute on function public.cansdex_users_blocked(uuid, uuid) to authenticated;
+
 -- Keep the direction of a request immutable while it is pending. A declined/cancelled
 -- pair may be restarted by either participant, in which case the new sender becomes requester.
 create or replace function public.cansdex_guard_friendship_update()
@@ -76,38 +108,6 @@ drop trigger if exists cansdex_guard_friendship_update on public.friendships;
 create trigger cansdex_guard_friendship_update
 before update on public.friendships
 for each row execute function public.cansdex_guard_friendship_update();
-
-create index if not exists friendships_requester_status_idx
-  on public.friendships (requester_id, status);
-create index if not exists friendships_addressee_status_idx
-  on public.friendships (addressee_id, status);
-
-create table if not exists public.user_blocks (
-  blocker_id uuid not null references auth.users(id) on delete cascade,
-  blocked_id uuid not null references auth.users(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key (blocker_id, blocked_id),
-  constraint user_blocks_no_self check (blocker_id <> blocked_id)
-);
-
-create index if not exists user_blocks_blocked_idx on public.user_blocks (blocked_id);
-
-create or replace function public.cansdex_users_blocked(p_user_a uuid, p_user_b uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1 from public.user_blocks b
-    where (b.blocker_id = p_user_a and b.blocked_id = p_user_b)
-       or (b.blocker_id = p_user_b and b.blocked_id = p_user_a)
-  );
-$$;
-
-revoke all on function public.cansdex_users_blocked(uuid, uuid) from public;
-grant execute on function public.cansdex_users_blocked(uuid, uuid) to authenticated;
 
 alter table public.friendships enable row level security;
 alter table public.user_blocks enable row level security;
