@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CanCommunity } from "@/components/CanCommunity";
+import { getBrandColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/cans/$id")({
   head: () => ({
@@ -93,7 +94,7 @@ function CanPage() {
   }, [isOwned, qty]);
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
-  const brandAccent = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : can.color_primary;
+  const brandAccent = getBrandColor(brand?.name, brand?.color);
   const brandAccentSoft = brandAccent + "22";
   const ratingSummary = (k: "design" | "taste") => {
     const values = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
