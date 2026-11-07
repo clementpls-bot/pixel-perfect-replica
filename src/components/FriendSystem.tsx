@@ -217,16 +217,17 @@ export function FriendProfileActions({ targetId }: { targetId: string }) {
   const isBlocked = (blocked.data ?? []).includes(targetId);
   if (!user || user.id === targetId) return null;
   if (isBlocked) return <Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.unblock(targetId)}>Débloquer</Button>;
-  if (relationship?.status === "accepted") return <Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.remove(relationship.id)}><UserMinus className="mr-1.5 h-4 w-4" /> Amis · Retirer</Button>;
-  if (relationship?.status === "pending" && relationship.requester_id === user.id) return <Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.cancel(relationship.id)}><Clock3 className="mr-1.5 h-4 w-4" /> Demande envoyée</Button>;
-  if (relationship?.status === "pending") return <div className="flex gap-1">
+  const blockButton = <Button size="sm" variant="outline" className="rounded-xl" onClick={() => {
+    if (window.confirm("Bloquer ce compte ? Il ne pourra plus t’envoyer de demande d’amitié.")) void actions.block(targetId);
+  }}><UserX className="mr-1.5 h-4 w-4" /> Bloquer</Button>;
+  if (relationship?.status === "accepted") return <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.remove(relationship.id)}><UserMinus className="mr-1.5 h-4 w-4" /> Amis · Retirer</Button>{blockButton}</div>;
+  if (relationship?.status === "pending" && relationship.requester_id === user.id) return <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.cancel(relationship.id)}><Clock3 className="mr-1.5 h-4 w-4" /> Demande envoyée</Button>{blockButton}</div>;
+  if (relationship?.status === "pending") return <div className="flex flex-wrap gap-2">
     <Button size="sm" className="rounded-xl" onClick={() => void actions.accept(relationship.id)}><Check className="mr-1 h-4 w-4" /> Accepter</Button>
-    <Button size="sm" variant="outline" className="h-8 w-8 rounded-xl px-0" aria-label="Refuser la demande" onClick={() => void actions.decline(relationship.id)}><X className="h-4 w-4" /></Button>
+    <Button size="sm" variant="outline" className="h-8 w-8 rounded-xl px-0" aria-label="Refuser la demande" onClick={() => void actions.decline(relationship.id)}><X className="h-4 w-4" /></Button>{blockButton}
   </div>;
   return <div className="flex flex-wrap gap-2">
     <Button size="sm" className="rounded-xl" onClick={() => void actions.send(targetId, relationship)}><UserPlus className="mr-1.5 h-4 w-4" /> Ajouter</Button>
-    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => {
-      if (window.confirm("Bloquer ce compte ? Il ne pourra plus t’envoyer de demande d’amitié.")) void actions.block(targetId);
-    }}><UserX className="mr-1.5 h-4 w-4" /> Bloquer</Button>
+    {blockButton}
   </div>;
 }
