@@ -7,6 +7,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
+import { getBrandColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/brands/$slug")({
   head: ({ params }) => ({
@@ -28,6 +29,7 @@ function BrandPage() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "drinks" | "caffeine" | "rating">("name");
   const brand = data?.brands.find((b) => b.slug === slug);
+  const brandColor = getBrandColor(brand?.name, brand?.color);
 
   const brandStats = useQuery({
     queryKey: ["brand-can-stats", brand?.id],
@@ -85,10 +87,10 @@ function BrandPage() {
       </Link>
       <div className="flex items-center gap-3">
         {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
-        <h1 className="text-3xl font-black" style={{ color: brand.color }}>{brand.name}</h1>
+        <h1 className="text-3xl font-black" style={{ color: brandColor }}>{brand.name}</h1>
       </div>
       <div className="mt-4 rounded-2xl border bg-card p-4">
-        <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brand.color} />
+        <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brandColor} />
         <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> Note de la marque</div>
