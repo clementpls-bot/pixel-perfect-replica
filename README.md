@@ -1,8 +1,10 @@
-# Pixel Perfect Replica
+# Cansdex
 
 Implement exactly the screenshot and nothing else
 
-This project was built with [Lovable](https://lovable.dev).
+Cansdex — application de collection et de découverte de canettes.
+
+The project is built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
