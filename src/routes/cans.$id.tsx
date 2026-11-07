@@ -72,6 +72,20 @@ function CanPage() {
     }).subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [id, qc]);
+
+  // Keep the can detail's public aggregates live with the brand catalogue.
+  useEffect(() => {
+    const refresh = () => {
+      void qc.invalidateQueries({ queryKey: ["ratings", id] });
+      void qc.invalidateQueries({ queryKey: ["can-drinks-community", id] });
+      void qc.invalidateQueries({ queryKey: ["brand-can-stats"] });
+    };
+    const channel = supabase.channel(`can-live-stats-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "ratings", filter: `can_id=eq.${id}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_can_drinks", filter: `can_id=eq.${id}` }, refresh)
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [id, qc]);
   const can = data?.cans.find((c) => c.id === id);
   const brand = data?.brands.find((b) => b.id === can?.brand_id);
 
@@ -115,7 +129,10 @@ function CanPage() {
     }
     const { error } = await supabase.from("ratings").upsert({ can_id: id, user_id: user.id, design: k === "design" ? v : mine?.design ?? null, taste: k === "taste" ? v : mine?.taste ?? null, updated_at: new Date().toISOString() });
     if (error) toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["ratings", id] });
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["ratings", id] }),
+      qc.invalidateQueries({ queryKey: ["brand-can-stats"] }),
+    ]);
   };
 
   const submitReport = async () => {
