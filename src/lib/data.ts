@@ -234,6 +234,7 @@ export function useCanDrinks(canId: string) {
     queryKey: ["can-drinks", user?.id, canId],
     enabled: !!user && !!canId,
     queryFn: async () => {
+      if (!user) return 0;
       const { data, error } = await supabase
         .from("user_can_drinks").select("drinks_count").eq("user_id", user.id).eq("can_id", canId).maybeSingle();
       if (error) throw error;

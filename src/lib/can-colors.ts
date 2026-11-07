@@ -43,7 +43,7 @@ function generatedBrandColor(name: string): string {
   const key = normalizeBrandName(name);
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return palette[hash % palette.length];
+  return palette[hash % palette.length] ?? "#20A4A8";
 }
 
 /** Resolve a distinctive accent for a brand without forcing colour onto the whole interface. */
