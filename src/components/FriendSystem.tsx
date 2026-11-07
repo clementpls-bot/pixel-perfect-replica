@@ -152,9 +152,8 @@ export function FriendsHub() {
         : searchResults.data.map((person) => {
           const relation = rowFor(person.id);
           const blockedByMe = existingBlocked.has(person.id);
-          const blockedByThem = rows.some((r) => false); // Blocking is enforced by the database.
           return <PersonLine key={person.id} person={person} trailing={
-            blockedByMe || blockedByThem ? <span className="text-[11px] text-muted-foreground">Indisponible</span>
+            blockedByMe ? <span className="text-[11px] text-muted-foreground">Indisponible</span>
               : relation?.status === "accepted" ? <span className="text-xs font-semibold text-muted-foreground">Ami</span>
               : relation?.status === "pending" && relation.requester_id === user?.id ? <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"><Clock3 className="h-3 w-3" /> Envoyée</span>
               : relation?.status === "pending" ? <span className="text-[11px] text-muted-foreground">Demande reçue</span>
@@ -222,7 +221,7 @@ export function FriendProfileActions({ targetId }: { targetId: string }) {
   if (relationship?.status === "pending" && relationship.requester_id === user.id) return <Button variant="outline" size="sm" className="rounded-xl" onClick={() => void actions.cancel(relationship.id)}><Clock3 className="mr-1.5 h-4 w-4" /> Demande envoyée</Button>;
   if (relationship?.status === "pending") return <div className="flex gap-1">
     <Button size="sm" className="rounded-xl" onClick={() => void actions.accept(relationship.id)}><Check className="mr-1 h-4 w-4" /> Accepter</Button>
-    <Button size="icon" size="sm" variant="outline" className="rounded-xl" aria-label="Refuser la demande" onClick={() => void actions.decline(relationship.id)}><X className="h-4 w-4" /></Button>
+    <Button size="sm" variant="outline" className="h-8 w-8 rounded-xl px-0" aria-label="Refuser la demande" onClick={() => void actions.decline(relationship.id)}><X className="h-4 w-4" /></Button>
   </div>;
   return <div className="flex flex-wrap gap-2">
     <Button size="sm" className="rounded-xl" onClick={() => void actions.send(targetId, relationship)}><UserPlus className="mr-1.5 h-4 w-4" /> Ajouter</Button>
