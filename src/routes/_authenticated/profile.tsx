@@ -11,6 +11,7 @@ import { pastelCanColor } from "@/lib/can-colors";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
+import { FriendsHub } from "@/components/FriendSystem";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +39,9 @@ function Profile() {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState("");
+  const [displayNameDraft, setDisplayNameDraft] = useState("");
+  const [editingDisplayName, setEditingDisplayName] = useState(false);
+  const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -60,6 +64,7 @@ function Profile() {
   useEffect(() => {
     if (profile) {
       setUsernameDraft(profile.username ?? "");
+      setDisplayNameDraft((profile as any).display_name ?? profile.username ?? "");
     }
   }, [profile]);
 
@@ -151,6 +156,27 @@ function Profile() {
       toast.error((error as Error).message || "Impossible de mettre à jour le nom d’utilisateur.");
     } finally {
       setSavingUsername(false);
+    }
+  };
+
+  const saveDisplayName = async () => {
+    if (!user) return;
+    const next = displayNameDraft.trim();
+    if (!next || next.length > 32) {
+      toast.error("Le nom d’affichage doit contenir entre 1 et 32 caractères.");
+      return;
+    }
+    setSavingDisplayName(true);
+    try {
+      const { error } = await (supabase as any).from("profiles").update({ display_name: next }).eq("id", user.id);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["profile", user.id] });
+      toast.success("Nom d’affichage mis à jour.");
+      setEditingDisplayName(false);
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de modifier le nom d’affichage.");
+    } finally {
+      setSavingDisplayName(false);
     }
   };
 
@@ -257,7 +283,13 @@ function Profile() {
             </div>
           ) : (
             <>
-              <h1 className="break-words font-display text-4xl leading-none">{profile?.username}</h1>
+              <h1 className="break-words font-display text-4xl leading-none">{(profile as any)?.display_name || profile?.username}</h1>
+              <p className="mt-1 text-xs text-muted-foreground">@{profile?.username}</p>
+              {editingDisplayName ? <div className="mx-auto mt-2 flex max-w-sm gap-2">
+                <input value={displayNameDraft} onChange={(event) => setDisplayNameDraft(event.target.value)} maxLength={32} aria-label="Nom d’affichage" className="min-w-0 flex-1 rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                <Button size="sm" disabled={savingDisplayName} onClick={() => void saveDisplayName()}><Check className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" onClick={() => { setDisplayNameDraft((profile as any)?.display_name || profile?.username || ""); setEditingDisplayName(false); }}><X className="h-4 w-4" /></Button>
+              </div> : <button type="button" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline" onClick={() => setEditingDisplayName(true)}><Pencil className="h-3 w-3" /> Modifier le nom d’affichage</button>}
               <p className="mt-1 text-[11px] text-muted-foreground">
                 <button
                   type="button"
@@ -284,6 +316,7 @@ function Profile() {
         </div>
         <Link to="/community" className="pill-dark mt-1 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Voir le classement <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">Nv {Math.floor(Math.sqrt(ownedSet.size * 10 / 50)) + 1}</span></Link>
       </header>
+      <FriendsHub />
       <div className="flex border-b border-[#ececf0] gap-0">
         {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`flex-1 border-b-[3px] px-5 py-3 text-sm font-bold transition ${profileTab === k ? "border-black text-black" : "border-transparent text-muted-foreground"}`}>{l}</button>)}
       </div>
