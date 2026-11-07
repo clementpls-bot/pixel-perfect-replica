@@ -15,7 +15,7 @@ export const Route = createFileRoute("/community")({
   component: CommunityFeedPage,
 });
 
-type FeedPost = { id: string; user_id: string; can_id: string; body: string | null; image_url: string | null; created_at: string; profiles: { username: string } | null; comment_likes: { user_id: string; vote: number }[] };
+type FeedPost = { id: string; user_id: string; can_id: string; body: string | null; image_url: string | null; created_at: string; profiles: { username: string; display_name?: string | null } | null; comment_likes: { user_id: string; vote: number }[] };
 type CanRow = { id: string; name: string; image_url: string | null; brand_id: string; color_primary: string };
 type BrandRow = { id: string; name: string; logo_url: string | null };
 
@@ -26,7 +26,7 @@ function CommunityFeedPage() {
     queryKey: ["community-feed"],
     queryFn: async () => {
       const { data, error } = await supabase.from("comments")
-        .select("id,user_id,can_id,body,image_url,parent_id,created_at,profiles(username),comment_likes(user_id,vote)")
+        .select("id,user_id,can_id,body,image_url,parent_id,created_at,profiles(username,display_name),comment_likes(user_id,vote)")
         .is("parent_id", null).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       const rows = (data ?? []) as unknown as FeedPost[];
@@ -51,7 +51,7 @@ function CommunityFeedPage() {
   const allPosts = rows?.posts ?? [];
   const scores = new Map<string, { id: string; name: string; posts: number; likes: number; points: number }>();
   for (const p of allPosts) {
-    const e = scores.get(p.user_id) ?? { id: p.user_id, name: p.profiles?.username ?? "Collectionneur", posts: 0, likes: 0, points: 0 };
+    const e = scores.get(p.user_id) ?? { id: p.user_id, name: p.profiles?.display_name || p.profiles?.username || "Collectionneur", posts: 0, likes: 0, points: 0 };
     e.posts += 1; e.likes += p.comment_likes.filter((v) => v.vote !== -1).length;
     e.points = e.posts * 10 + e.likes * 5 + (p.image_url ? 0 : 0);
     if (p.image_url) e.points += 5;
@@ -133,7 +133,7 @@ function CommunityFeedPage() {
           </Link>
           {post.body?.trim() && <p className="whitespace-pre-wrap break-words px-4 pt-3 text-sm leading-relaxed">{post.body}</p>}
           {post.image_url && <Link to="/cans/$id" params={{ id: post.can_id }} className="block px-3 pt-3"><img src={post.image_url} alt={`Photo partagée sur ${can.name}`} loading="lazy" className="max-h-80 w-full rounded-xl bg-muted object-contain" /></Link>}
-          <div className="flex items-center justify-between gap-3 px-4 py-3"><span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">Par <Link to="/users/$id" params={{ id: post.user_id }} className="truncate font-semibold text-primary hover:underline">{post.profiles?.username ?? "Collectionneur"}</Link></span><div className="flex shrink-0 items-center gap-3"><Link to="/cans/$id" params={{ id: post.can_id }} className="text-xs font-semibold text-primary hover:underline">Ouvrir la fiche</Link><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" />{ups}</span><span className="inline-flex items-center gap-1"><ThumbsDown className="h-3.5 w-3.5" />{downs}</span></span></div></div>
+          <div className="flex items-center justify-between gap-3 px-4 py-3"><span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">Par <Link to="/users/$id" params={{ id: post.user_id }} className="truncate font-semibold text-primary hover:underline">{post.profiles?.display_name || post.profiles?.username || "Collectionneur"}</Link></span><div className="flex shrink-0 items-center gap-3"><Link to="/cans/$id" params={{ id: post.can_id }} className="text-xs font-semibold text-primary hover:underline">Ouvrir la fiche</Link><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ThumbsUp className="h-3.5 w-3.5" />{ups}</span><span className="inline-flex items-center gap-1"><ThumbsDown className="h-3.5 w-3.5" />{downs}</span></span></div></div>
         </article>;
       })}</div>}
     <p className="pb-2 text-center text-[11px] text-muted-foreground">Les publications se créent uniquement depuis la page d’une canette, jamais depuis ce fil général.</p>
