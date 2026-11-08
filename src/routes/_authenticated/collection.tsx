@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Store } from "lucide-react";
+import { ArrowRight, Store, Wine } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,7 +111,7 @@ function Collection() {
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }} search={{ from: "/collection" }} className="group min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-2.5 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)]">
                 <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ background: `linear-gradient(145deg, ${color}25, #f7f8fa 78%)` }}>
                   <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2.5 py-1.5 text-[10px] font-bold leading-none tabular-nums text-[#303238] shadow-[0_2px_8px_rgba(20,20,30,.08)] backdrop-blur-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
-                    <span className="text-[9px] text-[#777b84]">DR</span>{(drinksByCan.get(c.id) ?? 0).toLocaleString("fr-FR")}
+                    <Wine className="h-3 w-3 text-[#777b84]" />{(drinksByCan.get(c.id) ?? 0).toLocaleString("fr-FR")}
                   </span>
                   {brand?.logo_url && <img src={brand.logo_url} alt={brand.name} className="absolute bottom-2 left-2 h-5 max-w-14 object-contain opacity-80" />}
                   <CanArt can={c} brandName={brand?.name} className="max-h-36 max-w-[76px] transition-transform duration-300 group-hover:scale-105 sm:max-h-44" />
