@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Store } from "lucide-react";
 import { useCatalog, useOwned } from "@/lib/data";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { CanArt } from "@/components/CanArt";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { Button } from "@/components/ui/button";
@@ -22,16 +25,27 @@ export const Route = createFileRoute("/_authenticated/collection")({
 });
 
 function Collection() {
+  const { user } = useAuth();
   const { data } = useCatalog();
   const { data: owned } = useOwned();
+  const { data: drinkRows = [] } = useQuery({
+    queryKey: ["collection-drinks", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_can_drinks")
+        .select("can_id,drinks_count")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const drinksByCan = useMemo(() => new Map(drinkRows.map((row) => [row.can_id, row.drinks_count ?? 0])), [drinkRows]);
   const [search, setSearch] = useState("");
   const allMine = useMemo(() => (data?.cans ?? [])
     .filter((can) => owned?.has(can.id))
-    .sort((a, b) => {
-      const brandA = data?.brands.find((x) => x.id === a.brand_id)?.name ?? "";
-      const brandB = data?.brands.find((x) => x.id === b.brand_id)?.name ?? "";
-      return brandA.localeCompare(brandB, "fr") || a.name.localeCompare(b.name, "fr");
-    }), [data?.cans, data?.brands, owned]);
+    .sort((a, b) => (drinksByCan.get(b.id) ?? 0) - (drinksByCan.get(a.id) ?? 0)
+      || a.name.localeCompare(b.name, "fr")),
+    [data?.cans, owned, drinksByCan]);
   const mine = useMemo(() => allMine.filter((can) => {
     const brand = data?.brands.find((item) => item.id === can.brand_id);
     return matchesSearch(search, [
@@ -97,6 +111,9 @@ function Collection() {
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="group min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-2.5 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)]">
                 <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ background: `linear-gradient(145deg, ${color}25, #f7f8fa 78%)` }}>
                   <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-bold text-black shadow-sm">✓ Dans mon mur</span>
+                  <span className="absolute right-2 top-2 rounded-full bg-black/85 px-2 py-1 text-[10px] font-extrabold leading-none tabular-nums text-white shadow-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
+                    {drinksByCan.get(c.id) ?? 0} ⚡
+                  </span>
                   {brand?.logo_url && <img src={brand.logo_url} alt={brand.name} className="absolute bottom-2 left-2 h-5 max-w-14 object-contain opacity-80" />}
                   <CanArt can={c} brandName={brand?.name} className="max-h-36 max-w-[76px] transition-transform duration-300 group-hover:scale-105 sm:max-h-44" />
                 </div>
