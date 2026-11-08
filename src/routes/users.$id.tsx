@@ -130,7 +130,7 @@ function PublicUserProfile() {
     <Link to="/community" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Retour à la communauté</Link>
     <ProfileBanner src={person.banner_url} />
     <header className="relative -mt-20 flex flex-wrap items-center gap-4 rounded-2xl border bg-card/90 p-4 backdrop-blur">
-      <AvatarZoom ringColor={person.avatar_ring_color} src={person.avatar_url} alt={`Photo de ${person.username}`} className="profile-avatar-ring flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-2xl font-black text-primary-foreground">
+      <AvatarZoom ringColor={person.avatar_ring_color} src={person.avatar_url} alt={`Photo de ${person.username}`} className="profile-avatar-ring flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-primary text-2xl font-black text-primary-foreground">
         {person.avatar_url ? <img src={person.avatar_url} alt={`Photo de ${person.username}`} className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? "?"}
       </AvatarZoom>
       <div className="min-w-0 flex-1">

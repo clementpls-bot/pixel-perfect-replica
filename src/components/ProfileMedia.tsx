@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { getProfileRingColor } from "@/lib/profile-colors";
 
 /** Wraps an avatar so clicking it opens the photo full size. */
-export function AvatarZoom({ src, alt, children, className, ringColor }: { src: string | null | undefined; alt: string; children: ReactNode; className?: string; ringColor?: string | null }) {
+export function AvatarZoom({ src, alt, children, className, ringColor }: { src: string | null | undefined; alt: string; children: ReactNode; className?: string; ringColor?: string | null | undefined }) {
   const [open, setOpen] = useState(false);
   if (!src) return <div className={className} data-ring-color={getProfileRingColor(ringColor)}>{children}</div>;
   return <>
