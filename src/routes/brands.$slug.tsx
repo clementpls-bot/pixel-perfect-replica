@@ -145,7 +145,7 @@ function BrandPage() {
               can.flavour,
             ].filter(Boolean);
             return (
-              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="group rounded-[22px] border border-[#ededf0] bg-white p-3 text-center shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)] active:scale-[0.98]">
+              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} search={{ from: `/brands/${slug}` }} className="group rounded-[22px] border border-[#ededf0] bg-white p-3 text-center shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)] active:scale-[0.98]">
                 <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[68px] group-hover:-translate-y-1" />
                 <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
                 {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
