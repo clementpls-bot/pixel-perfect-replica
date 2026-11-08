@@ -45,8 +45,11 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   limon: ["citron", "lemon", "limone"],
   limone: ["citron", "lemon", "limon"],
   "citron vert": ["lime", "lima"],
+  vert: ["lime", "lima"],
   lime: ["citron vert", "lima"],
   lima: ["citron vert", "lime"],
+  verde: ["lime"],
+  green: ["lime"],
   pasteque: ["watermelon", "sandia", "anguria"],
   watermelon: ["pasteque", "sandia", "anguria"],
   sandia: ["pasteque", "watermelon", "anguria"],
@@ -82,6 +85,8 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   sans: ["sugarfree", "sugar free", "sin", "senza"],
   sugarfree: ["sans sucre", "sugar free", "sin azucar", "senza zucchero"],
   "sans sucre": ["sugarfree", "sugar free", "sin azucar", "senza zucchero"],
+  azucar: ["sugarfree", "sugar free", "sans sucre", "senza zucchero"],
+  zucchero: ["sugarfree", "sugar free", "sans sucre", "sin azucar"],
 };
 
 function levenshtein(a: string, b: string) {
