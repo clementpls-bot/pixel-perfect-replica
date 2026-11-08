@@ -125,7 +125,7 @@ export function matchesSearch(
   query: string,
   values: Array<string | number | null | undefined>,
 ) {
-  const tokens = normalizeSearch(query).split(/\s+/).filter(Boolean);
+  const tokens = normalizeSearch(query).split(/\s+/).filter((token) => Boolean(token) && !["de", "del", "la", "el", "the", "di", "y"].includes(token));
   if (tokens.length === 0) return true;
   const haystack = normalizeSearch(values.filter((value) => value != null).join(" "));
   const haystackTokens = haystack.split(/\s+/).filter(Boolean);
