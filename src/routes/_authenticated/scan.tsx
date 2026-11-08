@@ -558,7 +558,7 @@ function Scanner() {
                 {active && <CheckCircle2 className="h-5 w-5 text-primary" />}
               </button>;
             })}
-            <Button className="h-12 w-full rounded-xl font-bold" disabled={!selected || !user} onClick={async () => { if (!selected) return; try { const isNew = await addCan(selected.id); setFound({ can: selected as unknown as Can, isNew }); setVisionResult(null); } catch (error) { toast.error((error as Error).message); } }}>Ajouter à mon coffre</Button>
+            <Button className="h-12 w-full rounded-xl font-bold" disabled={!selected || !user} onClick={async () => { if (!selected) return; try { const result = await addCan(selected.id); setFound({ can: selected as unknown as Can, ...result }); setVisionResult(null); } catch (error) { toast.error((error as Error).message); } }}>Ajouter à mon coffre</Button>
             {selected && <Link to="/cans/$id" params={{ id: selected.id }} className="block text-center text-sm font-semibold text-primary">Voir la fiche complète</Link>}
           </div>
         ) : (
