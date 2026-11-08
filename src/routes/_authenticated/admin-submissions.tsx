@@ -61,7 +61,13 @@ const fieldOptions = [
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/admin-submissions")({
-  head: () => ({ meta: [{ title: "Modération des propositions — Cansdex" }] }),
+  head: () => ({ meta: [{ title: "Modération des propositions — Cansdex" },
+      { name: "description", content: "Validation des propositions de canettes Cansdex." },
+      { property: "og:title", content: "Modération des propositions — Cansdex" },
+      { property: "og:description", content: "Validation des propositions de canettes Cansdex." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: AdminSubmissions,
 });
 

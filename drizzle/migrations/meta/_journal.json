@@ -43,6 +43,13 @@
       "when": 1793948992541,
       "tag": "0005_retire_can_models",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794096866046,
+      "tag": "0006_profile_avatar_ring_color",
+      "breakpoints": true
     }
   ]
 }

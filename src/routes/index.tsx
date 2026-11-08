@@ -13,6 +13,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Scanne, collectionne, complète. Cansdex est le terrain de jeu des collectionneurs de canettes." },
       { property: "og:title", content: "Cansdex — La chasse est ouverte." },
       { property: "og:description", content: "Toutes les canettes. Une seule collection. À toi de jouer." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LandingPage,

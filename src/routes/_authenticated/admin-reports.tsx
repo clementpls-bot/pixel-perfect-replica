@@ -21,7 +21,13 @@ type ReportRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/admin-reports")({
-  head: () => ({ meta: [{ title: "Signalements de comptes — Cansdex" }] }),
+  head: () => ({ meta: [{ title: "Signalements de comptes — Cansdex" },
+      { name: "description", content: "Examen des signalements de comptes Cansdex." },
+      { property: "og:title", content: "Signalements de comptes — Cansdex" },
+      { property: "og:description", content: "Examen des signalements de comptes Cansdex." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: AdminProfileReports,
 });
 

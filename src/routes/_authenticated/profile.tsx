@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, LogOut, Pencil, Trash2, X } from "lucide-react";
+import { Camera, Check, LogOut, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
 import { pastelCanColor } from "@/lib/can-colors";
+import { PROFILE_RING_COLORS, getProfileRingColor, type ProfileRingColor } from "@/lib/profile-colors";
+import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
@@ -23,6 +25,8 @@ export const Route = createFileRoute("/_authenticated/profile")({
       { name: "description", content: "Vos statistiques de collection et vos succès." },
       { property: "og:title", content: "Moi — Cansdex" },
       { property: "og:description", content: "Vos statistiques de collection et vos succès." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Profile,
@@ -40,7 +44,7 @@ function Profile() {
   const [editing, setEditing] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState("");
   const [displayNameDraft, setDisplayNameDraft] = useState("");
-  const [editingDisplayName, setEditingDisplayName] = useState(false);
+  const [savingRingColor, setSavingRingColor] = useState(false);
   const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -64,7 +68,7 @@ function Profile() {
   useEffect(() => {
     if (profile) {
       setUsernameDraft(profile.username ?? "");
-      setDisplayNameDraft((profile as any).display_name ?? profile.username ?? "");
+      setDisplayNameDraft(profile.display_name ?? profile.username ?? "");
     }
   }, [profile]);
 
@@ -132,6 +136,7 @@ function Profile() {
   };
 
   const saveUsername = async () => {
+    if (!user) return;
     const next = usernameDraft.trim();
     if (!USERNAME_RULE.test(next)) {
       toast.error("Utilisez 3 à 24 caractères : lettres, chiffres, points, tirets ou tirets bas.");
@@ -147,9 +152,9 @@ function Profile() {
     }
     setSavingUsername(true);
     try {
-      const { error } = await supabase.from("profiles").update({ username: next }).eq("id", user!.id);
+      const { error } = await supabase.from("profiles").update({ username: next }).eq("id", user.id);
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+      await qc.invalidateQueries({ queryKey: ["profile", user.id] });
       toast.success("Nom d’utilisateur mis à jour.");
       setEditing(false);
     } catch (error) {
@@ -168,16 +173,32 @@ function Profile() {
     }
     setSavingDisplayName(true);
     try {
-      const { error } = await (supabase as any).from("profiles").update({ display_name: next }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ display_name: next }).eq("id", user.id);
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["profile", user.id] });
       toast.success("Nom d’affichage mis à jour.");
-      setEditingDisplayName(false);
+      setEditing(false);
     } catch (error) {
       toast.error((error as Error).message || "Impossible de modifier le nom d’affichage.");
     } finally {
       setSavingDisplayName(false);
     }
+  };
+
+  const saveRingColor = async (color: ProfileRingColor) => {
+    if (!user || savingRingColor) return;
+    setSavingRingColor(true);
+    try {
+      const { error } = await supabase.from("profiles").update({ avatar_ring_color: color }).eq("id", user.id);
+      if (error) throw error;
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["profile", user.id] }),
+        qc.invalidateQueries({ queryKey: ["public-profile", user.id] }),
+      ]);
+      toast.success("Couleur du contour enregistrée.");
+    } catch (error) {
+      toast.error((error as Error).message || "Impossible de modifier la couleur.");
+    } finally { setSavingRingColor(false); }
   };
 
   const deleteComment = async () => {
@@ -251,12 +272,12 @@ function Profile() {
       <header className="relative -mt-24 flex flex-col items-center gap-3 text-center">
         <Button size="icon" variant="ghost" className="absolute right-0 top-24 rounded-full" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
         <div className="relative shrink-0">
-          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-[#fff4bd] font-display text-5xl font-black text-foreground shadow-[0_0_0_5px_#e5a34c]">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" ringColor={profile?.avatar_ring_color} className="profile-avatar-ring flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-[5px] border-background bg-pastel-yellow font-display text-5xl font-black text-foreground">
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
               : profile?.username?.[0]?.toUpperCase()}
           </AvatarZoom>
-          <label className="absolute -bottom-1 -right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-black text-white shadow" aria-label="Changer la photo de profil">
+          <label className="absolute -bottom-1 -right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow" aria-label="Changer la photo de profil">
             {uploadingAvatar ? <span className="text-[9px]">…</span> : <Camera className="h-4 w-4" />}
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
               disabled={uploadingAvatar} onChange={(event) => {
@@ -265,57 +286,51 @@ function Profile() {
               }} />
           </label>
         </div>
-        <div className="w-full min-w-0">
-          {editing ? (
-            <div className="space-y-2">
-              <input value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value)}
-                maxLength={24} autoComplete="nickname" aria-label="Nouveau nom d’utilisateur"
-                className="w-full rounded-xl border bg-background px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-ring" />
-              <div className="flex gap-2">
-                <Button size="sm" className="rounded-lg" disabled={savingUsername} onClick={() => void saveUsername()}>
-                  <Check className="mr-1 h-4 w-4" /> Enregistrer
-                </Button>
-                <Button size="sm" variant="ghost" className="rounded-lg" onClick={() => {
-                  setUsernameDraft(profile?.username ?? "");
-                  setEditing(false);
-                }}><X className="mr-1 h-4 w-4" /> Annuler</Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <h1 className="break-words font-display text-4xl leading-none">{(profile as any)?.display_name || profile?.username}</h1>
-              <p className="mt-1 text-xs text-muted-foreground">@{profile?.username}</p>
-              {editingDisplayName ? <div className="mx-auto mt-2 flex max-w-sm gap-2">
-                <input value={displayNameDraft} onChange={(event) => setDisplayNameDraft(event.target.value)} maxLength={32} aria-label="Nom d’affichage" className="min-w-0 flex-1 rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
-                <Button size="sm" disabled={savingDisplayName} onClick={() => void saveDisplayName()}><Check className="h-4 w-4" /></Button>
-                <Button size="sm" variant="ghost" onClick={() => { setDisplayNameDraft((profile as any)?.display_name || profile?.username || ""); setEditingDisplayName(false); }}><X className="h-4 w-4" /></Button>
-              </div> : <button type="button" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline" onClick={() => setEditingDisplayName(true)}><Pencil className="h-3 w-3" /> Modifier le nom d’affichage</button>}
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                <button
-                  type="button"
-                  onClick={() => setDrinksDialogOpen(true)}
-                  disabled={totalDrinks === 0}
-                  className="inline-flex items-center gap-1 font-semibold text-foreground underline-offset-4 transition hover:text-primary hover:underline disabled:cursor-default disabled:no-underline disabled:hover:text-foreground"
-                  aria-label="Voir les canettes correspondant à mes Drinks"
-                >
-                  {totalDrinks} Drinks
-                </button>{totalDrinks > 0 && mostDrunkBrand?.drinks ? <> <span aria-hidden="true">·</span> Plus consommée : <span className="font-semibold" style={{ color: mostDrunkBrand.color }}>{mostDrunkBrand.name}</span></> : ""}
-              </p>
-              <button className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                onClick={() => {
-                  if (!canChangeUsername) {
-                    toast.error(`Vous pourrez modifier votre nom d’utilisateur à nouveau le ${nextUsernameDate}.`);
-                    return;
-                  }
-                  setEditing(true);
-                }}>
-                <Pencil className="h-3 w-3" /> Modifier le pseudo (@)
-              </button>
-            </>
-          )}
+        <div className="w-full min-w-0 space-y-2 px-4">
+          <h1 className="break-words font-display text-3xl leading-tight">{profile?.display_name || profile?.username}</h1>
+          <p className="text-sm text-muted-foreground">@{profile?.username}</p>
+          <Button variant="secondary" className="h-10 rounded-full px-5" onClick={() => setEditing(true)}>
+            <Pencil className="h-4 w-4" /> Modifier le profil
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setDrinksDialogOpen(true)} disabled={totalDrinks === 0}>{totalDrinks} Drinks</Button>
+            {totalDrinks > 0 && mostDrunkBrand?.drinks ? <> · Plus consommée : <span className="font-semibold text-foreground">{mostDrunkBrand.name}</span></> : ""}
+          </p>
         </div>
         <Link to="/community" className="pill-dark mt-1 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Voir le classement <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">Nv {Math.floor(Math.sqrt(ownedSet.size * 10 / 50)) + 1}</span></Link>
       </header>
+      <Dialog open={editing} onOpenChange={setEditing}>
+        <DialogContent>
+          <DialogHeader className="text-left">
+            <DialogTitle>Modifier le profil</DialogTitle>
+            <DialogDescription>Ton identité et la couleur de ta photo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="profile-display-name" className="text-sm font-bold">Nom d’affichage</label>
+              <div className="flex gap-2">
+                <Input id="profile-display-name" value={displayNameDraft} onChange={(event) => setDisplayNameDraft(event.target.value)} maxLength={32} className="h-11 min-w-0 flex-1" />
+                <Button size="icon" className="h-11 w-11 shrink-0" aria-label="Enregistrer le nom d’affichage" title="Enregistrer le nom d’affichage" disabled={savingDisplayName || !displayNameDraft.trim() || displayNameDraft.trim() === profile?.display_name} onClick={() => void saveDisplayName()}><Check /></Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="profile-username" className="text-sm font-bold">Pseudo</label>
+              <div className="flex gap-2">
+                <div className="relative min-w-0 flex-1"><span className="pointer-events-none absolute left-3 top-3 text-muted-foreground">@</span><Input id="profile-username" value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value)} maxLength={24} autoComplete="nickname" disabled={!canChangeUsername} className="h-11 pl-8" /></div>
+                <Button size="icon" className="h-11 w-11 shrink-0" aria-label="Enregistrer le pseudo" title="Enregistrer le pseudo" disabled={savingUsername || !canChangeUsername || usernameDraft.trim() === profile?.username} onClick={() => void saveUsername()}><Check /></Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{canChangeUsername ? "Modifiable une fois tous les 7 jours." : `Prochaine modification le ${nextUsernameDate}.`}</p>
+            </div>
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-bold">Couleur du contour</legend>
+              <div className="grid grid-cols-6 gap-3">
+                {PROFILE_RING_COLORS.map((color) => <Button key={color.id} variant="ghost" size="icon" aria-label={color.label} title={color.label} aria-pressed={getProfileRingColor(profile?.avatar_ring_color) === color.id} disabled={savingRingColor} data-ring-color={color.id} onClick={() => void saveRingColor(color.id)} className="h-10 w-10 justify-self-center rounded-full border border-border p-1"><span className="profile-color-swatch grid h-full w-full place-items-center rounded-full">{getProfileRingColor(profile?.avatar_ring_color) === color.id && <Check className="h-4 w-4 text-foreground" />}</span></Button>)}
+              </div>
+            </fieldset>
+          </div>
+          <DialogFooter><Button variant="secondary" onClick={() => setEditing(false)} className="rounded-full">Terminé</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <FriendsHub />
       <div className="flex border-b border-[#ececf0] gap-0">
         {([["overview", "Vue d’ensemble"], ["activity", "Activité"]] as const).map(([k, l]) => <button key={k} onClick={() => setProfileTab(k)} className={`flex-1 border-b-[3px] px-5 py-3 text-sm font-bold transition ${profileTab === k ? "border-black text-black" : "border-transparent text-muted-foreground"}`}>{l}</button>)}

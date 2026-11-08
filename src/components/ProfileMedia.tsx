@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { getProfileRingColor } from "@/lib/profile-colors";
 
 /** Wraps an avatar so clicking it opens the photo full size. */
-export function AvatarZoom({ src, alt, children, className }: { src: string | null | undefined; alt: string; children: ReactNode; className?: string }) {
+export function AvatarZoom({ src, alt, children, className, ringColor }: { src: string | null | undefined; alt: string; children: ReactNode; className?: string; ringColor?: string | null | undefined }) {
   const [open, setOpen] = useState(false);
-  if (!src) return <div className={className}>{children}</div>;
+  if (!src) return <div className={className} data-ring-color={getProfileRingColor(ringColor)}>{children}</div>;
   return <>
-    <button type="button" onClick={() => setOpen(true)} className={`${className ?? ""} cursor-zoom-in`} aria-label={`Voir ${alt} en grand`}>{children}</button>
+    <Button variant="ghost" type="button" onClick={() => setOpen(true)} data-ring-color={getProfileRingColor(ringColor)} className={`${className ?? ""} cursor-zoom-in p-0`} aria-label={`Voir ${alt} en grand`}>{children}</Button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md border-none bg-transparent p-0 shadow-none">
         <DialogTitle className="sr-only">{alt}</DialogTitle>
