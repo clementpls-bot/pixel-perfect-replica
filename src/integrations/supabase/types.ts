@@ -611,6 +611,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_ring_color: string
           avatar_url: string | null
           banner_url: string | null
           created_at: string
@@ -621,6 +622,7 @@ export type Database = {
           username_changed_at: string | null
         }
         Insert: {
+          avatar_ring_color?: string
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string
@@ -631,6 +633,7 @@ export type Database = {
           username_changed_at?: string | null
         }
         Update: {
+          avatar_ring_color?: string
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string

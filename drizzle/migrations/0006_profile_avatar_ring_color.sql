@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN avatar_ring_color text NOT NULL DEFAULT 'amber' CHECK (avatar_ring_color IN ('amber','coral','rose','red','violet','blue','sky','teal','mint','green','yellow','graphite'));
+COMMENT ON COLUMN public.profiles.avatar_ring_color IS 'Collector-selected profile avatar outline color; one of twelve palette keys.';

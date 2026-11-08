@@ -16,7 +16,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#ececf0] bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-3px_18px_rgba(20,20,30,.04)] backdrop-blur md:hidden">
+      <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-lg items-end px-1">
           {items.slice(0, 2).map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to} className={mobileItem} activeProps={active}>
@@ -24,8 +24,8 @@ export function BottomNav() {
               <span>{label}</span>
             </Link>
           ))}
-          <Link to="/scan" aria-label="Scanner une canette" className="relative -mt-5 flex flex-1 flex-col items-center gap-1 py-1 text-[10px] font-bold text-white">
-            <span className="grid h-12 w-12 place-items-center rounded-full border-[4px] border-white bg-black shadow-md transition-transform active:scale-95"><ScanLine className="h-5 w-5" /></span>
+          <Link to="/scan" aria-label="Scanner une canette" className="relative -mt-5 flex flex-1 flex-col items-center gap-1 py-1 text-[10px] font-bold text-primary-foreground">
+            <span className="grid h-12 w-12 place-items-center rounded-full border-[4px] border-background bg-primary shadow-md transition-transform active:scale-95"><ScanLine className="h-5 w-5" /></span>
             <span className="text-foreground">Ajouter</span>
           </Link>
           {items.slice(2).map(({ to, label, icon: Icon }) => (

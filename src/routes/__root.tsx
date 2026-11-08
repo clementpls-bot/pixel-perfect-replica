@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Cansdex — Collection de canettes" },
       { name: "description", content: "Scannez les codes-barres, collectionnez les canettes et complétez chaque marque." },
       { property: "og:title", content: "Cansdex — Collection de canettes" },
@@ -139,7 +139,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthProvider>
-        <main className={isLandingPage ? "min-h-screen w-full p-0" : "min-h-screen w-full px-4 pb-28 pt-6 md:ml-60 md:w-[calc(100%-15rem)] md:px-8 md:pb-10 md:pt-8 lg:px-10 xl:px-12"}>
+        <main className={isLandingPage ? "min-h-dvh w-full p-0" : "app-content min-h-dvh w-full px-4 md:ml-64 md:w-[calc(100%-16rem)] md:px-8 md:pb-10 md:pt-8 lg:px-10 xl:px-12"}>
           <Outlet />
         </main>
         {!isLandingPage && <BottomNav />}
