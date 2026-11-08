@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import type { Can } from "@/lib/data";
 
-/** Affiche la photo d'origine sans filtre ; le cadenas reste discret dans un coin. */
+/** Fond blanc fondu dans la carte sans modifier la photo stockée. */
 export function CanArt({ can, brandName, missing, showLock, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; showLock?: boolean | undefined; className?: string | undefined }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState<{ source: string; scale: number } | null>(null);
@@ -24,12 +24,12 @@ export function CanArt({ can, brandName, missing, showLock, className }: { can: 
   const scale = imageScale?.source === can.image_url ? imageScale.scale : 1;
 
   return (
-    <div className={cn("relative z-10 mx-auto aspect-[1/1.9] w-full max-w-[120px] overflow-visible transition-all duration-300", className)}>
+    <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] overflow-visible transition-all duration-300", className)}>
       {showPhoto ? (
         <img
-          src={can.image_url!}
+          src={can.image_url ?? undefined}
           alt={can.name}
-          className={cn("h-full w-full object-contain transition-[transform,filter] duration-300", missing && "grayscale")}
+          className={cn("h-full w-full object-contain mix-blend-multiply transition-[transform,filter] duration-300", missing && "grayscale")}
           style={{ transform: `scale(${scale})` }}
           loading="lazy"
           decoding="async"
