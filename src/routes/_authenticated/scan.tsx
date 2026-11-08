@@ -35,7 +35,7 @@ function Scanner() {
   const { data } = useCatalog();
   const { user } = useAuth();
   const addCan = useAddCan();
-  const [found, setFound] = useState<{ can: Can; isNew: boolean } | null>(null);
+  const [found, setFound] = useState<{ can: Can; isNew: boolean; drinksCount: number } | null>(null);
   const [barcodeMatches, setBarcodeMatches] = useState<Can[]>([]);
   const [scanMode, setScanMode] = useState<"vision" | "barcode">("barcode");
   const [visionBusy, setVisionBusy] = useState(false);
@@ -120,9 +120,9 @@ function Scanner() {
     }
     try {
       const can = matches[0]!;
-      const isNew = await addCan(can.id);
+      const result = await addCan(can.id);
       navigator.vibrate?.(80);
-      setFound({ can, isNew });
+      setFound({ can, ...result });
     } catch (e) {
       toast.error((e as Error).message);
       busy.current = false;
@@ -372,10 +372,10 @@ function Scanner() {
 
   const chooseBarcodeCan = async (can: Can) => {
     try {
-      const isNew = await addCan(can.id);
+      const result = await addCan(can.id);
       navigator.vibrate?.(80);
       setBarcodeMatches([]);
-      setFound({ can, isNew });
+      setFound({ can, ...result });
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -511,10 +511,11 @@ function Scanner() {
     const brand = data?.brands.find((b) => b.id === found.can.brand_id);
     return (
       <div className="pt-6 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "Nouvelle canette débloquée !" : "Déjà débloquée · quantité inchangée"}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">{found.isNew ? "Nouvelle canette débloquée !" : "Nouveau drink ajouté !"}</p>
         <div className="mx-auto my-8 w-32 animate-pop-in"><CanArt can={found.can} brandName={brand?.name} /></div>
         <h1 className="text-2xl font-black">{found.can.name}</h1>
         <p className="text-muted-foreground">{brand?.name} · {found.can.release_year}</p>
+        <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary"><Sparkles className="h-4 w-4" /> {found.drinksCount} {found.drinksCount > 1 ? "Drinks enregistrés" : "Drink enregistré"}</div>
         <div className="mt-8 flex gap-3">
           <Link to="/cans/$id" params={{ id: found.can.id }} className="flex-1"><Button variant="secondary" className="h-12 w-full rounded-xl">Voir la fiche</Button></Link>
           <Button className="h-12 flex-1 rounded-xl font-bold" onClick={resetScanner}>Scanner une autre canette</Button>
@@ -688,7 +689,6 @@ function Scanner() {
                     id={`photo-${key}`}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
-                    required={required}
                     onChange={(e) => { chooseImage(key, e.target.files?.[0]); e.currentTarget.value = ""; }}
                     className="sr-only"
                   />
