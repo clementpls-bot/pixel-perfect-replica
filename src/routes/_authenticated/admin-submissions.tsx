@@ -259,12 +259,23 @@ function AdminSubmissions() {
     if (!window.confirm(`Confirmer : ${label} ?`)) return;
     setBarcodeBusyId(item.id);
     try {
-      const { error } = await supabase.from("can_barcodes" as any)
-        .update({ status: approveIt ? "approved" : "rejected" })
-        .eq("id", item.id);
-      if (error) throw error;
+      if (approveIt) {
+        const { error } = await (supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ error: Error | null }>)("approve_can_barcode", {
+          p_barcode_id: item.id,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("can_barcodes" as any)
+          .update({ status: "rejected" })
+          .eq("id", item.id)
+          .eq("status", "pending");
+        if (error) throw error;
+      }
       await refresh();
-      toast.success(approveIt ? "Code-barres validé et ajouté au catalogue." : "Proposition de code-barres refusée.");
+      toast.success(approveIt ? "Code-barres validé : la canette a aussi été ajoutée au mur du contributeur." : "Proposition de code-barres refusée.");
     } catch (error) {
       toast.error((error as Error).message || "Impossible de traiter ce code-barres.");
     } finally {
