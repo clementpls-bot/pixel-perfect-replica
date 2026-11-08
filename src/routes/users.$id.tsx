@@ -17,12 +17,16 @@ import { FriendProfileActions } from "@/components/FriendSystem";
 export const Route = createFileRoute("/users/$id")({
   head: () => ({ meta: [
     { title: "Profil collectionneur — Cansdex" },
+    { property: "og:title", content: "Profil collectionneur — Cansdex" },
+    { property: "og:description", content: "Découvre la collection et les succès d’un collectionneur Cansdex." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "description", content: "Découvre la collection, les succès et les échanges d’un collectionneur Cansdex." },
   ] }),
   component: PublicUserProfile,
 });
 
-type PublicProfile = { id: string; username: string; display_name?: string | null; avatar_url: string | null; banner_url: string | null; created_at: string };
+type PublicProfile = { avatar_ring_color: string; id: string; username: string; display_name?: string | null; avatar_url: string | null; banner_url: string | null; created_at: string };
 type UserComment = { id: string; can_id: string; body: string | null; image_url: string | null; parent_id: string | null; created_at: string };
 type CanSummary = { id: string; name: string; image_url: string | null; color_primary: string };
 
@@ -39,7 +43,7 @@ function PublicUserProfile() {
   const profile = useQuery({
     queryKey: ["public-profile", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id,username,display_name,avatar_url,banner_url,created_at").eq("id", id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id,username,display_name,avatar_url,banner_url,created_at,avatar_ring_color").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as PublicProfile | null;
     },
@@ -126,7 +130,7 @@ function PublicUserProfile() {
     <Link to="/community" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Retour à la communauté</Link>
     <ProfileBanner src={person.banner_url} />
     <header className="relative -mt-20 flex flex-wrap items-center gap-4 rounded-2xl border bg-card/90 p-4 backdrop-blur">
-      <AvatarZoom src={person.avatar_url} alt={`Photo de ${person.username}`} className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-2xl font-black text-primary-foreground">
+      <AvatarZoom ringColor={person.avatar_ring_color} src={person.avatar_url} alt={`Photo de ${person.username}`} className="profile-avatar-ring flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-2xl font-black text-primary-foreground">
         {person.avatar_url ? <img src={person.avatar_url} alt={`Photo de ${person.username}`} className="h-full w-full object-cover" /> : person.username?.[0]?.toUpperCase() ?? "?"}
       </AvatarZoom>
       <div className="min-w-0 flex-1">
