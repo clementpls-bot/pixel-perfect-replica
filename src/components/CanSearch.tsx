@@ -45,6 +45,10 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   limon: ["citron", "lemon", "limone"],
   limone: ["citron", "lemon", "limon"],
   "citron vert": ["lime", "lima"],
+  "noix de coco": ["coconut", "coco"],
+  "sugar free": ["sans sucre", "sin azucar", "senza zucchero"],
+  "sin azucar": ["sugar free", "sugarfree", "sans sucre", "senza zucchero"],
+  "senza zucchero": ["sugar free", "sugarfree", "sans sucre", "sin azucar"],
   vert: ["lime", "lima"],
   lime: ["citron vert", "lima"],
   lima: ["citron vert", "lime"],
@@ -125,9 +129,12 @@ export function matchesSearch(
   query: string,
   values: Array<string | number | null | undefined>,
 ) {
-  const tokens = normalizeSearch(query).split(/\s+/).filter((token) => Boolean(token) && !["de", "del", "la", "el", "the", "di", "y"].includes(token));
-  if (tokens.length === 0) return true;
+  const normalizedQuery = normalizeSearch(query);
   const haystack = normalizeSearch(values.filter((value) => value != null).join(" "));
+  const phraseAlternatives = SEARCH_SYNONYMS[normalizedQuery] ?? [];
+  if (phraseAlternatives.some((alternative) => haystack.includes(normalizeSearch(alternative)))) return true;
+  const tokens = normalizedQuery.split(/\s+/).filter((token) => Boolean(token) && !["de", "del", "la", "el", "the", "di", "y"].includes(token));
+  if (tokens.length === 0) return true;
   const haystackTokens = haystack.split(/\s+/).filter(Boolean);
   return tokens.every((token) => tokenMatches(token, haystackTokens));
 }
