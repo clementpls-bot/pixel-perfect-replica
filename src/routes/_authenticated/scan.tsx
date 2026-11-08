@@ -664,10 +664,10 @@ function Scanner() {
               <p className="text-xs text-muted-foreground">La photo de face est obligatoire. Prends une photo avec la caméra ou choisis une image dans ta galerie. Les photos du dos et du code-barres sont facultatives. JPG, PNG ou WebP ; 8 Mo maximum par photo.</p>
             </div>
             {([
-              ["front", "Face avant de la canette *", true],
-              ["back", "Dos de la canette (facultatif)", false],
-              ["barcode", "Gros plan du code-barres (facultatif)", false],
-            ] as const).map(([key, label, required]) => (
+              ["front", "Face avant de la canette *"],
+              ["back", "Dos de la canette (facultatif)"],
+              ["barcode", "Gros plan du code-barres (facultatif)"],
+            ] as const).map(([key, label]) => (
               <div key={key} className="space-y-1">
                 <label className="text-sm font-medium">{label}</label>
                 <div className="flex flex-wrap items-center gap-2">
