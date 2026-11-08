@@ -7,6 +7,7 @@ import {
   useRouterState,
   HeadContent,
   Scripts,
+  ScrollRestoration,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
@@ -139,6 +140,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthProvider>
+        <ScrollRestoration />
         <main className={isLandingPage ? "min-h-dvh w-full p-0" : "app-content min-h-dvh w-full px-4 md:ml-64 md:w-[calc(100%-16rem)] md:px-8 md:pb-10 md:pt-8 lg:px-10 xl:px-12"}>
           <Outlet />
         </main>
