@@ -80,73 +80,29 @@ function invalidateOwned(qc: ReturnType<typeof useQueryClient>, userId: string) 
   ]);
 }
 
-/** Scanning unlocks a can once; scanning it again never increases its quantity. */
+/** Every barcode scan unlocks the can if needed and records exactly one Drink. */
 export function useAddCan() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return async (canId: string) => {
     if (!user) throw new Error("Connecte-toi d’abord.");
-    const { data: existing, error: lookupError } = await supabase
-      .from("user_cans").select("id").eq("can_id", canId).limit(1).maybeSingle();
-    if (lookupError) throw lookupError;
-    // Ensure the first Drink exists even for a can that was added by an older
-    // version of the scanner. Never reset a count that is already above one.
-    const ensureFirstDrink = async () => {
-      const { data: current, error: drinksLookupError } = await supabase
-        .from("user_can_drinks")
-        .select("drinks_count")
-        .eq("user_id", user.id)
-        .eq("can_id", canId)
-        .maybeSingle();
-      if (drinksLookupError) throw drinksLookupError;
-      if (!current || current.drinks_count < 1) {
-        const { error: drinksSaveError } = await supabase.from("user_can_drinks").upsert({
-          user_id: user.id,
-          can_id: canId,
-          drinks_count: Math.max(1, current?.drinks_count ?? 0),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id,can_id" });
-        if (drinksSaveError) throw drinksSaveError;
-      }
-    };
-
-    if (existing) {
-      await ensureFirstDrink();
-      await Promise.all([
-        invalidateOwned(qc, user.id),
-        qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
-        qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
-      ]);
-      return false;
-    }
-
-    const { error } = await supabase.from("user_cans").insert({
-      can_id: canId, user_id: user.id, quantity: 1, condition: "full",
-    });
-    // A concurrent scan may have inserted the same can. Don't turn it into a quantity increment.
-    if (error) {
-      if (error.code === "23505") {
-        await ensureFirstDrink();
-        await invalidateOwned(qc, user.id);
-        return false;
-      }
-      throw error;
-    }
-
-    try {
-      await ensureFirstDrink();
-    } catch (drinkError) {
-      // Avoid leaving a newly-added can in an inconsistent state if its first Drink
-      // could not be recorded.
-      await supabase.from("user_cans").delete().eq("user_id", user.id).eq("can_id", canId);
-      throw drinkError;
-    }
+    const result = await (supabase.rpc as unknown as (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: Array<{ is_new: boolean; drinks_count: number }> | null; error: Error | null }>)(
+      "record_can_scan",
+      { p_can_id: canId },
+    );
+    if (result.error) throw result.error;
+    const scan = result.data?.[0];
+    if (!scan) throw new Error("Le scan n’a pas pu être enregistré. Réessaie.");
     await Promise.all([
       invalidateOwned(qc, user.id),
       qc.invalidateQueries({ queryKey: ["can-drinks", user.id, canId] }),
       qc.invalidateQueries({ queryKey: ["can-drinks-community", canId] }),
+      qc.invalidateQueries({ queryKey: ["brand-can-stats"] }),
     ]);
-    return true;
+    return { isNew: scan.is_new, drinksCount: scan.drinks_count };
   };
 }
 
