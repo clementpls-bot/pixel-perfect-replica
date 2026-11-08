@@ -108,11 +108,10 @@ function Collection() {
             const brand = data.brands.find((b) => b.id === c.brand_id);
             const color = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : "#dfe9f7";
             return (
-              <Link key={c.id} to="/cans/$id" params={{ id: c.id }} className="group min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-2.5 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)]">
+              <Link key={c.id} to="/cans/$id" params={{ id: c.id }} search={{ from: "/collection" }} className="group min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-2.5 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)]">
                 <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ background: `linear-gradient(145deg, ${color}25, #f7f8fa 78%)` }}>
-                  <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-bold text-black shadow-sm">✓ Dans mon mur</span>
-                  <span className="absolute right-2 top-2 rounded-full bg-black/85 px-2 py-1 text-[10px] font-extrabold leading-none tabular-nums text-white shadow-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
-                    {drinksByCan.get(c.id) ?? 0} ⚡
+                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2.5 py-1.5 text-[10px] font-bold leading-none tabular-nums text-[#303238] shadow-[0_2px_8px_rgba(20,20,30,.08)] backdrop-blur-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
+                    <span className="text-[9px] text-[#777b84]">DR</span>{(drinksByCan.get(c.id) ?? 0).toLocaleString("fr-FR")}
                   </span>
                   {brand?.logo_url && <img src={brand.logo_url} alt={brand.name} className="absolute bottom-2 left-2 h-5 max-w-14 object-contain opacity-80" />}
                   <CanArt can={c} brandName={brand?.name} className="max-h-36 max-w-[76px] transition-transform duration-300 group-hover:scale-105 sm:max-h-44" />
