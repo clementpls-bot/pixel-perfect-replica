@@ -764,6 +764,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_can_barcode: {
+        Args: { p_barcode_id: string }
+        Returns: undefined
+      }
       approve_can_submission: {
         Args: { p_submission_id: string }
         Returns: undefined
@@ -791,6 +795,13 @@ export type Database = {
         }[]
       }
       get_total_can_drinks: { Args: { p_can_id: string }; Returns: number }
+      record_can_scan: {
+        Args: { p_can_id: string }
+        Returns: {
+          drinks_count: number
+          is_new: boolean
+        }[]
+      }
       resolve_can_barcode: { Args: { p_barcode: string }; Returns: string }
       review_can_report: {
         Args: {
