@@ -59,6 +59,7 @@ function CanPage() {
   const [drinksOpen, setDrinksOpen] = useState(false);
   const [drinksDraft, setDrinksDraft] = useState("0");
   const [savingCollection, setSavingCollection] = useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [reportDetails, setReportDetails] = useState("");
   const [reportBarcode, setReportBarcode] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
@@ -192,6 +193,7 @@ function CanPage() {
     setSavingCollection(true);
     try {
       await setCanOwned(can.id, false);
+      setRemoveConfirmOpen(false);
       toast.success("Canette retirée de ton mur.");
     } catch (error) {
       toast.error((error as Error).message || "Impossible de mettre à jour ton mur.");
@@ -273,7 +275,7 @@ function CanPage() {
           <span className={qty > 0 ? "rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary" : "rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground"}>{qty > 0 ? "Possédée" : "Non possédée"}</span>
         </div>
         {qty > 0
-          ? <Button onClick={() => void toggleOwnership()} disabled={savingCollection || !user} variant="secondary" className="mt-3 h-10 w-full rounded-xl border border-border/60 bg-transparent text-sm font-semibold text-muted-foreground shadow-none hover:bg-muted/50">Retirer du mur</Button>
+          ? <Button onClick={() => setRemoveConfirmOpen(true)} disabled={savingCollection || !user} variant="secondary" className="mt-3 h-10 w-full rounded-xl border border-border/60 bg-transparent text-sm font-semibold text-muted-foreground shadow-none hover:bg-muted/50">Retirer du mur</Button>
           : <Link to="/scan" className="mt-3 flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 can-accent-fill">Scanner pour ajouter au mur</Link>}
         <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -359,6 +361,23 @@ function CanPage() {
           <Sparkles className="contribute-magic-sparkle relative z-10 h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
+
+      <Dialog open={removeConfirmOpen} onOpenChange={(open) => { if (!savingCollection) setRemoveConfirmOpen(open); }}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Retirer cette canette de ton mur ?</DialogTitle>
+            <DialogDescription>
+              Tu ne la retrouveras plus dans ta collection. Pour l’ajouter à nouveau, tu devras scanner cette canette. Tes Drinks enregistrés ne sont pas supprimés.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button type="button" variant="outline" onClick={() => setRemoveConfirmOpen(false)} disabled={savingCollection}>Annuler</Button>
+            <Button type="button" variant="destructive" onClick={() => void toggleOwnership()} disabled={savingCollection}>
+              {savingCollection ? "Retrait…" : "Oui, retirer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogContent>
