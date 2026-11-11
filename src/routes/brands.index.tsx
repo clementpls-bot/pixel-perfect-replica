@@ -68,9 +68,7 @@ function Brands() {
 
   return (
     <div className="pb-8">
-      <div className="relative isolate mb-6 overflow-hidden rounded-[28px] bg-[#171923] px-5 py-6 text-white sm:px-7 sm:py-8">
-        <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full bg-[#c7ff38] opacity-90 blur-[1px]" />
-        <div className="pointer-events-none absolute right-24 top-10 h-24 w-24 rounded-full bg-[#ff4e78] opacity-80 blur-2xl" />
+      <div className="bubble-surface relative isolate mb-6 overflow-hidden rounded-[28px] bg-[#171923] px-5 py-6 text-white sm:px-7 sm:py-8" style={{ "--bubble-color": "#c7ff38" } as React.CSSProperties}>
         <div className="relative"><span className="energy-kicker"><span className="h-2 w-2 rounded-full bg-[#c7ff38]" /> Le terrain de jeu</span>
           <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">CATALOGUE</h1>
           <p className="mt-2 max-w-xl text-sm text-white/75">Des marques, des couleurs, des canettes à débloquer. À toi de jouer.</p>
