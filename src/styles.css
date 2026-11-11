@@ -48,11 +48,11 @@
   --secondary: oklch(0.72 0.22 190);
   --secondary-foreground: oklch(0.2 0 0);
   --muted: oklch(0.965 0.005 260);
-  --muted-foreground: oklch(0.55 0.01 260);
+  --muted-foreground: oklch(0.43 0.01 260);
   --accent: oklch(0.86 0.27 128);
   --accent-foreground: oklch(0.2 0 0);
   --gold: oklch(0.82 0.19 82);
-  --success: oklch(0.72 0.12 175);
+  --success: oklch(0.46 0.12 175);
   --success-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
@@ -343,7 +343,7 @@
   opacity: .68;
 }
 .can-bubble-backdrop {
-  background: linear-gradient(145deg, var(--brand-color), color-mix(in srgb, var(--brand-color) 86%, black) 100%);
+  background: linear-gradient(145deg, var(--can-color, var(--brand-color, #00cfff)), color-mix(in srgb, var(--can-color, var(--brand-color, #00cfff)) 82%, black) 100%);
 }
 @media (prefers-reduced-motion: reduce) {
   .bubble-surface::before,
