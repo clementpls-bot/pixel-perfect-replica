@@ -351,7 +351,7 @@ function Profile() {
             { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-pastel-peach" },
             { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-pastel-sand" },
             { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-pastel-blue" },
-          ].map((h) => <div key={h.l} className={`${h.c} relative min-h-[112px] overflow-hidden rounded-[22px] p-4`}><span className="absolute bottom-2 right-3 opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
+          ].map((h) => <div key={h.l} className={`${h.c} bubble-surface relative min-h-[112px] overflow-hidden rounded-[22px] p-4`} style={{ "--bubble-color": h.l === "Canettes" ? "#b5e934" : h.l === "Drinks" ? "#4c9de8" : h.l === "Succès" ? "#d7a84b" : "#ed8d72" } as React.CSSProperties}><span className="absolute bottom-2 right-3 opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
         </div>
       </section>}
 
