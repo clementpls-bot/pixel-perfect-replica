@@ -5,7 +5,7 @@ import { Crown, Flame, MessageCircle, Sparkles, Target, ThumbsDown, ThumbsUp, Tr
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
-import { pastelCanColor } from "@/lib/can-colors";
+import { canAccentColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/community")({
   head: () => ({ meta: [
@@ -101,13 +101,13 @@ function CommunityFeedPage() {
   const myRank = ranking.findIndex((r) => r.id === user?.id) + 1;
 
   const header = <div className="space-y-4">
-    {user && <div className="rounded-[22px] bg-[#fff4bd] p-4">
+    {user && <div className="rounded-[22px] bubble-surface bg-[#C7FF00] p-4 text-[#171923] [--bubble-color:#C7FF00]">
       <div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Niveau {level}</p><p className="text-lg font-black">{title}</p></div>
       <div className="text-right"><p className="text-2xl font-black">{myXp} XP</p>{myRank > 0 && <p className="text-xs text-muted-foreground">#{myRank} du classement</p>}</div></div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-background"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, ((myXp - lvlStart) / (lvlEnd - lvlStart)) * 100)}%` }} /></div>
       <p className="mt-1 text-[11px] text-muted-foreground">{lvlEnd - myXp} XP avant le niveau {level + 1}</p>
     </div>}
-    {canOfDay && <Link to="/cans/$id" params={{ id: canOfDay.id }} className="flex items-center gap-3 rounded-[22px] bg-[#e5f2ff] p-3 transition hover:opacity-90">
+    {canOfDay && <Link to="/cans/$id" params={{ id: canOfDay.id }} className="flex items-center gap-3 rounded-[22px] bubble-surface bg-[#1677FF] p-3 text-white [--bubble-color:#1677FF] transition hover:opacity-90">
       {canOfDay.image_url ? <img src={canOfDay.image_url} alt="" className="h-16 w-10 object-contain" /> : <div className="h-16 w-10 rounded-md bg-muted" />}
       <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary"><Sparkles className="h-3 w-3" />Canette du jour</p><p className="truncate font-bold">{canOfDay.name}</p><p className="text-xs text-muted-foreground">{owned?.has(canOfDay.id) ? "✓ Tu l'as déjà, bravo !" : "Trouve-la pour gagner +40 XP"}</p></div>
     </Link>}
@@ -119,14 +119,14 @@ function CommunityFeedPage() {
   if (tab === "ranking") return <div className="mx-auto max-w-4xl space-y-5 pb-8"><h1 className="font-display text-[2rem] tracking-[-.055em] text-black">CLASSEMENT</h1>{header}
     <div className="flex items-end justify-center gap-2 pt-2">{[1, 0, 2].map((i) => { const r = ranking[i]; if (!r) return <div key={i} className="w-24" />; const h = ["h-28", "h-20", "h-14"][i];
       return <Link key={r.id} to="/users/$id" params={{ id: r.id }} className="flex w-24 flex-col items-center gap-1">{i === 0 && <Crown className="h-5 w-5 text-primary" />}<span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-black">{r.name[0]?.toUpperCase()}</span><span className="w-full truncate text-center text-xs font-bold">{r.name}</span><div className={`${h} flex w-full items-start justify-center rounded-t-2xl bg-primary pt-2 text-lg font-black text-primary-foreground`}>{i + 1}</div></Link>; })}</div>
-    <ol className="space-y-2">{ranking.map((r, i) => <li key={r.id}><Link to="/users/$id" params={{ id: r.id }} className={`flex items-center gap-3 rounded-[20px] border border-[#ededf0] bg-white p-3 ${r.id === user?.id ? "ring-2 ring-black" : ""}`}><span className="w-7 text-center text-lg font-black">{["🥇","🥈","🥉"][i] ?? i + 1}</span><span className="flex h-10 w-10 items-center justify-center rounded-full bg-pastel-peach font-display">{r.name[0]?.toUpperCase()}</span><span className="flex-1 truncate font-semibold">{r.name}</span><span className="text-xs text-muted-foreground">{r.posts} posts · {r.likes} 👍</span><span className="font-black">{r.points}</span></Link></li>)}</ol>
+    <ol className="space-y-2">{ranking.map((r, i) => <li key={r.id}><Link to="/users/$id" params={{ id: r.id }} className={`flex items-center gap-3 rounded-[20px] border border-[#ededf0] bg-white p-3 ${r.id === user?.id ? "ring-2 ring-black" : ""}`}><span className="w-7 text-center text-lg font-black">{["🥇","🥈","🥉"][i] ?? i + 1}</span><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF5A00] text-white font-display">{r.name[0]?.toUpperCase()}</span><span className="flex-1 truncate font-semibold">{r.name}</span><span className="text-xs text-muted-foreground">{r.posts} posts · {r.likes} 👍</span><span className="font-black">{r.points}</span></Link></li>)}</ol>
     {!ranking.length && <p className="py-8 text-center text-sm text-muted-foreground">Personne au classement pour l'instant — publie le premier message !</p>}
     <p className="text-center text-[11px] text-muted-foreground">Points : 10 par publication, +5 avec photo, +5 par 👍 reçu.</p>
   </div>;
 
   if (tab === "quests") return <div className="space-y-5"><h1 className="font-display text-4xl">Social</h1>{header}
     {!user ? <p className="text-center text-sm text-muted-foreground">Connecte-toi pour suivre tes défis.</p> :
-    <div className="space-y-2">{quests.map((q) => { const done = q.cur >= q.goal; return <div key={q.label} className={`rounded-[20px] p-4 ${done ? "bg-[#e4f5e9]" : "bg-[#f5f6f8]"}`}>
+    <div className="space-y-2">{quests.map((q) => { const done = q.cur >= q.goal; return <div key={q.label} className={`rounded-[20px] p-4 ${done ? "bg-[#C7FF00] text-[#171923]" : "bg-[#171923] text-white"}`}>
       <div className="flex items-center justify-between gap-2"><p className="flex items-center gap-2 text-sm font-semibold">{done ? "✅" : <Flame className="h-4 w-4 text-primary" />}{q.label}</p><span className="shrink-0 rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-bold">+{q.xp} XP</span></div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${done ? "bg-success" : "bg-primary"}`} style={{ width: `${Math.min(100, (q.cur / q.goal) * 100)}%` }} /></div>
       <p className="mt-1 text-right text-[11px] text-muted-foreground">{Math.min(q.cur, q.goal)} / {q.goal}</p></div>; })}</div>}
@@ -158,7 +158,7 @@ function CommunityFeedPage() {
         const brand = brandMap.get(can.brand_id);
         const ups = post.comment_likes.filter((vote) => vote.vote !== -1).length;
         const downs = post.comment_likes.filter((vote) => vote.vote === -1).length;
-        return <article key={post.id} className="overflow-hidden rounded-3xl transition hover:border-primary/40 hover:shadow-sm" style={{ backgroundColor: pastelCanColor(can.color_primary) }}>
+        return <article key={post.id} className="overflow-hidden rounded-3xl transition hover:border-primary/40 hover:shadow-sm" style={{ backgroundColor: canAccentColor(can.color_primary) }}>
           <Link to="/cans/$id" params={{ id: post.can_id }} className="flex items-center gap-3 border-b bg-muted/30 p-3 transition hover:bg-muted/50">
             {can.image_url ? <img src={can.image_url} alt="" className="h-11 w-8 rounded-md object-contain" /> : <div className="flex h-11 w-8 items-center justify-center rounded-md bg-muted"><MessageCircle className="h-4 w-4 text-muted-foreground" /></div>}
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{can.name}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><p className="truncate text-xs text-muted-foreground">{brand?.name ?? "Marque"} · espace de discussion</p>{user && owned && <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${owned.has(can.id) ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>{owned.has(can.id) ? "✓ Dans ma collection" : "Pas dans ma collection"}</span>}</div></div>
