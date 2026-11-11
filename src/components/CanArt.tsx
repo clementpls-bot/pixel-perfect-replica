@@ -4,32 +4,47 @@ import { cn } from "@/lib/utils";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import type { Can } from "@/lib/data";
 
-/** Fond blanc fondu dans la carte sans modifier la photo stockée. */
-export function CanArt({ can, brandName, missing, showLock, className }: { can: Can; brandName?: string | undefined; missing?: boolean | undefined; showLock?: boolean | undefined; className?: string | undefined }) {
+/** Artwork de canette ou cadenas opaque pour les pièces encore à débloquer. */
+export function CanArt({ can, brandName, brandColor, missing, showLock, className }: {
+  can: Can;
+  brandName?: string | undefined;
+  brandColor?: string | undefined;
+  missing?: boolean | undefined;
+  showLock?: boolean | undefined;
+  className?: string | undefined;
+}) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState<{ source: string; scale: number } | null>(null);
-  const showPhoto = Boolean(can.image_url && failedImageUrl !== can.image_url);
+  const showPhoto = Boolean(!missing && can.image_url && failedImageUrl !== can.image_url);
 
   const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
     if (!can.image_url || imageScale?.source === can.image_url) return;
-
     const image = event.currentTarget;
     const aspectRatio = image.naturalWidth / image.naturalHeight;
-    // Une photo plus large que le format naturel d'une canette contient souvent
-    // davantage de marge latérale : on compense par un zoom modéré et plafonné.
     const scale = Math.min(1.8, Math.max(1, aspectRatio / 0.32));
     setImageScale({ source: can.image_url, scale });
   };
 
   const scale = imageScale?.source === can.image_url ? imageScale.scale : 1;
+  const locked = Boolean(missing || showLock);
 
   return (
     <div className={cn("relative mx-auto aspect-[1/1.9] w-full max-w-[120px] overflow-visible transition-all duration-300", className)}>
-      {showPhoto ? (
+      {missing ? (
+        <div
+          role="img"
+          aria-label={`Canette ${can.name} verrouillée`}
+          title="Ajoute cette canette à ton mur pour la débloquer"
+          className="flex h-full w-full items-center justify-center overflow-hidden rounded-[22px] shadow-[0_12px_28px_rgba(20,20,30,.16)]"
+          style={{ background: `linear-gradient(145deg, ${brandColor || "#7657ff"}, ${brandColor || "#7657ff"} 42%, #171923)` }}
+        >
+          <LockKeyhole className="h-12 w-12 text-white drop-shadow-[0_3px_8px_rgba(0,0,0,.28)]" strokeWidth={2.8} aria-hidden="true" />
+        </div>
+      ) : showPhoto ? (
         <img
           src={can.image_url ?? undefined}
           alt={can.name}
-          className={cn("h-full w-full object-contain mix-blend-multiply transition-[transform,filter] duration-300", missing && "grayscale")}
+          className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300"
           style={{ transform: `scale(${scale})` }}
           loading="lazy"
           decoding="async"
@@ -43,15 +58,12 @@ export function CanArt({ can, brandName, missing, showLock, className }: { can: 
           {brandName && <span className="mt-1 text-[9px] text-muted-foreground">{brandName}</span>}
         </div>
       )}
-      {(showLock ?? missing) && (
-        <span
-          className="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/90 bg-white/95 text-slate-700 shadow-md ring-1 ring-black/5"
-          aria-label="Canette non possédée"
-          title="Ajoute cette canette à ton mur pour la débloquer"
-        >
-          <LockKeyhole className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden="true" />
+      {showLock && !missing && (
+        <span className="absolute -right-1 -top-1 inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#171923] text-white shadow-lg" aria-label="Canette non possédée">
+          <LockKeyhole className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
         </span>
       )}
+      {locked && <span className="sr-only">Canette non possédée</span>}
     </div>
   );
 }
