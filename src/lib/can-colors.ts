@@ -87,13 +87,25 @@ export function getBrandColor(name?: string | null, storedColor?: string | null)
   return generatedBrandColor(name || "Cansdex");
 }
 
-/** Return a can's saturated accent for vivid collection and discussion surfaces. */
-export function canAccentColor(color?: string | null): string {
-  const match = color?.trim().match(/^#?([0-9a-f]{6})$/i);
-  if (!match) return "#ffffff";
-  const hex = match[1] ?? "";
-  const channels = [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
-  return electricizeColor("#" + channels.map((channel) => channel.toString(16).padStart(2, "0")).join(""));
+/** Parse supported database hex colours and reject neutral placeholders. */
+function usableCanHex(value?: string | null): string | null {
+  if (!value) return null;
+  const raw = value.trim().replace(/^#/, "");
+  const expanded = raw.length === 3 ? raw.split("").map((part) => part + part).join("") : raw;
+  if (!/^[0-9a-f]{6}$/i.test(expanded)) return null;
+  const channels = [0, 2, 4].map((offset) => parseInt(expanded.slice(offset, offset + 2), 16) / 255);
+  const max = Math.max(...channels), min = Math.min(...channels);
+  const lightness = (max + min) / 2;
+  const saturation = max === min ? 0 : (max - min) / (1 - Math.abs(2 * lightness - 1));
+  // White/black/grey values are placeholders, not meaningful can colours.
+  if (saturation < 0.16 || lightness > 0.94 || lightness < 0.06) return null;
+  return "#" + expanded.toLowerCase();
+}
+
+/** Return the can's own saturated accent; use its brand colour only as a fallback. */
+export function canAccentColor(color?: string | null, fallback?: string | null): string {
+  const source = usableCanHex(color) ?? usableCanHex(fallback) ?? "#00cfff";
+  return electricizeColor(source);
 }
 
 
