@@ -114,7 +114,7 @@ function CanPage() {
   }, [isOwned, qty]);
   if (!data) return null;
   if (!can) return <p>Canette introuvable.</p>;
-  const brandAccent = canAccentColor(can.color_primary || brand?.color || getBrandColor(brand?.name));
+  const brandAccent = canAccentColor(can.color_primary, getBrandColor(brand?.name, brand?.color));
   const brandAccentSoft = brandAccent;
   const ratingSummary = (k: "design" | "taste") => {
     const values = (ratings.data ?? []).map((r) => r[k]).filter((x): x is number => x != null);
