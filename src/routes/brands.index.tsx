@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useCatalog, useOwned, type Brand } from "@/lib/data";
 import { pct } from "@/lib/achievements";
 import { CanSearch, matchesSearch, normalizeSearch } from "@/components/CanSearch";
-import { getBrandColor } from "@/lib/can-colors";
+import { getBrandColor, getContrastTextColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/brands/")({
   head: () => ({
@@ -118,7 +118,7 @@ function Brands() {
                       {list.length} {list.length > 1 ? "canettes au catalogue" : "canette au catalogue"}
                     </p>
                   </div>
-                  <div className="shrink-0 rounded-xl px-3 py-2 text-right" style={{ backgroundColor: color, color: "#fff" }}>
+                  <div className="shrink-0 rounded-xl px-3 py-2 text-right" style={{ backgroundColor: color, color: getContrastTextColor(color) }}>
                     <p className="text-sm font-black tabular-nums">{n}<span className="font-medium text-white/80">/{list.length}</span></p>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-white/80">{pct(n, list.length)} %</p>
                   </div>
