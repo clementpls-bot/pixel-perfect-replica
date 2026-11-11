@@ -5,7 +5,7 @@ import { MessageCircle, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCatalog } from "@/lib/data";
-import { pastelCanColor } from "@/lib/can-colors";
+import { canAccentColor } from "@/lib/can-colors";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,7 @@ function voteCounts(comment: CommunityComment) {
 export function CanCommunity({ canId, canName }: { canId: string; canName: string }) {
   const { user } = useAuth();
   const { data: catalog } = useCatalog();
-  const canColor = pastelCanColor(catalog?.cans.find((can) => can.id === canId)?.color_primary);
+  const canColor = canAccentColor(catalog?.cans.find((can) => can.id === canId)?.color_primary);
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
