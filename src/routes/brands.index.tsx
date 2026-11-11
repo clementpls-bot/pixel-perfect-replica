@@ -82,7 +82,7 @@ function Brands() {
         ariaLabel="Rechercher une marque dans le catalogue"
         className="mb-4"
       />
-      <div className="mb-5 flex items-center justify-between"><div className="flex gap-2 overflow-x-auto"><span className="shrink-0 rounded-xl bg-[#24262b] px-4 py-2.5 text-xs font-bold text-white">Toutes</span><span className="shrink-0 rounded-xl bg-[#f3f4f6] px-4 py-2.5 text-xs font-bold text-black">Marques populaires</span></div><span className="shrink-0 text-xs text-muted-foreground">{brands.length} marques</span></div>
+      <div className="mb-5 flex items-center justify-between"><div className="flex gap-2 overflow-x-auto"><span className="shrink-0 rounded-xl bg-[#24262b] px-4 py-2.5 text-xs font-bold text-white">Toutes</span><span className="shrink-0 rounded-xl bg-[#1677FF] px-4 py-2.5 text-xs font-bold text-white">Marques populaires</span></div><span className="shrink-0 text-xs text-muted-foreground">{brands.length} marques</span></div>
 
       {brands.length === 0 ? (
         <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -103,7 +103,7 @@ function Brands() {
                 className="energy-card group relative isolate min-w-0 rounded-[24px] bg-white p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
               >
                 <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-44 w-44 rounded-full blur-3xl opacity-40 transition-opacity group-hover:opacity-70" style={{ backgroundColor: color }} />
-                <div className="bubble-surface energy-glow flex h-32 items-center justify-center rounded-[18px] border border-white/40 p-4 sm:h-36" style={{ background: `linear-gradient(135deg, ${color}35, ${color}15, #f7f8fa)`, "--bubble-color": color } as React.CSSProperties}>
+                <div className="bubble-surface energy-glow flex h-32 items-center justify-center rounded-[18px] border border-white/40 p-4 sm:h-36" style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)`, "--bubble-color": color } as React.CSSProperties}>
                   {b.logo_url ? (
                     <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                   ) : (
@@ -118,9 +118,9 @@ function Brands() {
                       {list.length} {list.length > 1 ? "canettes au catalogue" : "canette au catalogue"}
                     </p>
                   </div>
-                  <div className="shrink-0 rounded-xl px-3 py-2 text-right" style={{ backgroundColor: `${color}24` }}>
-                    <p className="text-sm font-black tabular-nums">{n}<span className="font-medium text-muted-foreground">/{list.length}</span></p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{pct(n, list.length)} %</p>
+                  <div className="shrink-0 rounded-xl px-3 py-2 text-right" style={{ backgroundColor: color, color: "#fff" }}>
+                    <p className="text-sm font-black tabular-nums">{n}<span className="font-medium text-white/80">/{list.length}</span></p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-white/80">{pct(n, list.length)} %</p>
                   </div>
                 </div>
                 <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#f0f0f2]">
