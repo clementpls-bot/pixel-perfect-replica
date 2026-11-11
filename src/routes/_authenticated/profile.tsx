@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCatalog, useOwned } from "@/lib/data";
 import { computeAchievements } from "@/lib/achievements";
-import { pastelCanColor } from "@/lib/can-colors";
+import { canAccentColor } from "@/lib/can-colors";
 import { PROFILE_RING_COLORS, getProfileRingColor, type ProfileRingColor } from "@/lib/profile-colors";
 import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -272,7 +272,7 @@ function Profile() {
       <header className="relative -mt-24 flex flex-col items-center gap-3 text-center">
         <Button size="icon" variant="ghost" className="absolute right-0 top-24 rounded-full" onClick={signOut} aria-label="Se déconnecter"><LogOut /></Button>
         <div className="relative shrink-0">
-          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" ringColor={profile?.avatar_ring_color} className="profile-avatar-ring flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-[5px] border-background bg-pastel-yellow font-display text-5xl font-black text-foreground">
+          <AvatarZoom src={profile?.avatar_url} alt="Photo de profil" ringColor={profile?.avatar_ring_color} className="profile-avatar-ring flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-[5px] border-background bg-[#C7FF00] font-display text-5xl font-black text-[#171923]">
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt="Photo de profil" className="h-full w-full object-cover" />
               : profile?.username?.[0]?.toUpperCase()}
@@ -347,11 +347,11 @@ function Profile() {
         <h2 className="font-display text-xl uppercase tracking-tight">Highlights</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { v: ownedSet.size, l: "Canettes", e: <CanPlaceholder className="h-12 w-8 text-black/70" />, c: "bg-pastel-yellow" },
-            { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-pastel-peach" },
-            { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-pastel-sand" },
-            { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-pastel-blue" },
-          ].map((h) => <div key={h.l} className={`${h.c} bubble-surface relative min-h-[112px] overflow-hidden rounded-[22px] p-4`} style={{ "--bubble-color": h.l === "Canettes" ? "#b5e934" : h.l === "Drinks" ? "#4c9de8" : h.l === "Succès" ? "#d7a84b" : "#ed8d72" } as React.CSSProperties}><span className="absolute bottom-2 right-3 opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-black/60">{h.l}</p></div>)}
+            { v: ownedSet.size, l: "Canettes", e: <CanPlaceholder className="h-12 w-8 text-black/70" />, c: "bg-[#C7FF00] text-[#171923]" },
+            { v: totalExemplaires, l: "Exemplaires", e: "📦", c: "bg-[#FF5A00] text-white" },
+            { v: achievements.filter((a) => a.earned).length, l: "Succès", e: "🏆", c: "bg-[#8B2CFF] text-white" },
+            { v: totalDrinks, l: "Drinks", e: "⚡", c: "bg-[#1677FF] text-white" },
+          ].map((h) => <div key={h.l} className={`${h.c} bubble-surface relative min-h-[112px] overflow-hidden rounded-[22px] p-4`} style={{ "--bubble-color": h.l === "Canettes" ? "#C7FF00" : h.l === "Drinks" ? "#1677FF" : h.l === "Succès" ? "#8B2CFF" : "#FF5A00" } as React.CSSProperties}><span className="absolute bottom-2 right-3 opacity-90">{h.e}</span><p className="relative mt-1 font-display text-3xl tabular-nums leading-none">{h.v}</p><p className="relative mt-1 text-sm font-semibold text-current/80">{h.l}</p></div>)}
         </div>
       </section>}
 
@@ -382,7 +382,7 @@ function Profile() {
             {comments.map((comment) => {
               const can = data.cans.find((item) => item.id === comment.can_id);
               return (
-                <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: pastelCanColor(can?.color_primary) }}>
+                <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: canAccentColor(can?.color_primary) }}>
                   {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>}
                   {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
