@@ -45,11 +45,11 @@
   --popover-foreground: oklch(0.15 0 0);
   --primary: oklch(0.58 0.24 258);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0.07 190);
+  --secondary: oklch(0.72 0.22 190);
   --secondary-foreground: oklch(0.2 0 0);
   --muted: oklch(0.965 0.005 260);
   --muted-foreground: oklch(0.55 0.01 260);
-  --accent: oklch(0.91 0.19 125);
+  --accent: oklch(0.86 0.27 128);
   --accent-foreground: oklch(0.2 0 0);
   --gold: oklch(0.82 0.19 82);
   --success: oklch(0.72 0.12 175);
@@ -58,25 +58,20 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.91 0.005 260);
   --input: oklch(0.91 0.005 260);
-  --ring: oklch(0.58 0.24 258);
-  --pastel-yellow: oklch(0.98 0.06 110);
-  --pastel-peach: oklch(0.97 0.025 60);
-  --pastel-sand: oklch(0.95 0.02 60);
-  --pastel-blue: oklch(0.95 0.03 250);
-  --pastel-mint: oklch(0.95 0.05 165);
-  --gradient-progress: linear-gradient(90deg, oklch(0.95 0.12 105), oklch(0.9 0.15 100));
+  --ring: oklch(0.62 0.29 285);
+  --gradient-progress: linear-gradient(90deg, #c7ff00, #00e676, #00d4ff);
   --glow-primary: 0 8px 26px oklch(0.58 0.24 258 / 24%);
-  --ring-amber: #e5a34c;
-  --ring-coral: #ee8c76;
-  --ring-rose: #e782b1;
-  --ring-red: #d65362;
-  --ring-violet: #a391d7;
-  --ring-blue: #638bd6;
-  --ring-sky: #79b8df;
-  --ring-teal: #47a8ad;
-  --ring-mint: #88cbb1;
-  --ring-green: #79a763;
-  --ring-yellow: #e9c650;
+  --ring-amber: #ff9d00;
+  --ring-coral: #ff4d24;
+  --ring-rose: #ff2f92;
+  --ring-red: #f0003c;
+  --ring-violet: #8b2cff;
+  --ring-blue: #1677ff;
+  --ring-sky: #00cfff;
+  --ring-teal: #00c9a7;
+  --ring-mint: #00e676;
+  --ring-green: #72d600;
+  --ring-yellow: #c7ff00;
   --ring-graphite: #55565d;
 }
 
@@ -96,11 +91,6 @@
 @utility font-display { font-family: var(--font-display); }
 @utility bg-progress { background-image: var(--gradient-progress); }
 @utility shadow-glow { box-shadow: var(--glow-primary); }
-@utility bg-pastel-yellow { background-color: var(--pastel-yellow); }
-@utility bg-pastel-peach { background-color: var(--pastel-peach); }
-@utility bg-pastel-sand { background-color: var(--pastel-sand); }
-@utility bg-pastel-blue { background-color: var(--pastel-blue); }
-@utility bg-pastel-mint { background-color: var(--pastel-mint); }
 @utility chip { display:inline-flex; align-items:center; gap:.4rem; border-radius:.75rem; background:var(--muted); padding:.55rem 1rem; font-weight:700; font-size:.875rem; color:var(--foreground); }
 @utility pill-dark { display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; background:var(--primary); color:var(--primary-foreground); font-weight:700; }
 
@@ -210,17 +200,17 @@
 }
 
 
-/* Pastel aluminium pull-tab: bright enough to feel tactile, soft enough to fit the app. */
+/* Electric aluminium pull-tab with a vivid chromatic reflection. */
 .drink-tab-button {
-  background: linear-gradient(120deg, #f6d6e8 0%, #d8d1ff 35%, #c9e8ff 68%, #d1f0e3 100%);
-  border: 1px solid rgba(124, 105, 170, 0.18);
-  box-shadow: 0 3px 0 rgba(114, 96, 150, 0.13), 0 5px 14px rgba(155, 130, 210, 0.15);
+  background: linear-gradient(115deg, #c7ff00 0%, #00e676 24%, #00cfff 48%, #8b2cff 72%, #ff2f92 100%);
+  border: 1px solid rgba(255,255,255,.72);
+  box-shadow: 0 3px 0 rgba(15,20,35,.18), 0 5px 18px rgba(50,90,255,.2);
   background-size: 180% 180%;
-  animation: tab-pastel-glow 4s ease-in-out infinite;
+  animation: tab-electric-glow 4s ease-in-out infinite;
 }
 .drink-tab-button svg { filter: drop-shadow(0 1px 1px rgba(255,255,255,.9)); }
 .drink-tab-button:active { animation: tab-rattle .22s ease-in-out; }
-@keyframes tab-pastel-glow {
+@keyframes tab-electric-glow {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
@@ -236,14 +226,14 @@
 
 /* Subtle magical shimmer for the can-information contribution button. */
 .contribute-magic-button {
-  color: #6f5799;
-  border-color: rgba(161, 132, 205, .28);
-  background: linear-gradient(110deg, rgba(245, 226, 248, .82), rgba(226, 230, 255, .9), rgba(220, 246, 238, .82));
-  box-shadow: 0 2px 10px rgba(139, 112, 190, .09);
+  color: #fff;
+  border-color: rgba(139, 44, 255, .65);
+  background: linear-gradient(110deg, #6724ed, #1677ff 52%, #00cfff);
+  box-shadow: 0 4px 18px rgba(91, 55, 255, .28);
 }
 .contribute-magic-button:hover {
-  border-color: rgba(161, 132, 205, .55);
-  box-shadow: 0 5px 18px rgba(139, 112, 190, .2);
+  border-color: rgba(0, 207, 255, .9);
+  box-shadow: 0 6px 22px rgba(22, 119, 255, .35);
 }
 .contribute-magic-sheen {
   position: absolute;
@@ -255,7 +245,7 @@
   pointer-events: none;
 }
 .contribute-magic-sparkle {
-  color: #9a78c8;
+  color: #c7ff00;
   animation: contribute-magic-twinkle 2.4s ease-in-out infinite;
 }
 @keyframes contribute-magic-sweep {
@@ -329,14 +319,13 @@
   display: block;
   pointer-events: none;
   border-radius: 9999px;
-  border: 1px solid rgba(255,255,255,.42);
-  background:
-    radial-gradient(circle at 30% 27%, rgba(255,255,255,.42), rgba(255,255,255,.08) 34%, transparent 66%),
-    radial-gradient(circle at 72% 76%, color-mix(in srgb, var(--bubble-color, var(--brand-color, #8bd9d2)) 18%, transparent), transparent 68%);
+  border: 1px solid rgba(255,255,255,.95);
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.98) 0%, rgba(255,255,255,.82) 38%, rgba(255,255,255,.58) 68%, rgba(255,255,255,.22) 100%);
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,.22),
-    0 10px 28px color-mix(in srgb, var(--bubble-color, var(--brand-color, #8bd9d2)) 7%, transparent);
-  opacity: .52;
+    inset 0 2px 8px rgba(255,255,255,.95),
+    inset 0 -8px 22px rgba(255,255,255,.28),
+    0 12px 30px color-mix(in srgb, var(--bubble-color, var(--brand-color, #00cfff)) 12%, transparent);
+  opacity: .88;
 }
 .bubble-surface::before,
 .can-bubble-backdrop::before {
@@ -351,7 +340,7 @@
   aspect-ratio: 1;
   bottom: -94px;
   left: -62px;
-  opacity: .38;
+  opacity: .68;
 }
 .can-bubble-backdrop {
   background:
