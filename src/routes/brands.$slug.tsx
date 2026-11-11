@@ -142,7 +142,7 @@ function BrandPage() {
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {cans.map((can) => {
             const has = owned?.has(can.id) ?? false;
-            const canColor = canAccentColor(can.color_primary || brand.color);
+            const canColor = canAccentColor(can.color_primary, getBrandColor(brand.name, brand.color));
             const facts = [
               can.volume_ml ? `${can.volume_ml} ml` : null,
               can.region,
