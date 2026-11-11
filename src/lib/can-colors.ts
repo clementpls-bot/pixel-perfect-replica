@@ -3,33 +3,33 @@
  * These are accents, not full-page backgrounds: the interface stays black/white.
  */
 const BRAND_COLORS: Record<string, string> = {
-  ghost: "#D7FF3F",
-  ghostenergy: "#D7FF3F",
-  c4: "#F5C400",
-  c4energy: "#F5C400",
-  monster: "#00A84F",
-  redbull: "#1646A0",
-  cocacola: "#E32636",
-  pepsi: "#1756A9",
-  fanta: "#F47A20",
-  sprite: "#35A853",
-  rockstar: "#D6A928",
-  burn: "#E64A24",
-  prime: "#3D70D6",
-  kongstrong: "#E64B2D",
-  alaninu: "#F08AB8",
-  abe: "#3977B8",
-  celsius: "#B7C6D0",
-  bang: "#7C3AED",
-  reign: "#8CC63F",
-  gatorade: "#F36F21",
-  hell: "#D51F35",
-  redbullorganics: "#5A8B59",
-  nos: "#F0A51B",
-  reignstorm: "#8CC63F",
-  ripit: "#D84A35",
-  cult: "#D52B3F",
-  booster: "#E2A52B",
+  ghost: "#C7FF00",
+  ghostenergy: "#C7FF00",
+  c4: "#FFC400",
+  c4energy: "#FFC400",
+  monster: "#00C853",
+  redbull: "#1748FF",
+  cocacola: "#F0003C",
+  pepsi: "#005BFF",
+  fanta: "#FF5A00",
+  sprite: "#00C853",
+  rockstar: "#FFD000",
+  burn: "#FF3B00",
+  prime: "#2855FF",
+  kongstrong: "#FF3B1F",
+  alaninu: "#FF3E9D",
+  abe: "#2678FF",
+  celsius: "#00CFFF",
+  bang: "#8A2BFF",
+  reign: "#A6F000",
+  gatorade: "#FF5A00",
+  hell: "#F0003C",
+  redbullorganics: "#00A86B",
+  nos: "#FF9D00",
+  reignstorm: "#A6F000",
+  ripit: "#FF3B1F",
+  cult: "#F0003C",
+  booster: "#FFB800",
 };
 
 function normalizeBrandName(value: string): string {
@@ -42,7 +42,7 @@ function isUsableBrandColor(value?: string | null): value is string {
 
 /** Stable fallback colour so every brand gets its own identity, even without a DB colour. */
 function generatedBrandColor(name: string): string {
-  const palette = ["#20A4A8", "#8B5CF6", "#D97736", "#C44569", "#3977B8", "#78952B", "#B45A9B", "#A66A36", "#477D72", "#6574C4", "#C05A42", "#6C8FAD"];
+  const palette = ["#20A4A8", "#8B5CF6", "#D97736", "#C44569", "#2678FF", "#78952B", "#B45A9B", "#A66A36", "#477D72", "#6574C4", "#C05A42", "#6C8FAD"];
   const key = normalizeBrandName(name);
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
@@ -58,11 +58,11 @@ export function getBrandColor(name?: string | null, storedColor?: string | null)
   return generatedBrandColor(name || "Cansdex");
 }
 
-/** Blend a can's main colour with white for a soft comment background. */
-export function pastelCanColor(color?: string | null): string {
+/** Return a can's saturated accent for vivid collection and discussion surfaces. */
+export function canAccentColor(color?: string | null): string {
   const match = color?.trim().match(/^#?([0-9a-f]{6})$/i);
-  if (!match) return "hsl(var(--card))";
+  if (!match) return "#ffffff";
   const hex = match[1] ?? "";
   const channels = [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
-  return "#" + channels.map((channel) => Math.round(channel * 0.18 + 255 * 0.82).toString(16).padStart(2, "0")).join("");
+  return "#" + channels.map((channel) => channel.toString(16).padStart(2, "0")).join("");
 }
