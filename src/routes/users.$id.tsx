@@ -10,7 +10,7 @@ import { computeAchievements } from "@/lib/achievements";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanArt } from "@/components/CanArt";
 import { Button } from "@/components/ui/button";
-import { pastelCanColor } from "@/lib/can-colors";
+import { canAccentColor } from "@/lib/can-colors";
 import { AvatarZoom, ProfileBanner } from "@/components/ProfileMedia";
 import { FriendProfileActions } from "@/components/FriendSystem";
 
@@ -171,7 +171,7 @@ function PublicUserProfile() {
       <div><h2 className="font-bold">Son mur</h2><p className="text-xs text-muted-foreground">{wallCans.length} canettes collectionnées</p></div>
       {ownedQuery.isLoading || !catalog ? <p className="text-sm text-muted-foreground">Chargement du mur…</p>
         : !wallCans.length ? <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">Ce mur est encore vide.</p>
-        : <div className="grid grid-cols-3 gap-3">{wallCans.map((can) => <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="rounded-xl border p-2 transition hover:border-primary" style={{ backgroundColor: pastelCanColor(can.color_primary) }}><div className="mx-auto aspect-[2/3] max-w-20"><CanArt can={can} brandName={catalog.brands.find((brand) => brand.id === can.brand_id)?.name} /></div><p className="mt-2 line-clamp-2 text-center text-xs font-semibold">{can.name}</p></Link>)}</div>}
+        : <div className="grid grid-cols-3 gap-3">{wallCans.map((can) => <Link key={can.id} to="/cans/$id" params={{ id: can.id }} className="rounded-xl border p-2 transition hover:border-primary" style={{ backgroundColor: canAccentColor(can.color_primary) }}><div className="mx-auto aspect-[2/3] max-w-20"><CanArt can={can} brandName={catalog.brands.find((brand) => brand.id === can.brand_id)?.name} /></div><p className="mt-2 line-clamp-2 text-center text-xs font-semibold">{can.name}</p></Link>)}</div>}
     </section>}
 
     <section className="space-y-3 rounded-2xl border bg-card p-4">
@@ -191,7 +191,7 @@ function PublicUserProfile() {
         : !comments.data?.comments.length ? <div className="rounded-2xl border border-dashed p-6 text-center"><MessageCircle className="mx-auto h-7 w-7 text-muted-foreground" /><p className="mt-2 text-sm font-semibold">Pas encore de commentaire</p></div>
         : <div className="space-y-3">{comments.data.comments.map((comment) => {
           const can = canMap.get(comment.can_id);
-          return <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: pastelCanColor(can?.color_primary) }}>
+          return <article key={comment.id} className="rounded-2xl border p-4" style={{ backgroundColor: canAccentColor(can?.color_primary) }}>
             {comment.body?.trim() && <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{comment.body}</p>}
             {comment.image_url && <a href={comment.image_url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border bg-muted"><img src={comment.image_url} alt={can ? `Photo partagée sur ${can.name}` : "Photo partagée"} loading="lazy" className="max-h-80 w-full object-contain" /></a>}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
