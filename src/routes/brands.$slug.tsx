@@ -87,13 +87,13 @@ function BrandPage() {
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" />Catalogue
       </Link>
-      <div className="bubble-surface relative isolate overflow-hidden rounded-[28px] p-5 sm:p-7" style={{ background: `linear-gradient(125deg, ${brandColor}, ${brandColor}bb 58%, #171923)`, "--bubble-color": brandColor } as React.CSSProperties}>
+      <div className="bubble-surface relative isolate overflow-hidden rounded-[28px] p-5 sm:p-7" style={{ backgroundColor: brandColor, color: getContrastTextColor(brandColor), "--bubble-color": brandColor } as React.CSSProperties}>
         <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full border-[28px] border-white/10" />
         <div className="relative flex items-center gap-3">
           {brand.logo_url && <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-lg"><img src={brand.logo_url} alt={"Logo " + brand.name} className="max-h-full max-w-full object-contain" loading="lazy" /></div>}
-          <div className="min-w-0"><p className="mb-1 text-[10px] font-extrabold uppercase tracking-[.18em] text-white/75">Univers de la marque</p><h1 className="truncate text-3xl font-black text-white sm:text-4xl">{brand.name}</h1></div>
+          <div className="min-w-0"><p className="mb-1 text-[10px] font-extrabold uppercase tracking-[.18em] opacity-80">Univers de la marque</p><h1 className="truncate text-3xl font-black sm:text-4xl">{brand.name}</h1></div>
         </div>
-        <p className="relative mt-4 text-xs font-semibold text-white/85">{allCans.length} designs à découvrir · {ownedCount} dans ta collection</p>
+        <p className="relative mt-4 text-xs font-semibold opacity-90">{allCans.length} designs à découvrir · {ownedCount} dans ta collection</p>
       </div>
       <div className="bubble-surface mt-4 rounded-[24px] border border-black/5 bg-white p-4 shadow-[0_8px_26px_rgba(20,20,30,.055)]" style={{ "--bubble-color": brandColor } as React.CSSProperties}>
         <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brandColor} />
