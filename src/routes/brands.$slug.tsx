@@ -87,11 +87,15 @@ function BrandPage() {
       <Link to="/brands" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" />Catalogue
       </Link>
-      <div className="flex items-center gap-3">
-        {brand.logo_url && <img src={brand.logo_url} alt={"Logo " + brand.name} className="h-12 w-12 rounded-xl border bg-white p-1 object-contain" loading="lazy" />}
-        <h1 className="text-3xl font-black" style={{ color: brandColor }}>{brand.name}</h1>
+      <div className="relative isolate overflow-hidden rounded-[28px] p-5 sm:p-7" style={{ background: `linear-gradient(125deg, ${brandColor}, ${brandColor}bb 58%, #171923)` }}>
+        <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full border-[28px] border-white/10" />
+        <div className="relative flex items-center gap-3">
+          {brand.logo_url && <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white p-2 shadow-lg"><img src={brand.logo_url} alt={"Logo " + brand.name} className="max-h-full max-w-full object-contain" loading="lazy" /></div>}
+          <div className="min-w-0"><p className="mb-1 text-[10px] font-extrabold uppercase tracking-[.18em] text-white/75">Univers de la marque</p><h1 className="truncate text-3xl font-black text-white sm:text-4xl">{brand.name}</h1></div>
+        </div>
+        <p className="relative mt-4 text-xs font-semibold text-white/85">{allCans.length} designs à découvrir · {ownedCount} dans ta collection</p>
       </div>
-      <div className="mt-4 rounded-2xl border bg-card p-4">
+      <div className="mt-4 rounded-[24px] border border-black/5 bg-white p-4 shadow-[0_8px_26px_rgba(20,20,30,.055)]">
         <ProgressBar label="Canettes collectionnées" value={ownedCount} total={allCans.length} color={brandColor} />
         <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4">
           <div className="min-w-0">
@@ -145,8 +149,11 @@ function BrandPage() {
               can.flavour,
             ].filter(Boolean);
             return (
-              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} search={{ from: `/brands/${slug}` }} className="group rounded-[22px] border border-[#ededf0] bg-white p-3 text-center shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)] active:scale-[0.98]">
-                <CanArt can={can} brandName={brand.name} missing={!has} className="max-w-[68px] group-hover:-translate-y-1" />
+              <Link key={can.id} to="/cans/$id" params={{ id: can.id }} search={{ from: `/brands/${slug}` }} className="energy-card group rounded-[22px] bg-white p-3 text-center active:scale-[0.98]">
+                <div className="relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-[17px] p-3" style={{ background: `linear-gradient(145deg, ${brandColor}24, ${brandColor}08 65%, #f7f8fa)` }}>
+                  <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl opacity-35" style={{ backgroundColor: brandColor }} />
+                  <CanArt can={can} brandName={brand.name} missing={!has} className="relative z-10 max-w-[68px] group-hover:-translate-y-1" />
+                </div>
                 <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
                 {facts.length > 0 && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{facts.join(" · ")}</p>}
                 <div className="mt-1.5 flex flex-wrap justify-center gap-x-2 text-[10px] text-muted-foreground">
