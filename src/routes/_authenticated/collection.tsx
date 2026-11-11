@@ -9,7 +9,7 @@ import { CanArt } from "@/components/CanArt";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { Button } from "@/components/ui/button";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
-import { canAccentColor } from "@/lib/can-colors";
+import { canAccentColor, getBrandColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
