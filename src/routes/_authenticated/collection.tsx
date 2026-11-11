@@ -109,7 +109,8 @@ function Collection() {
             const color = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : "#dfe9f7";
             return (
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }} search={{ from: "/collection" }} className="energy-card group min-w-0 overflow-hidden rounded-[24px] bg-white p-2.5">
-                <div className="can-bubble-backdrop relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ "--brand-color": color } as React.CSSProperties}>\n<span className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2.5 py-1.5 text-[10px] font-bold leading-none tabular-nums text-[#303238] shadow-[0_2px_8px_rgba(20,20,30,.08)] backdrop-blur-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
+                <div className="can-bubble-backdrop relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ "--brand-color": color } as React.CSSProperties}>
+<span className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2.5 py-1.5 text-[10px] font-bold leading-none tabular-nums text-[#303238] shadow-[0_2px_8px_rgba(20,20,30,.08)] backdrop-blur-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
                     <Wine className="h-3 w-3 text-[#777b84]" />{(drinksByCan.get(c.id) ?? 0).toLocaleString("fr-FR")}
                   </span>
                   {brand?.logo_url && <img src={brand.logo_url} alt={brand.name} className="absolute bottom-2 left-2 z-20 h-5 max-w-14 object-contain opacity-90" />}
