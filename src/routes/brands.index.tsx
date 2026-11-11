@@ -68,9 +68,13 @@ function Brands() {
 
   return (
     <div className="pb-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Catalogue</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground">Explore les marques, découvre leurs canettes et complète ta collection.</p>
+      <div className="relative isolate mb-6 overflow-hidden rounded-[28px] bg-[#171923] px-5 py-6 text-white sm:px-7 sm:py-8">
+        <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full bg-[#c7ff38] opacity-90 blur-[1px]" />
+        <div className="pointer-events-none absolute right-24 top-10 h-24 w-24 rounded-full bg-[#ff4e78] opacity-80 blur-2xl" />
+        <div className="relative"><span className="energy-kicker"><span className="h-2 w-2 rounded-full bg-[#c7ff38]" /> Le terrain de jeu</span>
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">CATALOGUE</h1>
+          <p className="mt-2 max-w-xl text-sm text-white/75">Des marques, des couleurs, des canettes à débloquer. À toi de jouer.</p>
+        </div>
       </div>
 
       <CanSearch
@@ -98,11 +102,10 @@ function Brands() {
                 key={b.id}
                 to="/brands/$slug"
                 params={{ slug: b.slug }}
-                className="group relative isolate min-w-0 overflow-hidden rounded-[24px] border border-[#ededf0] bg-white p-3 shadow-[0_2px_12px_rgba(20,20,30,.035)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(20,20,30,.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
-                style={{ background: "#fff" }}
+                className="energy-card group relative isolate min-w-0 rounded-[24px] bg-white p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
               >
-                <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-40 w-40 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-35" style={{ backgroundColor: color }} />
-                <div className="flex h-32 items-center justify-center rounded-[18px] border border-[#f0f0f2] bg-[#f7f8fa] p-4 sm:h-36">
+                <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-44 w-44 rounded-full blur-3xl opacity-40 transition-opacity group-hover:opacity-70" style={{ backgroundColor: color }} />
+                <div className="energy-glow flex h-32 items-center justify-center rounded-[18px] border border-white/40 p-4 sm:h-36" style={{ background: `linear-gradient(135deg, ${color}35, ${color}15, #f7f8fa)` }}>
                   {b.logo_url ? (
                     <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                   ) : (
@@ -117,7 +120,7 @@ function Brands() {
                       {list.length} {list.length > 1 ? "canettes au catalogue" : "canette au catalogue"}
                     </p>
                   </div>
-                  <div className="shrink-0 rounded-xl bg-[#fff4bd] px-3 py-2 text-right">
+                  <div className="shrink-0 rounded-xl px-3 py-2 text-right" style={{ backgroundColor: `${color}24` }}>
                     <p className="text-sm font-black tabular-nums">{n}<span className="font-medium text-muted-foreground">/{list.length}</span></p>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{pct(n, list.length)} %</p>
                   </div>
