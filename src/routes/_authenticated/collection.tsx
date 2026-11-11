@@ -9,6 +9,7 @@ import { CanArt } from "@/components/CanArt";
 import { CanPlaceholder } from "@/components/CanPlaceholder";
 import { Button } from "@/components/ui/button";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
+import { canAccentColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/_authenticated/collection")({
   head: () => ({
@@ -106,10 +107,10 @@ function Collection() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {mine.map((c) => {
             const brand = data.brands.find((b) => b.id === c.brand_id);
-            const color = /^#[0-9a-fA-F]{6}$/.test(brand?.color ?? "") ? brand!.color : "#dfe9f7";
+            const color = canAccentColor(c.color_primary || brand?.color);
             return (
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }} search={{ from: "/collection" }} className="energy-card group min-w-0 overflow-hidden rounded-[24px] bg-white p-2.5">
-                <div className="can-bubble-backdrop relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ "--brand-color": color } as React.CSSProperties}>
+                <div className="can-bubble-backdrop relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ "--can-color": color } as React.CSSProperties}>
 <span className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2.5 py-1.5 text-[10px] font-bold leading-none tabular-nums text-[#303238] shadow-[0_2px_8px_rgba(20,20,30,.08)] backdrop-blur-sm" title={`${drinksByCan.get(c.id) ?? 0} Drinks`}>
                     <Wine className="h-3 w-3 text-[#777b84]" />{(drinksByCan.get(c.id) ?? 0).toLocaleString("fr-FR")}
                   </span>
