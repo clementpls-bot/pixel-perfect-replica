@@ -353,11 +353,6 @@
   left: -62px;
   opacity: .38;
 }
-.bubble-surface > *,
-.can-bubble-backdrop > * {
-  position: relative;
-  z-index: 1;
-}
 .can-bubble-backdrop {
   background:
     radial-gradient(ellipse at 18% 18%, color-mix(in srgb, var(--brand-color) 24%, white) 0%, transparent 52%),
