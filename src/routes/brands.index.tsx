@@ -105,7 +105,7 @@ function Brands() {
                 className="energy-card group relative isolate min-w-0 rounded-[24px] bg-white p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
               >
                 <div className="pointer-events-none absolute -right-9 -top-12 -z-10 h-44 w-44 rounded-full blur-3xl opacity-40 transition-opacity group-hover:opacity-70" style={{ backgroundColor: color }} />
-                <div className="energy-glow flex h-32 items-center justify-center rounded-[18px] border border-white/40 p-4 sm:h-36" style={{ background: `linear-gradient(135deg, ${color}35, ${color}15, #f7f8fa)` }}>
+                <div className="bubble-surface energy-glow flex h-32 items-center justify-center rounded-[18px] border border-white/40 p-4 sm:h-36" style={{ background: `linear-gradient(135deg, ${color}35, ${color}15, #f7f8fa)`, "--bubble-color": color } as React.CSSProperties}>
                   {b.logo_url ? (
                     <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                   ) : (
