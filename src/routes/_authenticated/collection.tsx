@@ -107,7 +107,7 @@ function Collection() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {mine.map((c) => {
             const brand = data.brands.find((b) => b.id === c.brand_id);
-            const color = canAccentColor(c.color_primary || brand?.color);
+            const color = canAccentColor(c.color_primary, getBrandColor(brand?.name, brand?.color));
             return (
               <Link key={c.id} to="/cans/$id" params={{ id: c.id }} search={{ from: "/collection" }} className="energy-card group min-w-0 overflow-hidden rounded-[24px] bg-white p-2.5">
                 <div className="can-bubble-backdrop relative flex h-40 items-center justify-center overflow-hidden rounded-[18px] p-3 sm:h-48" style={{ "--can-color": color } as React.CSSProperties}>
