@@ -79,10 +79,10 @@ function LandingPage() {
   }, [loading, user, navigate]);
 
   return (
-    <div className="cansdex-landing min-h-screen overflow-hidden bg-[#f5f2e9] text-[#171717]">
+    <div className="cansdex-landing min-h-screen overflow-hidden bg-[#ffffff] text-[#171717]">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=DM+Sans:wght@400;500;600;700;800;900&family=Permanent+Marker&display=swap');
-        .cansdex-landing { --ink:#171717; --paper:#f5f2e9; --acid:#d5ff32; --violet:#8660ff; --orange:#ff713d; font-family:'DM Sans',sans-serif; }
+        .cansdex-landing { --ink:#171717; --paper:#ffffff; --acid:#d5ff32; --violet:#8660ff; --orange:#ff713d; font-family:'DM Sans',sans-serif; }
         .cansdex-landing .comic { font-family:'Bowlby One SC',Impact,sans-serif; letter-spacing:-.045em; }
         .cansdex-landing .marker { font-family:'Permanent Marker',cursive; }
         .cansdex-landing .ink-outline { text-shadow: 3px 3px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink),1px 1px 0 var(--ink); }
@@ -111,7 +111,7 @@ function LandingPage() {
         @media (prefers-reduced-motion: reduce) { .cansdex-landing .ticker-track{animation:none}.cansdex-landing *{scroll-behavior:auto!important;transition:none!important} }
       `}</style>
 
-      <header className="relative z-20 border-b-[3px] border-[#171717] bg-[#f5f2e9]">
+      <header className="relative z-20 border-b-[3px] border-[#171717] bg-[#ffffff]">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
           <Link to="/" aria-label="Cansdex, accueil" className="flex items-center gap-2">
             <span className="comic flex h-11 w-11 -rotate-6 items-center justify-center rounded-xl border-[3px] border-[#171717] bg-[#d5ff32] text-2xl comic-shadow-sm">C</span>
@@ -130,7 +130,7 @@ function LandingPage() {
       </header>
 
       <main>
-        <section className="relative isolate overflow-hidden border-b-[3px] border-[#171717] bg-[#f5f2e9]">
+        <section className="relative isolate overflow-hidden border-b-[3px] border-[#171717] bg-[#ffffff]">
           <div className="pointer-events-none absolute -right-20 top-0 h-[580px] w-[580px] rounded-full bg-[#d5ff32] opacity-60 blur-[1px]" />
           <div className="pointer-events-none absolute right-0 top-0 h-full w-[48%] halftone opacity-[.12]" />
           <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1.04fr_.96fr] lg:px-12 lg:py-24">
@@ -221,7 +221,7 @@ function LandingPage() {
           </div>
         </section>
 
-        <section id="features" className="border-b-[3px] border-[#171717] bg-[#f5f2e9] px-5 py-20 sm:px-8 sm:py-28">
+        <section id="features" className="border-b-[3px] border-[#171717] bg-[#ffffff] px-5 py-20 sm:px-8 sm:py-28">
           <div className="mx-auto max-w-[1240px]">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
@@ -255,7 +255,7 @@ function LandingPage() {
               <p className="mt-7 max-w-lg text-base font-medium leading-8 text-white/70">Ta collection évolue avec toi. Visualise tes canettes, tes marques, tes doublons et tes prochaines cibles. Chaque nouvelle pièce te rapproche du mur parfait.</p>
               <Link to="/auth" className="comic-shadow mt-8 inline-flex min-h-14 items-center gap-3 border-[3px] border-[#171717] bg-[#d5ff32] px-6 text-xs font-black uppercase tracking-wide text-[#171717] transition hover:translate-x-1 hover:translate-y-1 hover:shadow-none">Construire mon mur <ArrowRight className="h-5 w-5" /></Link>
             </div>
-            <div className="relative mx-auto w-full max-w-[510px] rotate-2 border-[3px] border-[#171717] bg-[#f5f2e9] p-4 text-[#171717] comic-shadow sm:p-6">
+            <div className="relative mx-auto w-full max-w-[510px] rotate-2 border-[3px] border-[#171717] bg-[#ffffff] p-4 text-[#171717] comic-shadow sm:p-6">
               <div className="flex items-center justify-between border-b-[3px] border-[#171717] pb-3">
                 <div className="flex items-center gap-2"><span className="comic grid h-8 w-8 place-items-center rounded-lg bg-[#d5ff32]">C</span><span className="comic text-sm">MY CANS WALL</span></div>
                 <span className="marker text-xs text-[#8660ff]">collector mode</span>
