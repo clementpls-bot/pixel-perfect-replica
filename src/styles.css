@@ -43,29 +43,29 @@
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  --primary: oklch(0.13 0 0);
+  --primary: oklch(0.58 0.24 258);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.006 260);
+  --secondary: oklch(0.94 0.07 190);
   --secondary-foreground: oklch(0.2 0 0);
   --muted: oklch(0.965 0.005 260);
   --muted-foreground: oklch(0.55 0.01 260);
-  --accent: oklch(0.97 0.08 105);
+  --accent: oklch(0.91 0.19 125);
   --accent-foreground: oklch(0.2 0 0);
-  --gold: oklch(0.88 0.15 95);
+  --gold: oklch(0.82 0.19 82);
   --success: oklch(0.72 0.12 175);
   --success-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.91 0.005 260);
   --input: oklch(0.91 0.005 260);
-  --ring: oklch(0.2 0 0);
+  --ring: oklch(0.58 0.24 258);
   --pastel-yellow: oklch(0.98 0.06 110);
   --pastel-peach: oklch(0.97 0.025 60);
   --pastel-sand: oklch(0.95 0.02 60);
   --pastel-blue: oklch(0.95 0.03 250);
   --pastel-mint: oklch(0.95 0.05 165);
   --gradient-progress: linear-gradient(90deg, oklch(0.95 0.12 105), oklch(0.9 0.15 100));
-  --glow-primary: 0 6px 18px oklch(0 0 0 / 14%);
+  --glow-primary: 0 8px 26px oklch(0.58 0.24 258 / 24%);
   --ring-amber: #e5a34c;
   --ring-coral: #ee8c76;
   --ring-rose: #e782b1;
@@ -269,4 +269,43 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .contribute-magic-sheen, .contribute-magic-sparkle { animation: none; }
+}
+
+
+/* Cansdex energy language: saturated accents, lively light and tactile surfaces. */
+.energy-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(20, 20, 30, .07);
+  box-shadow: 0 5px 18px rgba(20, 20, 30, .055);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.energy-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(20, 20, 30, .12);
+}
+.energy-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border-radius: 9999px;
+  padding: .4rem .75rem;
+  background: #171923;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.energy-glow {
+  background-size: 180% 180%;
+  animation: energy-glow-shift 7s ease-in-out infinite;
+}
+@keyframes energy-glow-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .energy-card, .energy-glow { transition: none; animation: none; }
 }
