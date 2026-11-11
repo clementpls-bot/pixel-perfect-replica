@@ -29,7 +29,7 @@ export function CanArt({ can, brandName, missing, showLock, className }: { can: 
         <img
           src={can.image_url ?? undefined}
           alt={can.name}
-          className={cn("h-full w-full object-contain mix-blend-multiply transition-[transform,filter] duration-300", missing && "grayscale")}
+          className="h-full w-full object-contain mix-blend-multiply transition-transform duration-300"
           style={{ transform: `scale(${scale})` }}
           loading="lazy"
           decoding="async"
