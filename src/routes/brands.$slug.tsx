@@ -7,7 +7,7 @@ import { useCatalog, useOwned } from "@/lib/data";
 import { CanArt } from "@/components/CanArt";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CanSearch, matchesSearch } from "@/components/CanSearch";
-import { getBrandColor } from "@/lib/can-colors";
+import { canAccentColor, getBrandColor, getContrastTextColor } from "@/lib/can-colors";
 
 export const Route = createFileRoute("/brands/$slug")({
   head: ({ params }) => ({
@@ -142,6 +142,7 @@ function BrandPage() {
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {cans.map((can) => {
             const has = owned?.has(can.id) ?? false;
+            const canColor = canAccentColor(can.color_primary || brand.color);
             const facts = [
               can.volume_ml ? `${can.volume_ml} ml` : null,
               can.region,
@@ -150,8 +151,8 @@ function BrandPage() {
             ].filter(Boolean);
             return (
               <Link key={can.id} to="/cans/$id" params={{ id: can.id }} search={{ from: `/brands/${slug}` }} className="energy-card group rounded-[22px] bg-white p-3 text-center active:scale-[0.98]">
-                <div className="bubble-surface relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-[17px] p-3" style={{ background: `linear-gradient(145deg, ${brandColor}, ${brandColor}e6 65%, ${brandColor}cc)`, "--bubble-color": brandColor } as React.CSSProperties}>
-                  <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl opacity-35" style={{ backgroundColor: brandColor }} />
+                <div className="bubble-surface relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-[17px] p-3" style={{ background: `linear-gradient(145deg, ${canColor}, color-mix(in srgb, ${canColor} 86%, black))`, "--bubble-color": canColor } as React.CSSProperties}>
+                  <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl opacity-35" style={{ backgroundColor: canColor }} />
                   <CanArt can={can} brandName={brand.name} missing={!has} className="relative z-10 max-w-[68px] group-hover:-translate-y-1" />
                 </div>
                 <p className={`mt-2 line-clamp-3 text-xs font-bold leading-tight ${has ? "" : "text-muted-foreground"}`}>{can.name}</p>
