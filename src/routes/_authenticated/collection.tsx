@@ -86,13 +86,13 @@ function Collection() {
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <span className="shrink-0 rounded-xl bg-[#24262b] px-4 py-2.5 text-xs font-bold text-white">Sur mon mur</span>
-        <Link to="/brands" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#f3f4f6] px-4 py-2.5 text-xs font-bold text-black">Découvrir le catalogue <ArrowRight className="h-3.5 w-3.5" /></Link>
+        <Link to="/brands" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#1677FF] px-4 py-2.5 text-xs font-bold text-white">Découvrir le catalogue <ArrowRight className="h-3.5 w-3.5" /></Link>
       </div>
       {search.trim() && <p className="text-xs text-muted-foreground">{mine.length} résultat{mine.length > 1 ? "s" : ""}</p>}
 
       {allMine.length === 0 ? (
         <div className="mt-8 rounded-[28px] border border-dashed border-[#d9d9df] bg-white px-6 py-12 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#fff4bd] text-black"><CanPlaceholder className="h-10 w-7" /></div>
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#C7FF00] text-[#171923]"><CanPlaceholder className="h-10 w-7" /></div>
           <h2 className="mt-4 text-xl font-black tracking-tight">Ton mur est encore vide</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Scanne une canette pour l’ajouter à ta collection, ou parcours le catalogue pour trouver ta prochaine pièce.</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
