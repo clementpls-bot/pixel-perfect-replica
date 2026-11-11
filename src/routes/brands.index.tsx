@@ -107,7 +107,7 @@ function Brands() {
                   {b.logo_url ? (
                     <img src={b.logo_url} alt={`Logo ${b.name}`} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                   ) : (
-                    <span className="break-words text-center text-3xl font-black tracking-tight sm:text-4xl" style={{ color }}>{b.name}</span>
+                    <span className="break-words text-center text-3xl font-black tracking-tight sm:text-4xl" style={{ color: getContrastTextColor(color) }}>{b.name}</span>
                   )}
                 </div>
 
