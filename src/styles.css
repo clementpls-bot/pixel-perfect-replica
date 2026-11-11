@@ -309,3 +309,67 @@
 @media (prefers-reduced-motion: reduce) {
   .energy-card, .energy-glow { transition: none; animation: none; }
 }
+
+
+/* Brand-coloured sparkling bubble field behind can artwork in the collection. */
+.can-bubble-backdrop {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 18% 18%, color-mix(in srgb, var(--brand-color) 72%, white) 0%, transparent 48%),
+    radial-gradient(ellipse at 86% 78%, color-mix(in srgb, var(--brand-color) 62%, #00eaff) 0%, transparent 48%),
+    linear-gradient(145deg, color-mix(in srgb, var(--brand-color) 34%, white), #fff 88%);
+}
+.can-bubble-backdrop::before,
+.can-bubble-backdrop::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(1px);
+}
+.can-bubble-backdrop::before {
+  width: 112px;
+  height: 112px;
+  top: -54px;
+  right: -30px;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.8), color-mix(in srgb, var(--brand-color) 45%, #baff00) 48%, transparent 72%);
+  opacity: .8;
+}
+.can-bubble-backdrop::after {
+  width: 90px;
+  height: 90px;
+  bottom: -48px;
+  left: -25px;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.8), color-mix(in srgb, var(--brand-color) 58%, #00eaff) 48%, transparent 74%);
+  opacity: .72;
+}
+.can-bubble-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.can-bubble {
+  position: absolute;
+  display: block;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 24%, rgba(255,255,255,.94), color-mix(in srgb, var(--brand-color) 24%, rgba(255,255,255,.56)) 48%, color-mix(in srgb, var(--brand-color) 35%, transparent) 76%);
+  box-shadow: inset -3px -5px 10px rgba(255,255,255,.18), 0 4px 14px color-mix(in srgb, var(--brand-color) 20%, transparent);
+  opacity: .78;
+  animation: can-bubble-float 6s ease-in-out infinite;
+}
+.can-bubble-one { width: 26px; height: 26px; left: 10%; top: 17%; animation-delay: -1.4s; }
+.can-bubble-two { width: 13px; height: 13px; left: 27%; bottom: 13%; animation-delay: -3.2s; }
+.can-bubble-three { width: 38px; height: 38px; right: 8%; top: 24%; animation-delay: -2.1s; }
+.can-bubble-four { width: 18px; height: 18px; right: 24%; bottom: 12%; animation-delay: -4.4s; }
+.can-bubble-five { width: 10px; height: 10px; left: 18%; top: 55%; animation-delay: -2.8s; }
+.can-bubble-six { width: 22px; height: 22px; right: 14%; top: 65%; animation-delay: -.8s; }
+@keyframes can-bubble-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(.96); }
+  50% { transform: translate3d(3px, -8px, 0) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .can-bubble { animation: none; }
+}
