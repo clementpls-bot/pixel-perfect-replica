@@ -70,11 +70,11 @@ function Collection() {
       </header>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="energy-glow relative flex min-h-[96px] items-center justify-between overflow-hidden rounded-[22px] bg-gradient-to-br from-[#c7ff38] via-[#a7ef36] to-[#53d6b2] p-4 text-[#171923]">
+        <div className="bubble-surface energy-glow relative flex min-h-[96px] items-center justify-between overflow-hidden rounded-[22px] bg-gradient-to-br from-[#c7ff38] via-[#a7ef36] to-[#53d6b2] p-4 text-[#171923]" style={{ "--bubble-color": "#c7ff38" } as React.CSSProperties}>
           <div><p className="text-3xl font-black leading-none tabular-nums">{allMine.length}</p><p className="mt-1 text-xs font-extrabold uppercase tracking-wide text-black/65">Canettes</p></div>
           <CanPlaceholder className="h-12 w-9 text-black/70" />
         </div>
-        <div className="energy-glow relative flex min-h-[96px] items-center justify-between overflow-hidden rounded-[22px] bg-gradient-to-br from-[#6256f5] via-[#9a55ed] to-[#ed5a9c] p-4 text-white">
+        <div className="bubble-surface energy-glow relative flex min-h-[96px] items-center justify-between overflow-hidden rounded-[22px] bg-gradient-to-br from-[#6256f5] via-[#9a55ed] to-[#ed5a9c] p-4 text-white" style={{ "--bubble-color": "#a66af0" } as React.CSSProperties}>
           <div><p className="text-3xl font-black leading-none tabular-nums">{data.brands.filter((brand) => data.cans.some((can) => can.brand_id === brand.id && owned.has(can.id))).length}</p><p className="mt-1 text-xs font-extrabold uppercase tracking-wide text-white/75">Marques représentées</p></div>
           <span className="text-4xl drop-shadow-md" aria-hidden="true">✦</span>
         </div>
