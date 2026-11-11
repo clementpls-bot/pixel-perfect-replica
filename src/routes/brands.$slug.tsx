@@ -150,7 +150,7 @@ function BrandPage() {
             ].filter(Boolean);
             return (
               <Link key={can.id} to="/cans/$id" params={{ id: can.id }} search={{ from: `/brands/${slug}` }} className="energy-card group rounded-[22px] bg-white p-3 text-center active:scale-[0.98]">
-                <div className="bubble-surface relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-[17px] p-3" style={{ background: `linear-gradient(145deg, ${brandColor}24, ${brandColor}08 65%, #f7f8fa)`, "--bubble-color": brandColor } as React.CSSProperties}>
+                <div className="bubble-surface relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-[17px] p-3" style={{ background: `linear-gradient(145deg, ${brandColor}, ${brandColor}e6 65%, ${brandColor}cc)`, "--bubble-color": brandColor } as React.CSSProperties}>
                   <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl opacity-35" style={{ backgroundColor: brandColor }} />
                   <CanArt can={can} brandName={brand.name} missing={!has} className="relative z-10 max-w-[68px] group-hover:-translate-y-1" />
                 </div>
