@@ -24,6 +24,7 @@ const BRAND_COLORS: Record<string, string> = {
   reign: "#A6F000",
   gatorade: "#FF5A00",
   hell: "#F0003C",
+  venergy: "#00B14F",
   redbullorganics: "#00A86B",
   nos: "#FF9D00",
   reignstorm: "#A6F000",
