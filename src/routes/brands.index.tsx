@@ -32,6 +32,7 @@ const popularBrandOrder = [
   "prime",
   "celsius",
   "hell",
+  "venergy",
   "gatorade",
 ];
 
