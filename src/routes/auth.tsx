@@ -25,7 +25,6 @@ function AuthPage() {
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,12 +34,13 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     if (mode === "up") {
+      const fallbackUsername = `collector${Math.random().toString(36).slice(2, 9)}`;
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { emailRedirectTo: window.location.origin, data: { username } },
+        options: { emailRedirectTo: window.location.origin, data: { username: fallbackUsername } },
       });
       if (error) toast.error(error.message);
-      else toast.success("Consultez vos e-mails pour confirmer votre compte.");
+      else toast.success("Compte créé ! Consulte tes e-mails pour confirmer ton adresse, puis découvre Cansdex.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) toast.error(error.message);
@@ -56,12 +56,11 @@ function AuthPage() {
   return (
     <div className="pt-8">
       <h1 className="text-3xl font-black">CANS<span className="text-primary">DEX</span></h1>
-      <p className="mt-2 text-muted-foreground">{mode === "in" ? "Bon retour parmi les collectionneurs." : "Commencez votre collection."}</p>
+      <p className="mt-2 text-muted-foreground">{mode === "in" ? "Bon retour parmi les collectionneurs." : "Prêt à faire grandir ta collection ?"}</p>
       <form onSubmit={submit} className="mt-8 space-y-3">
-        {mode === "up" && <Input placeholder="Nom d’utilisateur" value={username} onChange={(e) => setUsername(e.target.value)} required className="h-12 rounded-xl" />}
         <Input type="email" placeholder="Adresse e-mail" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 rounded-xl" />
         <Input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="h-12 rounded-xl" />
-        <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl font-bold">{mode === "in" ? "Se connecter" : "Créer un compte"}</Button>
+        <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl font-bold">{busy ? "Un instant…" : mode === "in" ? "Se connecter" : "Créer mon compte"}</Button>
       </form>
       <Button variant="secondary" onClick={google} className="mt-3 h-12 w-full rounded-xl font-semibold">Continuer avec Google</Button>
       <button onClick={() => setMode(mode === "in" ? "up" : "in")} className="mt-6 w-full text-sm text-muted-foreground">
