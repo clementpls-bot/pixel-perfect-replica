@@ -32,7 +32,7 @@ export function OnboardingFlow() {
     queryKey: ["first-login-onboarding", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles")
+      const { data, error } = await (supabase as any).from("profiles")
         .select("id,username,display_name,avatar_url,onboarding_completed")
         .eq("id", user!.id).maybeSingle();
       if (error) throw error;
@@ -59,10 +59,10 @@ export function OnboardingFlow() {
         });
         if (uploadError) throw uploadError;
         const { data: publicUrl } = supabase.storage.from("profile-avatars").getPublicUrl(path);
-        const { error } = await supabase.from("profiles").update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
+        const { error } = await (supabase as any).from("profiles").update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
         if (error) throw error;
       }
-      const { error } = await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", user.id);
+      const { error } = await (supabase as any).from("profiles").update({ onboarding_completed: true }).eq("id", user.id);
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["first-login-onboarding", user.id] });
       await qc.invalidateQueries({ queryKey: ["profile", user.id] });
@@ -84,7 +84,7 @@ export function OnboardingFlow() {
     }
     setSaving(true);
     try {
-      const { error } = await supabase.from("profiles").update({ username: next, display_name: next }).eq("id", user.id);
+      const { error } = await (supabase as any).from("profiles").update({ username: next, display_name: next }).eq("id", user.id);
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["first-login-onboarding", user.id] });
       setStep(1);
@@ -138,8 +138,6 @@ export function OnboardingFlow() {
               <h1 className="mt-3 max-w-md text-3xl font-black leading-[1.05] tracking-[-.05em] sm:text-4xl">{chapters[step - 1]!.title}</h1>
               <p className="mt-4 text-base leading-7 text-[#555965]">{chapters[step - 1]!.copy}</p>
               <div className="mt-6 rounded-2xl bg-[#f4f5f8] p-4 text-sm font-semibold leading-6 text-[#454955]">{chapters[step - 1]!.detail}</div>
-              {step === 1 && <Button variant="outline" onClick={() => navigate({ to: "/scan" })} className="mt-5 h-11 rounded-xl border-[#dfe0e5]"><ScanBarcode className="mr-2 h-4 w-4" /> Découvrir le scanner</Button>}
-              {step === 3 && <Button variant="outline" onClick={() => navigate({ to: "/profile" })} className="mt-5 h-11 rounded-xl border-[#dfe0e5]"><Users className="mr-2 h-4 w-4" /> Voir l’espace amis</Button>}
             </>
           ) : (
             <>
