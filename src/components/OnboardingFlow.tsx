@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Camera, Check, MessageCircle, ScanBarcode, Trophy, Wine, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, MessageCircle, ScanBarcode, Wine, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
