@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, MessageCircle, ScanBarcode, Wine, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -68,7 +68,7 @@ export function OnboardingFlow() {
           toast.success("Bienvenue dans le crew Cansdex !");
           navigate({ to: "/collection", replace: true });
         } else {
-          finishIntro();
+          try { window.localStorage.setItem(INTRO_KEY, "1"); } catch { /* Storage may be unavailable. */ }
           setConfirmationPending(true);
         }
       } else {
