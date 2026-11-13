@@ -17,6 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { BottomNav } from "@/components/BottomNav";
 import { BatOverlay } from "@/components/BatOverlay";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -146,6 +147,7 @@ function RootComponent() {
         </main>
         {!isLandingPage && <BottomNav />}
         {!isLandingPage && <BatOverlay />}
+        <OnboardingFlow />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
